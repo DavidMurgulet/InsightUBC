@@ -1,0 +1,720 @@
+{
+	"title": "validPass&Dept",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"GT": {
+						"sections_pass": 400
+					}
+				},
+				{
+					"IS": {
+						"sections_dept": "biol"
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg",
+				"sections_pass",
+				"sections_fail",
+				"sections_audit",
+				"sections_year"
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "biol",
+			"sections_avg": 67.77,
+			"sections_pass": 1307,
+			"sections_fail": 162,
+			"sections_audit": 1,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 69.72,
+			"sections_pass": 1546,
+			"sections_fail": 137,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 70.02,
+			"sections_pass": 1578,
+			"sections_fail": 150,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 80.53,
+			"sections_pass": 1153,
+			"sections_fail": 26,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 68.77,
+			"sections_pass": 1215,
+			"sections_fail": 230,
+			"sections_audit": 1,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 73.56,
+			"sections_pass": 1630,
+			"sections_fail": 69,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 69.89,
+			"sections_pass": 1442,
+			"sections_fail": 116,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 76.47,
+			"sections_pass": 1710,
+			"sections_fail": 53,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 74.49,
+			"sections_pass": 1586,
+			"sections_fail": 84,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 69.77,
+			"sections_pass": 1419,
+			"sections_fail": 142,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 66.88,
+			"sections_pass": 1648,
+			"sections_fail": 147,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 66.78,
+			"sections_pass": 1768,
+			"sections_fail": 162,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 68.22,
+			"sections_pass": 1780,
+			"sections_fail": 110,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 66.69,
+			"sections_pass": 1670,
+			"sections_fail": 116,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.91,
+			"sections_pass": 1761,
+			"sections_fail": 73,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 67.69,
+			"sections_pass": 1758,
+			"sections_fail": 136,
+			"sections_audit": 1,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 71.98,
+			"sections_pass": 1760,
+			"sections_fail": 84,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 70.95,
+			"sections_pass": 1795,
+			"sections_fail": 73,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 67.49,
+			"sections_pass": 1817,
+			"sections_fail": 131,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.64,
+			"sections_pass": 1483,
+			"sections_fail": 15,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.55,
+			"sections_pass": 1525,
+			"sections_fail": 17,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.62,
+			"sections_pass": 586,
+			"sections_fail": 9,
+			"sections_audit": 0,
+			"sections_year": 2012
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.84,
+			"sections_pass": 915,
+			"sections_fail": 8,
+			"sections_audit": 0,
+			"sections_year": 2012
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.75,
+			"sections_pass": 1501,
+			"sections_fail": 17,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.26,
+			"sections_pass": 1476,
+			"sections_fail": 14,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 70.44,
+			"sections_pass": 521,
+			"sections_fail": 12,
+			"sections_audit": 0,
+			"sections_year": 2014
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 73.66,
+			"sections_pass": 797,
+			"sections_fail": 8,
+			"sections_audit": 0,
+			"sections_year": 2014
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.38,
+			"sections_pass": 1318,
+			"sections_fail": 20,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.86,
+			"sections_pass": 1518,
+			"sections_fail": 10,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 80.34,
+			"sections_pass": 544,
+			"sections_fail": 2,
+			"sections_audit": 0,
+			"sections_year": 2015
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 81.42,
+			"sections_pass": 833,
+			"sections_fail": 2,
+			"sections_audit": 0,
+			"sections_year": 2015
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 80.99,
+			"sections_pass": 1377,
+			"sections_fail": 4,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.92,
+			"sections_pass": 591,
+			"sections_fail": 5,
+			"sections_audit": 0,
+			"sections_year": 2013
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.85,
+			"sections_pass": 910,
+			"sections_fail": 14,
+			"sections_audit": 0,
+			"sections_year": 2013
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.88,
+			"sections_pass": 1501,
+			"sections_fail": 19,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.66,
+			"sections_pass": 1571,
+			"sections_fail": 26,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 64.98,
+			"sections_pass": 915,
+			"sections_fail": 196,
+			"sections_audit": 0,
+			"sections_year": 2007
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 64.73,
+			"sections_pass": 958,
+			"sections_fail": 204,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 70,
+			"sections_pass": 1087,
+			"sections_fail": 66,
+			"sections_audit": 3,
+			"sections_year": 2011
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 69.54,
+			"sections_pass": 1147,
+			"sections_fail": 86,
+			"sections_audit": 7,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 69.09,
+			"sections_pass": 1084,
+			"sections_fail": 122,
+			"sections_audit": 0,
+			"sections_year": 2012
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 68.7,
+			"sections_pass": 1133,
+			"sections_fail": 133,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 68.58,
+			"sections_pass": 999,
+			"sections_fail": 128,
+			"sections_audit": 1,
+			"sections_year": 2008
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 68.25,
+			"sections_pass": 1062,
+			"sections_fail": 143,
+			"sections_audit": 2,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 71.78,
+			"sections_pass": 1126,
+			"sections_fail": 72,
+			"sections_audit": 2,
+			"sections_year": 2014
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 71.78,
+			"sections_pass": 1126,
+			"sections_fail": 72,
+			"sections_audit": 6,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 73.45,
+			"sections_pass": 1158,
+			"sections_fail": 24,
+			"sections_audit": 0,
+			"sections_year": 2010
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.56,
+			"sections_pass": 1257,
+			"sections_fail": 45,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 73.7,
+			"sections_pass": 1174,
+			"sections_fail": 95,
+			"sections_audit": 1,
+			"sections_year": 2015
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 73.7,
+			"sections_pass": 1174,
+			"sections_fail": 95,
+			"sections_audit": 2,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 69.34,
+			"sections_pass": 1126,
+			"sections_fail": 74,
+			"sections_audit": 0,
+			"sections_year": 2013
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 69.19,
+			"sections_pass": 1146,
+			"sections_fail": 81,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 70.48,
+			"sections_pass": 1026,
+			"sections_fail": 106,
+			"sections_audit": 1,
+			"sections_year": 2009
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 69.92,
+			"sections_pass": 1091,
+			"sections_fail": 123,
+			"sections_audit": 2,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 74.53,
+			"sections_pass": 750,
+			"sections_fail": 25,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 75.27,
+			"sections_pass": 822,
+			"sections_fail": 34,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 74.68,
+			"sections_pass": 679,
+			"sections_fail": 24,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 76.5,
+			"sections_pass": 854,
+			"sections_fail": 24,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 74.58,
+			"sections_pass": 733,
+			"sections_fail": 36,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.38,
+			"sections_pass": 884,
+			"sections_fail": 86,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 73.02,
+			"sections_pass": 709,
+			"sections_fail": 40,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 75.28,
+			"sections_pass": 729,
+			"sections_fail": 15,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.45,
+			"sections_pass": 804,
+			"sections_fail": 58,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 68.07,
+			"sections_pass": 535,
+			"sections_fail": 32,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 69.88,
+			"sections_pass": 518,
+			"sections_fail": 19,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 71.85,
+			"sections_pass": 505,
+			"sections_fail": 20,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 73.67,
+			"sections_pass": 535,
+			"sections_fail": 24,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 68.82,
+			"sections_pass": 517,
+			"sections_fail": 31,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 70.95,
+			"sections_pass": 670,
+			"sections_fail": 30,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 71.97,
+			"sections_pass": 684,
+			"sections_fail": 25,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 69.02,
+			"sections_pass": 603,
+			"sections_fail": 60,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 68.27,
+			"sections_pass": 646,
+			"sections_fail": 44,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 74.26,
+			"sections_pass": 423,
+			"sections_fail": 2,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 72.89,
+			"sections_pass": 488,
+			"sections_fail": 16,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 80.27,
+			"sections_pass": 456,
+			"sections_fail": 13,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 76.42,
+			"sections_pass": 500,
+			"sections_fail": 20,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 76.46,
+			"sections_pass": 477,
+			"sections_fail": 13,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 75.84,
+			"sections_pass": 437,
+			"sections_fail": 17,
+			"sections_audit": 2,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 78.04,
+			"sections_pass": 413,
+			"sections_fail": 11,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 76.85,
+			"sections_pass": 440,
+			"sections_fail": 22,
+			"sections_audit": 2,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 76.08,
+			"sections_pass": 477,
+			"sections_fail": 18,
+			"sections_audit": 1,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 80.06,
+			"sections_pass": 452,
+			"sections_fail": 12,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 76.87,
+			"sections_pass": 408,
+			"sections_fail": 18,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 74.62,
+			"sections_pass": 508,
+			"sections_fail": 6,
+			"sections_audit": 1,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 71.96,
+			"sections_pass": 412,
+			"sections_fail": 6,
+			"sections_audit": 0,
+			"sections_year": 1900
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 73.05,
+			"sections_pass": 448,
+			"sections_fail": 9,
+			"sections_audit": 1,
+			"sections_year": 1900
+		}
+	]
+}

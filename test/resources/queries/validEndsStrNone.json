@@ -1,0 +1,19 @@
+{
+	"title": "validEndsStrNone",
+	"input": {
+		"WHERE": {
+			"IS": {
+				"sections_dept": "*z"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			],
+			"ORDER": "sections_avg"
+		}
+	},
+	"errorExpected": false,
+	"expected": []
+}

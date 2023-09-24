@@ -1,0 +1,13 @@
+{
+	"title": "invalidNoWhereNoOPTIONSNoCol",
+	"input": {
+		"Ns": {
+			"GT": {
+				"sections_avg": 97
+			}
+		},
+		"d": {}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

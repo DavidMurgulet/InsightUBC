@@ -1,0 +1,19 @@
+{
+  "title": "multipleDataErrorQ",
+  "input": {
+    "WHERE": {
+      "GT": {
+        "sections_avg": 90
+      }
+    },
+    "OPTIONS": {
+      "COLUMNS": [
+        "alt_dept",
+        "alt_avg"
+      ],
+      "ORDER": "alt_avg"
+    }
+  },
+  "errorExpected": true,
+  "expected": "InsightError"
+}

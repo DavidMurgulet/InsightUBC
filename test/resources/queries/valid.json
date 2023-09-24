@@ -1,0 +1,132 @@
+{
+	"title": "valid",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"GT": {
+						"sections_avg": 90
+					}
+				},
+				{
+					"IS": {
+						"sections_dept": "biol"
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "biol",
+			"sections_avg": 92.19
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 92.19
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.48
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.48
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 91.21
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 91.21
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.92
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.92
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 92
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 92
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 92.1
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 92.1
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.17
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.17
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.42
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.42
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.42
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.42
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.74
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.74
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.63
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 90.63
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 94.33
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 94.33
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 92.36
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 92.36
+		}
+	]
+}
