@@ -1,0 +1,21 @@
+{
+	"title": "invalidKeyInOPTIONS",
+	"input": {
+		"WHERE": {
+			"LT": {
+				"sections_avg": 60
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			],
+			"NOT": {
+				"ORDER": "sections_avg"
+			}
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

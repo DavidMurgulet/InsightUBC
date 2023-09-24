@@ -1,0 +1,576 @@
+{
+	"title": "validYRandGTAvg",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"EQ": {
+						"sections_year": 2015
+					}
+				},
+				{
+					"GT": {
+						"sections_avg": 92
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "aanb",
+			"sections_avg": 94.44
+		},
+		{
+			"sections_dept": "adhe",
+			"sections_avg": 96.11
+		},
+		{
+			"sections_dept": "adhe",
+			"sections_avg": 92.54
+		},
+		{
+			"sections_dept": "audi",
+			"sections_avg": 92.92
+		},
+		{
+			"sections_dept": "biof",
+			"sections_avg": 92.33
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 94.33
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 92.36
+		},
+		{
+			"sections_dept": "cell",
+			"sections_avg": 92.4
+		},
+		{
+			"sections_dept": "chbe",
+			"sections_avg": 94.75
+		},
+		{
+			"sections_dept": "chbe",
+			"sections_avg": 95.31
+		},
+		{
+			"sections_dept": "cnps",
+			"sections_avg": 92.66
+		},
+		{
+			"sections_dept": "cnps",
+			"sections_avg": 95.78
+		},
+		{
+			"sections_dept": "cnps",
+			"sections_avg": 92.38
+		},
+		{
+			"sections_dept": "cnps",
+			"sections_avg": 92.71
+		},
+		{
+			"sections_dept": "cnps",
+			"sections_avg": 92.95
+		},
+		{
+			"sections_dept": "cnps",
+			"sections_avg": 94.05
+		},
+		{
+			"sections_dept": "cnps",
+			"sections_avg": 92.71
+		},
+		{
+			"sections_dept": "crwr",
+			"sections_avg": 92.17
+		},
+		{
+			"sections_dept": "crwr",
+			"sections_avg": 95
+		},
+		{
+			"sections_dept": "crwr",
+			"sections_avg": 94
+		},
+		{
+			"sections_dept": "crwr",
+			"sections_avg": 93.33
+		},
+		{
+			"sections_dept": "crwr",
+			"sections_avg": 92.2
+		},
+		{
+			"sections_dept": "eced",
+			"sections_avg": 92.87
+		},
+		{
+			"sections_dept": "econ",
+			"sections_avg": 92.5
+		},
+		{
+			"sections_dept": "edcp",
+			"sections_avg": 92.2
+		},
+		{
+			"sections_dept": "edcp",
+			"sections_avg": 93.56
+		},
+		{
+			"sections_dept": "edcp",
+			"sections_avg": 93.25
+		},
+		{
+			"sections_dept": "edst",
+			"sections_avg": 92.19
+		},
+		{
+			"sections_dept": "edst",
+			"sections_avg": 94.93
+		},
+		{
+			"sections_dept": "edst",
+			"sections_avg": 94.06
+		},
+		{
+			"sections_dept": "educ",
+			"sections_avg": 93.47
+		},
+		{
+			"sections_dept": "educ",
+			"sections_avg": 97.5
+		},
+		{
+			"sections_dept": "eece",
+			"sections_avg": 94.71
+		},
+		{
+			"sections_dept": "eece",
+			"sections_avg": 92.5
+		},
+		{
+			"sections_dept": "elec",
+			"sections_avg": 93.93
+		},
+		{
+			"sections_dept": "elec",
+			"sections_avg": 93.88
+		},
+		{
+			"sections_dept": "eosc",
+			"sections_avg": 92.5
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.75
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 94.24
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 94.24
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 94.48
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 93.23
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 93
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 94.08
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.8
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.26
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.75
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 95.5
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 95.67
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.87
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.87
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 96.21
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.59
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.87
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.7
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.25
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.17
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 93.33
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.25
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 93.56
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.83
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 94.67
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 94.13
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.92
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.42
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 92.83
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 94.85
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 94.18
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 93.91
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 94.47
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 94.14
+		},
+		{
+			"sections_dept": "epse",
+			"sections_avg": 93.25
+		},
+		{
+			"sections_dept": "etec",
+			"sections_avg": 93.32
+		},
+		{
+			"sections_dept": "etec",
+			"sections_avg": 93.05
+		},
+		{
+			"sections_dept": "etec",
+			"sections_avg": 92.83
+		},
+		{
+			"sections_dept": "etec",
+			"sections_avg": 92.52
+		},
+		{
+			"sections_dept": "etec",
+			"sections_avg": 94
+		},
+		{
+			"sections_dept": "etec",
+			"sections_avg": 92.56
+		},
+		{
+			"sections_dept": "etec",
+			"sections_avg": 93.95
+		},
+		{
+			"sections_dept": "fipr",
+			"sections_avg": 96.4
+		},
+		{
+			"sections_dept": "fnh",
+			"sections_avg": 93.05
+		},
+		{
+			"sections_dept": "frst",
+			"sections_avg": 92.27
+		},
+		{
+			"sections_dept": "frst",
+			"sections_avg": 96.36
+		},
+		{
+			"sections_dept": "gpp",
+			"sections_avg": 93.04
+		},
+		{
+			"sections_dept": "hgse",
+			"sections_avg": 93.57
+		},
+		{
+			"sections_dept": "itst",
+			"sections_avg": 92.75
+		},
+		{
+			"sections_dept": "kin",
+			"sections_avg": 95
+		},
+		{
+			"sections_dept": "kin",
+			"sections_avg": 94.29
+		},
+		{
+			"sections_dept": "kin",
+			"sections_avg": 94.92
+		},
+		{
+			"sections_dept": "libr",
+			"sections_avg": 96.1
+		},
+		{
+			"sections_dept": "ling",
+			"sections_avg": 92.25
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 92.5
+		},
+		{
+			"sections_dept": "math",
+			"sections_avg": 95.67
+		},
+		{
+			"sections_dept": "math",
+			"sections_avg": 96.25
+		},
+		{
+			"sections_dept": "math",
+			"sections_avg": 93.11
+		},
+		{
+			"sections_dept": "math",
+			"sections_avg": 93.11
+		},
+		{
+			"sections_dept": "math",
+			"sections_avg": 93.5
+		},
+		{
+			"sections_dept": "math",
+			"sections_avg": 92.08
+		},
+		{
+			"sections_dept": "math",
+			"sections_avg": 94.33
+		},
+		{
+			"sections_dept": "medg",
+			"sections_avg": 92.14
+		},
+		{
+			"sections_dept": "medi",
+			"sections_avg": 92.38
+		},
+		{
+			"sections_dept": "medi",
+			"sections_avg": 93
+		},
+		{
+			"sections_dept": "micb",
+			"sections_avg": 94.17
+		},
+		{
+			"sections_dept": "midw",
+			"sections_avg": 92.4
+		},
+		{
+			"sections_dept": "midw",
+			"sections_avg": 93.75
+		},
+		{
+			"sections_dept": "mine",
+			"sections_avg": 92.67
+		},
+		{
+			"sections_dept": "mtrl",
+			"sections_avg": 92.89
+		},
+		{
+			"sections_dept": "musc",
+			"sections_avg": 93.35
+		},
+		{
+			"sections_dept": "musc",
+			"sections_avg": 92.67
+		},
+		{
+			"sections_dept": "musc",
+			"sections_avg": 95.38
+		},
+		{
+			"sections_dept": "nurs",
+			"sections_avg": 98.21
+		},
+		{
+			"sections_dept": "nurs",
+			"sections_avg": 94
+		},
+		{
+			"sections_dept": "nurs",
+			"sections_avg": 97.53
+		},
+		{
+			"sections_dept": "nurs",
+			"sections_avg": 94.29
+		},
+		{
+			"sections_dept": "pcth",
+			"sections_avg": 93
+		},
+		{
+			"sections_dept": "phar",
+			"sections_avg": 92.85
+		},
+		{
+			"sections_dept": "phrm",
+			"sections_avg": 94.23
+		},
+		{
+			"sections_dept": "phrm",
+			"sections_avg": 92.06
+		},
+		{
+			"sections_dept": "phys",
+			"sections_avg": 93.31
+		},
+		{
+			"sections_dept": "phys",
+			"sections_avg": 95.43
+		},
+		{
+			"sections_dept": "plan",
+			"sections_avg": 92.9
+		},
+		{
+			"sections_dept": "psyc",
+			"sections_avg": 96
+		},
+		{
+			"sections_dept": "psyc",
+			"sections_avg": 95.75
+		},
+		{
+			"sections_dept": "psyc",
+			"sections_avg": 93.25
+		},
+		{
+			"sections_dept": "sans",
+			"sections_avg": 92.5
+		},
+		{
+			"sections_dept": "sowk",
+			"sections_avg": 92.88
+		},
+		{
+			"sections_dept": "sowk",
+			"sections_avg": 95
+		},
+		{
+			"sections_dept": "spph",
+			"sections_avg": 96.96
+		},
+		{
+			"sections_dept": "spph",
+			"sections_avg": 93.89
+		},
+		{
+			"sections_dept": "spph",
+			"sections_avg": 98.98
+		},
+		{
+			"sections_dept": "spph",
+			"sections_avg": 92.08
+		},
+		{
+			"sections_dept": "spph",
+			"sections_avg": 93.73
+		},
+		{
+			"sections_dept": "spph",
+			"sections_avg": 92.5
+		},
+		{
+			"sections_dept": "spph",
+			"sections_avg": 92.39
+		},
+		{
+			"sections_dept": "spph",
+			"sections_avg": 93.2
+		},
+		{
+			"sections_dept": "spph",
+			"sections_avg": 93.58
+		},
+		{
+			"sections_dept": "spph",
+			"sections_avg": 94.36
+		}
+	]
+}
