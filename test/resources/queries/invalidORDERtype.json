@@ -1,0 +1,22 @@
+{
+	"title": "invalidORDERtype",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 97
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			],
+			"ORDER": [
+				"sections_avg",
+				"sections_stdev"
+			]
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

@@ -1,0 +1,92 @@
+{
+	"title": "validGTyrandLTavg",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"GT": {
+						"sections_year": 2015
+					}
+				},
+				{
+					"LT": {
+						"sections_avg": 60
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "busi",
+			"sections_avg": 4
+		},
+		{
+			"sections_dept": "chem",
+			"sections_avg": 53
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 52.4
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 57.33
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 51.14
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 56.43
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 52.69
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 59.43
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 58.47
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 59.23
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 55.86
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 57.38
+		},
+		{
+			"sections_dept": "lled",
+			"sections_avg": 57.79
+		},
+		{
+			"sections_dept": "math",
+			"sections_avg": 59.59
+		},
+		{
+			"sections_dept": "math",
+			"sections_avg": 56.26
+		},
+		{
+			"sections_dept": "poli",
+			"sections_avg": 54.01
+		}
+	]
+}

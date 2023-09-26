@@ -1,0 +1,66 @@
+{
+	"title": "validNotORNotLTNotISSmall",
+	"input": {
+		"WHERE": {
+			"NOT": {
+				"OR": [
+					{
+						"NOT": {
+							"LT": {
+								"sections_avg": 60
+							}
+						}
+					},
+					{
+						"NOT": {
+							"IS": {
+								"sections_dept": "biol"
+							}
+						}
+					}
+				]
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "biol",
+			"sections_avg": 59.45
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 55.96
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 58.9
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 57.32
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 59.67
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 59.08
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 59.35
+		},
+		{
+			"sections_dept": "biol",
+			"sections_avg": 56.42
+		}
+	]
+}

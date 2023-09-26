@@ -1,0 +1,19 @@
+{
+	"title": "invalidWrongOrderKey",
+	"input": {
+		"WHERE": {
+			"EQ": {
+				"sections_avg": 60
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			],
+			"ORDER": "sections_title"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

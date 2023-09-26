@@ -1,0 +1,19 @@
+{
+	"title": "invalidEQfil",
+	"input": {
+		"WHERE": {
+			"EQ": {
+				"sections_avg": "fil"
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			],
+			"ORDER": "sections_avg"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

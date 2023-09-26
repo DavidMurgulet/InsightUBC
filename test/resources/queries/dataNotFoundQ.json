@@ -1,0 +1,19 @@
+{
+	"title": "dataNotFoundQ",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"c_avg": 97
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"c_avg",
+				"c_avg"
+			],
+			"ORDER": "c_avg"
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

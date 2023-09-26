@@ -1,0 +1,42 @@
+{
+	"title": "validNotORNotEQNotISwcardPRE",
+	"input": {
+		"WHERE": {
+			"NOT": {
+				"OR": [
+					{
+						"NOT": {
+							"EQ": {
+								"sections_avg": 95
+							}
+						}
+					},
+					{
+						"NOT": {
+							"IS": {
+								"sections_dept": "b*"
+							}
+						}
+					}
+				]
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"sections_avg"
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "bmeg",
+			"sections_avg": 95
+		},
+		{
+			"sections_dept": "bmeg",
+			"sections_avg": 95
+		}
+	]
+}
