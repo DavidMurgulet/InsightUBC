@@ -29,6 +29,33 @@ async function isBase64Zip(content: string): Promise<boolean> {
 
 }
 
+async function validateDataset(content: string): Promise<boolean> {
+	//	unzip file
+
+	//	iterate through folders/ files
+		//	JSON file contains sections within "result" key
+		//	check if at least 1 valid section
+			//	valid if all Valid Query Key Fields present <idstring>_<mfield | sfield>
+			/*
+			+------------+--------+
+			|  Dataset   | Format |
+			+------------+--------+
+			| uuid       | string |
+			| id         | string |
+			| title      | string |
+			| instructor | string |
+			| dept       | string |
+			| year       | number |
+			| avg        | number |
+			| pass       | number |
+			| fail       | number |
+			| audit      | number |
+			+------------+--------+
+			*/
+
+	return Promise.resolve(false);
+}
+
 /**
  * This is the main programmatic entry point for the project.
  * Method documentation is in IInsightFacade
@@ -41,28 +68,32 @@ export default class InsightFacade implements IInsightFacade {
 
 	 public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
 
+		//	load current datasets from disk
+		//	check if id already exists
+		//	TDOO
+
 		//	check if id is valid
 		if (!id || id.includes("_") || id.trim() === "") {
-			return Promise.reject(InsightError);
+			return Promise.reject(new InsightError());
 		}
 
-		//	check if content is valid
+		//	checks if it is a valid non-empty ZIP file
 		const isZIP = await isBase64Zip(content);
+
 		if (!isZIP) {
-			return Promise.reject(InsightError);
+			return Promise.reject(new InsightError());
 		}
 
 		//	check if kind is valid
 		if (kind === InsightDatasetKind.Rooms) {
 			//	reject if Rooms
-			return Promise.reject(InsightError);
+			return Promise.reject(new InsightError());
 		}
 
-		//	load datasets from disk
+		// check if dataset is valid
+		const isValidDataset = validateDataset(content);
 
-		//	check if id already on disk
-
-		//	add dataset to disk
+		//	add dataset to ./data
 
 		//	return string array of ids of all currently added dataset (upon success)
 
