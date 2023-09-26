@@ -18,11 +18,20 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		// testttt
 		return Promise.reject("Not implemented.");
 	}
 
 	public removeDataset(id: string): Promise<string> {
+		if (id.includes("_")) {
+			return Promise.reject(InsightError);
+		} else if (id.trim().length) {
+			return Promise.reject(InsightError);
+		}
+
+
+		// first check if dataset is found in disk
+		// if so delete and return id
+		// else return error
 		return Promise.reject("Not implemented.");
 	}
 
