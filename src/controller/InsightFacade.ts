@@ -18,7 +18,11 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		// testttt
+		//	check if id is valid
+
+		//	check if content is valid
+
+		//	check if kind is valid
 		return Promise.reject("Not implemented.");
 	}
 
