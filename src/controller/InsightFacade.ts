@@ -6,6 +6,7 @@ import {
 	InsightResult,
 	NotFoundError
 } from "./IInsightFacade";
+import fs from "fs-extra";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -22,17 +23,24 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public removeDataset(id: string): Promise<string> {
+		let path = "project_team208/data" + "/" + id;
 		if (id.includes("_")) {
 			return Promise.reject(InsightError);
 		} else if (id.trim().length) {
 			return Promise.reject(InsightError);
+		}
+		if (fs.existsSync(path)) {
+			return Promise.resolve(id);
+		} else {
+			return Promise.reject(NotFoundError);
 		}
 
 
 		// first check if dataset is found in disk
 		// if so delete and return id
 		// else return error
-		return Promise.reject("Not implemented.");
+
+		// dir = project_team208/data
 	}
 
 	public performQuery(query: unknown): Promise<InsightResult[]> {
@@ -40,6 +48,7 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public listDatasets(): Promise<InsightDataset[]> {
+		let arr: InsightDataset[];
 		return Promise.reject("Not implemented.");
 	}
 }
