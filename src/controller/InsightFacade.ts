@@ -4,9 +4,10 @@ import {
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
-	NotFoundError
+	NotFoundError,
 } from "./IInsightFacade";
 import fs from "fs-extra";
+import {constants} from "http2";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -23,24 +24,23 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public removeDataset(id: string): Promise<string> {
+		// path for data folders
 		let path = "project_team208/data" + "/" + id;
-		if (id.includes("_")) {
-			return Promise.reject(InsightError);
-		} else if (id.trim().length) {
-			return Promise.reject(InsightError);
+
+		// checks for invalid id,
+		if (!id || id.includes("_") || !id.trim().length) {
+			return Promise.reject(new InsightError());
 		}
-		if (fs.existsSync(path)) {
+
+		// checking if path exists
+		if (fs.statSync(path)) {
+			// remove path
+			fs.unlinkSync(path);
 			return Promise.resolve(id);
 		} else {
-			return Promise.reject(NotFoundError);
+			// throw error, (dataset not found)
+			return Promise.reject(new NotFoundError());
 		}
-
-
-		// first check if dataset is found in disk
-		// if so delete and return id
-		// else return error
-
-		// dir = project_team208/data
 	}
 
 	public performQuery(query: unknown): Promise<InsightResult[]> {
