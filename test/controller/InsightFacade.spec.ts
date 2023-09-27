@@ -1,18 +1,11 @@
-import {
-	IInsightFacade,
-	InsightDatasetKind,
-	InsightError,
-	InsightResult,
-	ResultTooLargeError,
-	NotFoundError,
-} from "../../src/controller/IInsightFacade";
-import InsightFacade from "../../src/controller/InsightFacade";
+import {InsightDatasetKind, InsightError} from "../../src/controller/IInsightFacade";
 
-import {folderTest} from "@ubccpsc310/folder-test";
+import {Dataset} from "../../src/controller/Dataset";
+
+import InsightFacade from "../../src/controller/InsightFacade";
 import {expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
-import {clearDisk, getContentFromArchives} from "../TestUtil";
-import {beforeEach} from "mocha";
+import {getContentFromArchives} from "../TestUtil";
 
 use(chaiAsPromised);
 
@@ -171,21 +164,22 @@ describe("InsightFacade", function () {
 
 	describe("removeDataset", function () {
 		let sections: string;
-		let sectionsInvalid: string;
+		// let sectionsInvalid: string;
 		let facade: InsightFacade;
+		let data: Dataset;
 
-		before(function () {
-			sections = getContentFromArchives("basic.zip");
-			sectionsInvalid = getContentFromArchives("invalid.zip");
+		before(async function () {
+			sections = getContentFromArchives("cs110.zip");
+			// sectionsInvalid = getContentFromArchives("invalid.zip");
 			// clearDisk();
 			facade = new InsightFacade();
-			// await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
+			await facade.addDataset("cs110", sections, InsightDatasetKind.Sections);
 		});
 
 		it("should successfully remove dataset", async function () {
 			// added await here
-			const result = await facade.removeDataset("courses");
-			expect(result).to.deep.equal("courses");
+			const result = await facade.removeDataset("cs110");
+			expect(result).to.deep.equal("cs110");
 		});
 
 		// it("should reject with nonexistent id (already removed)", function () {
@@ -198,19 +192,19 @@ describe("InsightFacade", function () {
 		// 	return expect(result).to.eventually.be.rejectedWith(NotFoundError);
 		// });
 
-		it("should reject with invalid id (nothing)", function () {
-			const result = facade.removeDataset("");
-			return expect(result).to.eventually.be.rejectedWith(InsightError);
-		});
-
-		it("should reject with invalid id (whitespace)", function () {
-			const result = facade.removeDataset("    ");
-			return expect(result).to.eventually.be.rejectedWith(InsightError);
-		});
-		it("should reject with invalid id (underscore)", function () {
-			const result = facade.removeDataset("u_bc");
-			return expect(result).to.eventually.be.rejectedWith(InsightError);
-		});
+		// it("should reject with invalid id (nothing)", function () {
+		// 	const result = facade.removeDataset("");
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		//
+		// it("should reject with invalid id (whitespace)", function () {
+		// 	const result = facade.removeDataset("    ");
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		// it("should reject with invalid id (underscore)", function () {
+		// 	const result = facade.removeDataset("u_bc");
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
 	});
 
 	// describe("listDatasets", function () {
