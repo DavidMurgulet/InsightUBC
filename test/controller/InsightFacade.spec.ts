@@ -4,7 +4,7 @@ import {
 	InsightError,
 	InsightResult,
 	ResultTooLargeError,
-	NotFoundError
+	NotFoundError,
 } from "../../src/controller/IInsightFacade";
 import InsightFacade from "../../src/controller/InsightFacade";
 
@@ -49,8 +49,6 @@ describe("InsightFacade", function () {
 			notitle = getContentFromArchives("noTITLE.zip");
 			nouuid = getContentFromArchives("noUUID.zip");
 			noyear = getContentFromArchives("noYEAR.zip");
-
-
 		});
 
 		beforeEach(function () {
@@ -73,11 +71,13 @@ describe("InsightFacade", function () {
 			// new instance made
 			facade = new InsightFacade();
 			const result = await facade.listDatasets();
-			expect(result).to.deep.equal([{
-				id: "pair",
-				kind: InsightDatasetKind.Sections,
-				numRows: 64612
-			}]);
+			expect(result).to.deep.equal([
+				{
+					id: "pair",
+					kind: InsightDatasetKind.Sections,
+					numRows: 64612,
+				},
+			]);
 		});
 
 		it("should not access dataset after crash + removal", async function () {
@@ -110,7 +110,6 @@ describe("InsightFacade", function () {
 			const result = facade.addDataset("ubc", sections, InsightDatasetKind.Rooms);
 			return expect(result).to.eventually.be.rejectedWith(InsightError);
 		});
-
 
 		// INVALID SECTION TESTS
 		it("should reject with an invalid dataset (no valid sections)", function () {
@@ -230,37 +229,44 @@ describe("InsightFacade", function () {
 			await facade.addDataset("cs110", set1, InsightDatasetKind.Sections);
 			const result = await facade.listDatasets();
 
-			expect(result).to.deep.equal([{
-				id: "cs110",
-				kind: InsightDatasetKind.Sections,
-				numRows: 1
-			}]);
+			expect(result).to.deep.equal([
+				{
+					id: "cs110",
+					kind: InsightDatasetKind.Sections,
+					numRows: 1,
+				},
+			]);
 		});
 
 		it("should list 2 dataset", async function () {
 			await facade.addDataset("cs121", set2, InsightDatasetKind.Sections);
 			const result = await facade.listDatasets();
 
-			expect(result).to.deep.equal([{
-				id: "cs110",
-				kind: InsightDatasetKind.Sections,
-				numRows: 1
-			}, {
-				id: "cs121",
-				kind: InsightDatasetKind.Sections,
-				numRows: 1
-			}]);
+			expect(result).to.deep.equal([
+				{
+					id: "cs110",
+					kind: InsightDatasetKind.Sections,
+					numRows: 1,
+				},
+				{
+					id: "cs121",
+					kind: InsightDatasetKind.Sections,
+					numRows: 1,
+				},
+			]);
 		});
 
 		it("should list 1 dataset (after removal)", async function () {
 			await facade.removeDataset("cs121");
 			const result = await facade.listDatasets();
 
-			expect(result).to.deep.equal([{
-				id: "cs110",
-				kind: InsightDatasetKind.Sections,
-				numRows: 1
-			}]);
+			expect(result).to.deep.equal([
+				{
+					id: "cs110",
+					kind: InsightDatasetKind.Sections,
+					numRows: 1,
+				},
+			]);
 		});
 
 		it("should list 0 dataset (after removal)", async function () {
@@ -269,21 +275,23 @@ describe("InsightFacade", function () {
 			expect(result).to.deep.equal([]);
 		});
 
-
 		it("should list 2 dataset (both in same test)", async function () {
 			await facade.addDataset("cs110", set1, InsightDatasetKind.Sections);
 			await facade.addDataset("cs121", set2, InsightDatasetKind.Sections);
 
 			const result = await facade.listDatasets();
-			expect(result).to.deep.equal([{
-				id: "cs110",
-				kind: InsightDatasetKind.Sections,
-				numRows: 1
-			}, {
-				id: "cs121",
-				kind: InsightDatasetKind.Sections,
-				numRows: 1
-			}]);
+			expect(result).to.deep.equal([
+				{
+					id: "cs110",
+					kind: InsightDatasetKind.Sections,
+					numRows: 1,
+				},
+				{
+					id: "cs121",
+					kind: InsightDatasetKind.Sections,
+					numRows: 1,
+				},
+			]);
 		});
 
 		it("should list 0 dataset (both del in same test)", async function () {
@@ -294,7 +302,6 @@ describe("InsightFacade", function () {
 			expect(result).to.deep.equal([]);
 		});
 	});
-
 
 	/*
 	 * This test suite dynamically generates tests from the JSON files in test/resources/queries.
@@ -341,7 +348,6 @@ describe("InsightFacade", function () {
 	// 		}
 	// 	);
 	// });
-
 
 	describe("performQuery", function () {
 		let sections: string;

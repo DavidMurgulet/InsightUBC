@@ -1,6 +1,6 @@
 import {InsightDatasetKind} from "./IInsightFacade";
 
-class Section {
+export class Section {
 	public uuid: string;
 	public id: string;
 	public title: string;
@@ -37,13 +37,13 @@ class Section {
 	}
 }
 
-class Dataset {
-	public id: number;
+export class Dataset {
+	public id: string;
 	public numRows: number;
 	public sections: Section[];
 	public kind: InsightDatasetKind;
 
-	constructor(id: number, numRows: number, sections: Section[], kind: InsightDatasetKind) {
+	constructor(id: string, numRows: number, sections: Section[], kind: InsightDatasetKind) {
 		this.id = id;
 		this.numRows = numRows;
 		this.sections = sections;
