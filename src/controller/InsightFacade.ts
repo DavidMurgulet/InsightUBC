@@ -64,6 +64,9 @@ async function validateDataset(content: string): Promise<boolean> {
 export default class InsightFacade implements IInsightFacade {
 	constructor() {
 		console.log("InsightFacadeImpl::init()");
+
+		//	Load datasets to memory if they exist
+
 	}
 
 	 public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
