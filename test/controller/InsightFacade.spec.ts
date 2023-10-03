@@ -6,15 +6,66 @@ import {
 	ResultTooLargeError,
 	NotFoundError,
 } from "../../src/controller/IInsightFacade";
-import InsightFacade from "../../src/controller/InsightFacade";
+import InsightFacade, {isBase64Zip, validateDataset} from "../../src/controller/InsightFacade";
 
 import {folderTest} from "@ubccpsc310/folder-test";
 import {expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives} from "../TestUtil";
 import {beforeEach} from "mocha";
+import JSZip from "jszip";
 
 use(chaiAsPromised);
+
+describe("Helper Unit Tests", function () {
+	describe("isBase64Zip", function () {
+		it("should return True when a base 64 string from a Zip File is passed in", function () {
+			let sections: string = getContentFromArchives("basic.zip");
+			const result = isBase64Zip(sections);
+			return expect(result).to.eventually.be.true;
+		});
+
+		it("should return False when a .txt string is passed in", function () {
+			let textFile: string = getContentFromArchives("text.txt");
+			const result = isBase64Zip(textFile);
+			return expect(result).to.eventually.be.false;
+		});
+
+		it("should return False when Zip file with wrong signature is passed in (50 4B *02* 04)", function () {
+			let wrongZipSignature: string = getContentFromArchives("basicWrongZipSignature.zip");
+			const result = isBase64Zip(wrongZipSignature);
+			return expect(result).to.eventually.be.false;
+		});
+
+		it("should return False when a corrupted Zip file is passed in", function () {
+			let corruptedZip: string = getContentFromArchives("basicCorrupted.zip");
+			const result = isBase64Zip(corruptedZip);
+			return expect(result).to.eventually.be.false;
+		});
+	});
+
+	// given a valid Zip, it checks if the dataset is valid
+	describe("validateDataset", function () {
+		it("should return True when a valid is passed in", function () {
+			let sections: string = getContentFromArchives("basic.zip");
+			const result = validateDataset(sections);
+			return expect(result).to.eventually.be.true;
+		});
+
+		//	TODO test fails, 0 files in course folder according to debugger
+		it("should return True when a valid dataset is passed in - 1 invalid section, rest valid", function () {
+			let sections: string = getContentFromArchives("validOneSectionNoAVG.zip");
+			const result = validateDataset(sections);
+			return expect(result).to.eventually.be.true;
+		});
+
+		it("should return False when a valid is passed in - no valid sections", function () {
+			let sections: string = getContentFromArchives("noAVG.zip");
+			const result = validateDataset(sections);
+			return expect(result).to.eventually.be.false;
+		});
+	});
+});
 
 describe("InsightFacade", function () {
 	describe("addDataset", function () {

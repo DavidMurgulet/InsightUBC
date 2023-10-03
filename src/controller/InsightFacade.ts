@@ -5,7 +5,7 @@ import JSZip from "jszip";
 import {Dataset, Section} from "./Dataset";
 
 //	check if content string is base 64 ZIP
-async function isBase64Zip(content: string): Promise<boolean> {
+export async function isBase64Zip(content: string): Promise<boolean> {
 	//	decode the string
 	const decodedBytes: Uint8Array = new Uint8Array(Buffer.from(content, "base64"));
 
@@ -29,34 +29,60 @@ async function isBase64Zip(content: string): Promise<boolean> {
 	}
 }
 
-async function validateDataset(content: string): Promise<boolean> {
-	//	unzip file
+export async function validateDataset(content: string): Promise<boolean> {
+	const decodedBytes: Uint8Array = new Uint8Array(Buffer.from(content, "base64"));
+	const zip = new JSZip();
+	await zip.loadAsync(decodedBytes);
 
-	//	iterate through folders/ files
-	//	JSON file contains sections within "result" key
-	//	check if at least 1 valid section
-	//	valid if all Valid Query Key Fields present <idstring>_<mfield | sfield>
-	/*
-    +------------+--------+
-    |  Dataset   | Format |
-    +------------+--------+
-    | uuid       | string |
-    | id         | string |
-    | title      | string |
-    | instructor | string |
-    | dept       | string |
-    | year       | number |
-    | avg        | number |
-    | pass       | number |
-    | fail       | number |
-    | audit      | number |
-    +------------+--------+
-    */
+	const coursesFolder = zip.folder("courses");
+	if (!coursesFolder) {
+		return Promise.resolve(false);
+	}
 
+	// Log the contents of the coursesFolder for debugging
+	coursesFolder.forEach((relativePath, file) => {
+		console.log(relativePath);
+	});
+
+	const jsonFiles = coursesFolder.file(/^.*$/);
+	const requiredFields = [
+		// 'uuid', // commented out for now
+		"id",
+		"Title",
+		"Professor",
+		"Subject",
+		"Year",
+		"Avg",
+		"Pass",
+		"Fail",
+		"Audit",
+	];
+
+	//	wait to get content of all JSON files
+	const fileContents = await Promise.all(jsonFiles.map((file) => file.async("string")));
+
+	for (let fileContent of fileContents) {
+		let jsonContent;
+		try {
+			jsonContent = JSON.parse(fileContent);
+		} catch (error) {
+			// Not a valid JSON formatted file
+			continue;
+		}
+
+		if (jsonContent.result) {
+			for (let section of jsonContent.result) {
+				if (requiredFields.every((field) => Object.prototype.hasOwnProperty.call(section, field))) {
+					return Promise.resolve(true); // Found a valid section
+				}
+			}
+		}
+	}
+	// No valid section found
 	return Promise.resolve(false);
 }
 
-async function loadDatasetsFromDirectory(directory: string): Promise<Dataset[]> {
+export async function loadDatasetsFromDirectory(directory: string): Promise<Dataset[]> {
 	const datasets: Dataset[] = [];
 	const files = fs.readdirSync(directory);
 
@@ -121,9 +147,8 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		//	load current datasets from disk
-		//	check if id already exists
-		//	TDOO
+		//	TODO load current datasets from disk
+		//	TODO check if id already exists
 
 		//	check if id is valid
 		if (!id || id.includes("_") || id.trim() === "") {
@@ -146,9 +171,17 @@ export default class InsightFacade implements IInsightFacade {
 		// check if dataset is valid
 		const isValidDataset = validateDataset(content);
 
-		//	add dataset to ./data
+		if (!isValidDataset) {
+			return Promise.reject(new InsightError());
+		}
 
-		//	return string array of ids of all currently added dataset (upon success)
+		//	TODO add dataset to disk (./data)
+
+		//  TODO parse dataset to Dataset class
+
+		//  TODO add to memory (datasets.add)
+
+		//	TODO return string array of ids of all currently added dataset (upon success)
 
 		return Promise.reject("Not implemented.");
 	}
