@@ -6,7 +6,11 @@ import {
 	ResultTooLargeError,
 	NotFoundError,
 } from "../../src/controller/IInsightFacade";
-import InsightFacade, {isBase64Zip, validateDataset} from "../../src/controller/InsightFacade";
+import InsightFacade, {
+	isBase64Zip,
+	loadDatasetsFromDirectory,
+	validateDataset,
+} from "../../src/controller/InsightFacade";
 
 import {folderTest} from "@ubccpsc310/folder-test";
 import {expect, use} from "chai";
@@ -14,6 +18,7 @@ import chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives} from "../TestUtil";
 import {beforeEach} from "mocha";
 import JSZip from "jszip";
+import {Dataset} from "../../src/controller/Dataset";
 
 use(chaiAsPromised);
 
@@ -44,7 +49,7 @@ describe("Helper Unit Tests", function () {
 		});
 	});
 
-	// given a valid Zip, it checks if the dataset is valid
+	//	given a valid Zip, it checks if the dataset is valid
 	describe("validateDataset", function () {
 		it("should return True when a valid is passed in", function () {
 			let sections: string = getContentFromArchives("basic.zip");
@@ -52,7 +57,6 @@ describe("Helper Unit Tests", function () {
 			return expect(result).to.eventually.be.true;
 		});
 
-		//	TODO test fails, 0 files in course folder according to debugger
 		it("should return True when a valid dataset is passed in - 1 invalid section, rest valid", function () {
 			let sections: string = getContentFromArchives("validOneSectionNoAVG.zip");
 			const result = validateDataset(sections);
@@ -63,6 +67,21 @@ describe("Helper Unit Tests", function () {
 			let sections: string = getContentFromArchives("noAVG.zip");
 			const result = validateDataset(sections);
 			return expect(result).to.eventually.be.false;
+		});
+	});
+
+	//	loads the datasets from '/data'
+	describe("loadDatasetsFromDirectory", function () {
+		it("should return dataset object from disk", async function () {
+			let listOfDatasets = await loadDatasetsFromDirectory("./data");
+
+			// Check if listOfDatasets is an array
+			expect(listOfDatasets).to.be.an("array");
+
+			// Check if each element in the array is an instance of Dataset
+			listOfDatasets.forEach((dataset: Dataset) => {
+				expect(dataset).to.be.an.instanceOf(Dataset);
+			});
 		});
 	});
 });
