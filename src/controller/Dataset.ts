@@ -38,10 +38,10 @@ export class Section {
 }
 
 export class Dataset {
-	id: string;
-	numRows: number;
-	sections: Section[];
-	kind: InsightDatasetKind;
+	public id: string;
+	public numRows: number;
+	public sections: Section[];
+	public kind: InsightDatasetKind;
 
 	constructor(id: string, kind: InsightDatasetKind, sections: Section[], numRows: number) {
 		this.id = id;

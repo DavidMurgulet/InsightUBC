@@ -1,11 +1,15 @@
-import {InsightDatasetKind, InsightError} from "../../src/controller/IInsightFacade";
+import {InsightDatasetKind, InsightError, InsightResult} from "../../src/controller/IInsightFacade";
 
 import {Dataset} from "../../src/controller/Dataset";
 
 import InsightFacade from "../../src/controller/InsightFacade";
 import {expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
-import {getContentFromArchives} from "../TestUtil";
+import {clearDisk, getContentFromArchives} from "../TestUtil";
+import {folderTest} from "@ubccpsc310/folder-test";
+import {Query, QueryNode} from "../../src/controller/Query";
+import {checkParsing, parseOpts, parseWhere} from "../../src/controller/Parse";
+import {validOpts, validWhere} from "../../src/controller/Validate";
 
 use(chaiAsPromised);
 
@@ -341,6 +345,235 @@ describe("InsightFacade", function () {
 	// // });
 	//
 	//
+	describe("parseWhere", function () {
+		let root: Query;
+		let qBasicWhere: object;
+		let qComplexWhere: object;
+		let facade: InsightFacade;
+
+		before(function () {
+			clearDisk();
+			facade = new InsightFacade();
+			qBasicWhere = {
+				WHERE: {
+					GT: {
+						sections_avg: 3,
+					},
+				},
+			};
+
+			qComplexWhere = {
+				WHERE: {
+					OR: [
+						{
+							AND: [
+								{
+									GT: {
+										ubc_avg: 90,
+									},
+								},
+								{
+									IS: {
+										ubc_dept: "adhe",
+									},
+								},
+							],
+						},
+						{
+							EQ: {
+								ubc_avg: 95,
+							},
+						},
+					],
+				},
+			};
+		});
+
+		it("should properly parse query WHERE (basic)", function () {
+			// const where!: QueryNode;
+			for (const k in qBasicWhere) {
+				if (Object.prototype.hasOwnProperty.call(qBasicWhere, k)) {
+					let subQuery: object = (qBasicWhere as any)[k];
+					if (k === "WHERE") {
+						const where = parseWhere(subQuery, k);
+						checkParsing(where, 0);
+					}
+				}
+			}
+		});
+
+		it("should properly parse query WHERE (complex)", function () {
+			// const where!: QueryNode;
+			for (const k in qComplexWhere) {
+				if (Object.prototype.hasOwnProperty.call(qBasicWhere, k)) {
+					let subQuery: object = (qComplexWhere as any)[k];
+					if (k === "WHERE") {
+						const where = parseWhere(subQuery, k);
+						checkParsing(where, 0);
+					}
+				}
+			}
+		});
+	});
+
+	describe("validateWhere", function () {
+		let root: Query;
+		let qBasicWhere: object;
+		let qComplexWhere: object;
+		let qBasicInvVal: object;
+		let qBasicInvKey: object;
+
+		let facade: InsightFacade;
+
+		before(function () {
+			clearDisk();
+			facade = new InsightFacade();
+			qBasicWhere = {
+				WHERE: {
+					GT: {
+						sections_avg: 3,
+					},
+				},
+			};
+			qComplexWhere = {
+				WHERE: {
+					OR: [
+						{
+							AND: [
+								{
+									GT: {
+										ubc_avg: 90,
+									},
+								},
+								{
+									IS: {
+										ubc_dept: "adhe",
+									},
+								},
+							],
+						},
+						{
+							EQ: {
+								ubc_avg: 95,
+							},
+						},
+					],
+				},
+			};
+			qBasicInvKey = {
+				WHERE: {
+					GT: {
+						sections_avg: "string",
+					},
+				},
+			};
+			qBasicInvVal = {
+				WHERE: {
+					GT: {
+						sections_aaaaaa: 3,
+					},
+				},
+			};
+		});
+
+		it("should validate WHERE (basic)", function () {
+			// const where!: QueryNode;
+			const where = Object.keys(qBasicWhere)[0];
+			const node = parseWhere(qBasicWhere, where);
+			const result = validWhere(node);
+			expect(result).to.equal(true);
+		});
+
+		it("should validate WHERE (complex)", function () {
+			const where = Object.keys(qComplexWhere)[0];
+			const node = parseWhere(qComplexWhere, where);
+			const result = validWhere(node);
+			expect(result).to.equal(true);
+		});
+
+		it("should not validate WHERE (basic, invalid value type)", function () {
+			const where = Object.keys(qBasicInvVal)[0];
+			const node = parseWhere(qBasicInvVal, where);
+			const result = validWhere(node);
+			expect(result).to.equal(false);
+		});
+
+		it("should not validate WHERE (basic, invalid key type)", function () {
+			const where = Object.keys(qBasicInvKey)[0];
+			const node = parseWhere(qBasicInvKey, where);
+			const result = validWhere(node);
+			expect(result).to.equal(false);
+		});
+	});
+
+	describe("validOpts", function () {
+		let root: Query;
+		let optsEmptyCol: object;
+		let optsValid: object;
+		let optsInvKeyOrd: object;
+		let optsInvKeyCol: object;
+
+		let facade: InsightFacade;
+
+		before(function () {
+			clearDisk();
+			facade = new InsightFacade();
+			optsEmptyCol = {
+				OPTIONS: {
+					COLUMNS: [],
+					ORDER: "ubc_avg",
+				},
+			};
+			optsValid = {
+				OPTIONS: {
+					COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
+					ORDER: "ubc_avg",
+				},
+			};
+			optsInvKeyOrd = {
+				OPTIONS: {
+					COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
+					ORDER: "ubc_aaaa",
+				},
+			};
+			optsInvKeyCol = {
+				OPTIONS: {
+					COLUMNS: ["ubc_dept", "ubc_idddd", "ubc_avg"],
+					ORDER: "ubc_avg",
+				},
+			};
+		});
+
+		it("should validate OPTS", function () {
+			// const where!: QueryNode;
+			const opt = Object.keys(optsValid)[0];
+			const node = parseOpts(optsValid, opt);
+			const result = validOpts(node);
+			expect(result).to.equal(true);
+		});
+
+		it("should not validate OPTS (empty COLUMNS)", function () {
+			const opt = Object.keys(optsEmptyCol)[0];
+			const node = parseOpts(optsEmptyCol, opt);
+			const result = validOpts(node);
+			expect(result).to.equal(false);
+		});
+
+		it("should not validate OPTS (invalid key in COLUMNS )", function () {
+			const opt = Object.keys(optsInvKeyCol)[0];
+			const node = parseOpts(optsInvKeyCol, opt);
+			const result = validOpts(node);
+			expect(result).to.equal(false);
+		});
+
+		it("should not validate OPTS (invalid key in ORDER)", function () {
+			const opt = Object.keys(optsInvKeyOrd)[0];
+			const node = parseOpts(optsInvKeyOrd, opt);
+			const result = validOpts(node);
+			expect(result).to.equal(false);
+		});
+	});
+
 	// describe("performQuery", function () {
 	// 	let sections: string;
 	// 	let alt: string;
@@ -355,26 +588,26 @@ describe("InsightFacade", function () {
 	// 		await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
 	// 	});
 	//
-	// 	function errorValidator(error: any): error is Error {
-	// 		return error === "InsightError" || error === "ResultTooLargeError";
-	// 	}
-	//
-	// 	type PQErrorKind = "ResultTooLargeError" | "InsightError";
-	//
-	// 	folderTest<unknown, Promise<InsightResult[]>, PQErrorKind>(
-	// 		"Dynamic InsightFacade PerformQuery tests",
-	// 		(input) => facade.performQuery(input),
-	// 		"./test/resources/queries",
-	// 		{
-	// 			assertOnResult: (actual, expected) => {
-	// 				// TODO add an assertion!
-	// 			},
-	// 			errorValidator: (error): error is PQErrorKind =>
-	// 				error === "ResultTooLargeError" || error === "InsightError",
-	// 			assertOnError: (actual, expected) => {
-	// 				// TODO add an assertion!
-	// 			},
-	// 		}
-	// 	);
+	// 	// function errorValidator(error: any): error is Error {
+	// 	// 	return error === "InsightError" || error === "ResultTooLargeError";
+	// 	// }
+	// 	//
+	// 	// type PQErrorKind = "ResultTooLargeError" | "InsightError";
+	// 	//
+	// 	// folderTest<unknown, Promise<InsightResult[]>, PQErrorKind>(
+	// 	// 	"Dynamic InsightFacade PerformQuery tests",
+	// 	// 	(input) => facade.performQuery(input),
+	// 	// 	"./test/resources/queries",
+	// 	// 	{
+	// 	// 		assertOnResult: (actual, expected) => {
+	// 	// 			// TODO add an assertion!
+	// 	// 		},
+	// 	// 		errorValidator: (error): error is PQErrorKind =>
+	// 	// 			error === "ResultTooLargeError" || error === "InsightError",
+	// 	// 		assertOnError: (actual, expected) => {
+	// 	// 			// TODO add an assertion!
+	// 	// 		},
+	// 	// 	}
+	// 	// );
 	// });
 });

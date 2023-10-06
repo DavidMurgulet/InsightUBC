@@ -9,6 +9,12 @@ import {
 import fs from "fs-extra";
 import {constants} from "http2";
 import {Dataset, Section} from "./Dataset";
+import {Query, Filter, Comp, QueryNode, MField, SField, Field} from "./Query";
+import {Suite} from "mocha";
+import {subtle} from "crypto";
+import {isKeyObject} from "util/types";
+import {makeLeaf, parseOpts, parseWhere} from "./Parse";
+import {validOpts, validWhere} from "./Validate";
 
 /**
  * This is the main programmatic entry point for the project.
@@ -19,20 +25,8 @@ export default class InsightFacade implements IInsightFacade {
 	constructor() {
 		console.log("InsightFacadeImpl::init()");
 	}
-
 	public addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
-		// stringify json
-		// add to data
-		let dset: Dataset;
-		let sec: Section;
-
-		sec = new Section("1248", "110", "comptn, progrmng", "kiczales, gregor", "cpsc", 2014, 71.07, 180, 38, 0);
-
-		dset = new Dataset(id, kind, [sec], 1);
-		let dsetJSON = JSON.stringify(dset);
-		fs.outputFileSync("project_team208/data", dsetJSON, "utf8");
-
-		return Promise.resolve([id]);
+		return Promise.reject();
 	}
 
 	public removeDataset(id: string): Promise<string> {
@@ -47,9 +41,7 @@ export default class InsightFacade implements IInsightFacade {
 		// checking if path exists
 		if (fs.statSync(path)) {
 			// remove path
-			// delete from both disk and memory
-			// Dataset class with: id, num rows, section[], kind
-			// Section class: with query keys
+
 			fs.unlinkSync(path);
 			return Promise.resolve(id);
 		} else {
@@ -59,35 +51,40 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public performQuery(query: unknown): Promise<InsightResult[]> {
-		// parse the query, giving error cuz of unknown type
-		// const jsonQuery = JSON.parse(query);
+		if (query instanceof Object) {
+			let where!: QueryNode;
+			let options!: QueryNode;
 
-		// validate the query
-		// if (this.validateQuery(jsonQuery)) {
-		// 	// valid case
-		// } else {
-		// 	return Promise.reject(new InsightError());
-		// }
+			for (const k in query) {
+				if (Object.prototype.hasOwnProperty.call(query, k)) {
+					// let subQuery: object = (<any>query)[k];
+					let subQuery: object = (query as any)[k];
+					if (k === "WHERE") {
+						where = parseWhere(subQuery, k);
+					} else if (k === "OPTIONS") {
+						options = parseOpts(subQuery, k);
+						console.log("test");
+					} else {
+						// NO WHERE/OPTIONS KEY
+						return Promise.reject(new InsightError());
+					}
+				}
+			}
 
-		return Promise.reject("Not implemented.");
-	}
+			const parsedQuery = new Query(where, options);
 
-	whereBlock(where: unknown): Promise<InsightResult[]> {
-		return Promise.reject("Not implemented.");
-	}
+			// if both validWhere and validOpts return true, start querying the dataset.
+			if (validOpts(options) && validWhere(where)) {
+				console.log("buffer");
+				// perform query
+			} else {
+				return Promise.reject(new InsightError());
+			}
+		} else {
+			return Promise.reject(new InsightError());
+		}
 
-	// checks if query is valid
-	validateQuery(query: unknown): boolean {
-		// also giving errors cuz of unknown
-		// if (query.includes("WHERE") && query.includes("OPTIONS")) {
-			// query valid
-			return true;
-		// }
-		return false;
-	}
-
-	optionsBlock(opt: unknown): Promise<InsightResult[]> {
-		return Promise.reject("Not implemented.");
+		return Promise.reject(new InsightError());
 	}
 
 	public listDatasets(): Promise<InsightDataset[]> {
