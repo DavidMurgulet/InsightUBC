@@ -18,94 +18,81 @@ export class Validator {
 		this.leafDatasets = [];
 	}
 
-
-	 // MADE CHANGES
-	public validWhere(node: QueryNode): number {
+	// MADE CHANGES
+	public validWhere(node: QueryNode): {error: number; msg: string} {
 		const key = node.getKey();
 		const children = node.getChilds();
 		if (key === "WHERE") {
-			// can have 0 or 1 children,
 			if (children.length !== (1 || 0)) {
-				return 1;
+				return {error: 1, msg: "Where has more than one mComp"};
 			}
 			for (const k of children) {
-				if (this.validWhere(k) === 1) {
-					return 1;
+				let temp = this.validWhere(k);
+				if (temp.error === 1) {
+					return {error: 1, msg: temp.msg};
 				}
 			}
 		} else if (key === "AND" || key === "OR" || key === "NOT") {
 			// must be non-empty array, no {}
 			// must have at least 1 key
 			if (children.length === 0) {
-				return 1;
+				return {error: 1, msg: "Error message for code 1"};
 			}
 			for (const k of children) {
-				if (this.validWhere(k) === 1) {
-					return 1;
+				let temp = this.validWhere(k);
+				if (temp.error === 1) {
+					return {error: 1, msg: temp.msg};
 				}
 			}
 		} else if (key === "GT" || key === "LT" || key === "EQ" || key === "IS") {
-			if (children.length < 0) {
-				return 1;
+			if (children.length === 0) {
+				return {error: 1, msg: "empty GT/LT/EQ/IS"};
 			}
 			if (children.length > 1) {
-				// if multiple children all with same key, remove latest added
 				const fkey = children[0].getKey();
 				if (children.every((c) => c.getKey() === fkey)) {
 					node.removeExcept(children[children.length - 1]);
 				} else {
-					// only one key in GT/LT/EQ allowed
-					return 1;
+					return {error: 1, msg: "only one key in GT allowed"};
 				}
 			}
-
+			const compCode = key === "IS" ? 1 : 0;
 			let child = children[0];
-			if (key === "GT" || key === "LT" || key === "EQ") {
-				if (this.validateLeaf(child, 0) === 1) {
-					return 1;
-				}
-			} else if (key === "IS") {
-				if (this.validateLeaf(child, 1) === 1) {
-					return 1;
-				}
+			let temp = this.validateLeaf(child, compCode);
+			if (temp.error === 1) {
+				return {error: 1, msg: temp.msg};
 			}
 		} else {
-			return 1;
+			return {error: 1, msg: "invalid comparator"};
 		}
-
-		return 0;
+		return {error: 0, msg: ""};
 	}
 
-	public validateOptions(node: QueryNode): number {
+	public validateOptions(node: QueryNode): {error: number; msg: string} {
 		const key = node.getKey();
 		const children = node.getChilds();
-
 		if (key === "OPTIONS") {
 			// check that children are COL and ORDER
 			// one of the children must be COL, the other ORDER, may be multiple
 			let childKeys = node.getChildKeys();
-
 			// check that options only has COLUMNS and ORDER as children
 			// if has both, ensure that COLUMNS is processed first
 
 			// empty options
 			if (children.length < 1) {
-				return 1;
+				return {error: 1, msg: "options is empty"};
 			}
-
 			// keys can only be COLUMNS or ORDER
 			// 2 cases, only columns,
-
 			// if there are multiple instances of a col or order, check validity
-
 			// remove all except latest added.
-
 			// case 1: all childkeys are columns
 			//			if all come back valid, remove all but the last one
 			if (children.every((chi) => chi.getKey() === "COLUMNS")) {
 				for (const c of children) {
-					if (this.validateColumns(c) === 1) {
-						return 1;
+					const temp = this.validateColumns(c);
+					if (temp.error === 1) {
+						return {error: 1, msg: temp.msg};
 					}
 				}
 				node.removeExcept(children[children.length - 1]);
@@ -113,23 +100,25 @@ export class Validator {
 				// validate all columns
 				for (const c of children) {
 					if (c.getKey() === "COLUMNS") {
-						if (this.validateColumns(c) === 1) {
-							return 1;
+						const temp = this.validateColumns(c);
+						if (temp.error === 1) {
+							return {error: 1, msg: temp.msg};
 						}
 					}
 				}
 				// validate all ORDER
 				for (const c of children) {
 					if (c.getKey() === "ORDER") {
-						if (this.validateOrder(c) === 1) {
-							return 1;
+						const temp = this.validateOrder(c);
+						if (temp.error === 1) {
+							return {error: 1, msg: temp.msg};
 						}
 					}
 				}
 				node.removeOrderColumns("COLUMNS");
 				node.removeOrderColumns("ORDER");
 			} else {
-				return 1;
+				return {error: 1, msg: "options contains not columns or order"};
 			}
 
 			// case 2: multiple columns and multiple order childkeys
@@ -159,10 +148,10 @@ export class Validator {
 			// 	return 1;
 			// }
 		} else {
-			return 1;
+			return {error: 1, msg: "OPTIONS missing"};
 		}
 
-		return 0;
+		return {error: 0, msg: ""};
 	}
 
 	public checkDatasetValidity() {
@@ -172,39 +161,41 @@ export class Validator {
 					return 0;
 				}
 			}
+			// one of the keys has an invalid dataset
 			return 2;
 		} else {
+			// keys dont match, m
 			return 1;
 		}
 	}
 
-	public validateOrder(node: QueryNode): number {
+	public validateOrder(node: QueryNode): {error: number; msg: string} {
 		const key = node.getKey(); // ORDER
 		const children = node.getChilds(); // "sections_avg"
 
 		// order child cannot be type array
 		if (children.length !== 1) {
-			return 1;
+			return {error: 1, msg: "Order cannot have multiple children"};
 		}
 
 		for (const s of colFields) {
 			if (children[0].getKey() === s) {
-				return 0;
+				return {error: 0, msg: ""};
 			}
 		}
-		return 1;
+		return {error: 1, msg: "order is not in columns"};
 	}
 
-	public validateColumns(node: QueryNode): number {
+	public validateColumns(node: QueryNode): {error: number; msg: string} {
 		const key = node.getKey(); // COLUMNS
 		const children = node.getChilds(); // ["sections_avg", "sections_dept", "sections_pass"]
 		// COLUMNS cannot be empty
 		if (children.length < 1) {
-			return 1;
+			return {error: 1, msg: "empty columns"};
 		}
 		for (const leaf of children) {
 			if (leaf.getChilds().length !== 0) {
-				return 1;
+				return {error: 1, msg: "children arent leafs?"};
 			}
 			if (leaf.getKey().includes("_")) {
 				const splitArr = leaf.getKey().split("_");
@@ -213,19 +204,19 @@ export class Validator {
 				let field = splitArr[1]; // "avg"
 
 				if (!Object.values(Field).includes(field)) {
-					return 1;
+					return {error: 1, msg: "field is not a valid sections field"};
 				}
 			} else {
 				// improper formatting of dataset_mfield/sfield
-				return 1;
+				return {error: 1, msg: "improper formatting of dataset_filed"};
 			}
 		}
 		const tempCollector = new Collector(this.datasets);
 		colFields = tempCollector.extractCol(node);
-		return 0;
+		return {error: 0, msg: ""};
 	}
 
-	public validateLeaf(node: QueryNode, parent: number): number {
+	public validateLeaf(node: QueryNode, parent: number): {error: number; msg: string} {
 		// needs to contain underscore
 		// parse string, first needs to be same as dataset.
 		// second needs to be a valid key
@@ -247,52 +238,52 @@ export class Validator {
 					if (Object.values(MField).includes(field)) {
 						if (isNaN(leafKey)) {
 							// should be a number (invalid type)
-							return 1;
+							return {error: 1, msg: "value type is not a number"};
 						}
 					} else {
 						// wrong key type in GT/LT/EQ
-						return 1;
+						return {error: 1, msg: "wrong key type in GT LT EQ"};
 					}
 				} else if (parent === 1) {
 					if (Object.values(SField).includes(field)) {
 						if (!(typeof leafKey === "string")) {
 							// invalid value type (should be string)
-							return 1;
+							return {error: 1, msg: "value type is not a string"};
 						}
-						if (this.validWildcard(leafKey) === 1) {
-							return 1;
+						let temp = this.validWildcard(leafKey);
+						if (temp.error === 1) {
+							return {error: 1, msg: temp.msg};
 						}
 					} else {
 						// wrong key type in IS
-						return 1;
-					}
-				} else if (parent === 2) {
-					if (!Object.values(Field).includes(field)) {
-						return 1;
+						return {error: 1, msg: "wrong key type in IS"};
 					}
 				}
 			} else {
-				return 1;
+				return {error: 1, msg: "key is not in proper format (dataset_key)"};
 			}
 		}
-		return 0;
+		return {error: 0, msg: ""};
 	}
 
-	public validWildcard(wildcard: string): number {
-		let count = 0;
-
+	public validWildcard(wildcard: string): {error: number; msg: string} {
 		// may need to change this in future.
 		if (wildcard.length === 0) {
-			return 0;
+			return {error: 0, msg: ""};
 		}
 
-		for (let i = 0; i < wildcard.length; i++) {
-			const char = wildcard.charAt(i);
-			if (char === "*" && (i !== 0 || i !== wildcard.length - 1)) {
-				// error case * in middle of string
-				return 1;
+		if (wildcard.length === 1) {
+			if (wildcard === "*") {
+				return {error: 1, msg: "wildcard only contains *"};
 			}
 		}
-		return 0;
+
+		for (let i = 1; i < wildcard.length - 1; i++) {
+			const char = wildcard.charAt(i);
+			if (char === "*") {
+				return {error: 1, msg: "* found in middle of string"};
+			}
+		}
+		return {error: 0, msg: ""};
 	}
 }

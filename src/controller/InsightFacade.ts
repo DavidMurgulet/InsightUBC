@@ -26,9 +26,9 @@ import {Collector} from "./Collector";
 export default class InsightFacade implements IInsightFacade {
 	private listOfDatasets: Dataset[];
 	// //	access listOfDatasets for debugging
-	// public getListOfDatasets(): Dataset[] {
-	// 	return this.listOfDatasets;
-	// }
+	public getListOfDatasets(): Dataset[] {
+		return this.listOfDatasets;
+	}
 	public async reloadDatasets(): Promise<void> {
 		if (!fs.existsSync(persistDir)) {
 			fs.mkdirSync(persistDir);
@@ -152,26 +152,30 @@ export default class InsightFacade implements IInsightFacade {
 				}
 			}
 			const parsedQuery = new Query(where, options);
-			if (validator.validWhere(where) === 0 && validator.validateOptions(options) === 0) {
+			const whereValidated = validator.validWhere(where);
+			const optionsValidated = validator.validateOptions(options);
+			if (whereValidated.error === 0 && optionsValidated.error === 0) {
 				if (validator.checkDatasetValidity() === 0) {
 					let result = dataCollector.execQuery(parsedQuery);
 					if (result.length > 5000) {
-						return Promise.reject(new ResultTooLargeError());
+						return Promise.reject(new ResultTooLargeError("result is too large"));
 					} else {
 						return Promise.resolve(result);
 					}
 				} else if (validator.checkDatasetValidity() === 1) {
-					return Promise.reject(new InsightError());
+					return Promise.reject(new InsightError("cannot query multiple datasets"));
 				} else {
-					return Promise.reject(new NotFoundError());
+					return Promise.reject(new NotFoundError("dataset cannot be found"));
 				}
-			} else if (validator.validWhere(where) === 1 || validator.validateOptions(options) === 1) {
-				return Promise.reject(new InsightError());
+			} else if (whereValidated.error === 1) {
+				return Promise.reject(new InsightError(whereValidated.msg));
+			} else if (optionsValidated.error === 1) {
+				return Promise.reject(new InsightError(optionsValidated.msg));
 			}
 		} else {
-			return Promise.reject(new InsightError());
+			return Promise.reject(new InsightError("query not an object"));
 		}
-		return Promise.reject(new InsightError());
+		return Promise.reject(new InsightError("shouldn't reach this"));
 	}
 
 	public listDatasets(): Promise<InsightDataset[]> {

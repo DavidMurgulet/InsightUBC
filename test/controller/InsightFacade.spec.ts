@@ -1,10 +1,9 @@
 import {
-	IInsightFacade,
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
-	ResultTooLargeError,
 	NotFoundError,
+	ResultTooLargeError,
 } from "../../src/controller/IInsightFacade";
 import {Dataset, Section} from "../../src/controller/Dataset";
 import InsightFacade from "../../src/controller/InsightFacade";
@@ -17,6 +16,7 @@ import {checkParsing, parseOpts, parseWhere} from "../../src/controller/Parse";
 
 import {Collector} from "../../src/controller/Collector";
 import {Validator} from "../../src/controller/Validator";
+import exp from "constants";
 import {folderTest} from "@ubccpsc310/folder-test";
 
 use(chaiAsPromised);
@@ -1057,9 +1057,9 @@ describe("InsightFacade", function () {
 			sec4 = new Section("04", "121", "comptn, progrmng", "andrew", "cpsc", 2021, 70, 30, 20, 1);
 			sec5 = new Section("05", "300", "biology", "andrew", "biol", 2000, 20, 3, 1, 1);
 			sections = [sec1, sec2, sec3, sec4, sec5];
-			// dataset = new Dataset("test", InsightDatasetKind.Sections, sections, 5);
+			dataset = new Dataset("test", 5, sections, InsightDatasetKind.Sections);
 			collector = new Collector([dataset]);
-			// facade.listOfDatasets.push(dataset);
+			facade.aDataset(dataset);
 		});
 
 		it("executing WHERE branch (GT avg: 30)", function () {
@@ -1122,12 +1122,12 @@ describe("InsightFacade", function () {
 		let qBasic = {
 			WHERE: {
 				GT: {
-					set1_avg: 50,
+					ubc_avg: 97,
 				},
 			},
 			OPTIONS: {
-				COLUMNS: ["set1_dept", "set1_avg"],
-				ORDER: "set1_dept",
+				COLUMNS: ["ubc_dept", "ubc_avg"],
+				ORDER: "ubc_avg",
 			},
 		};
 		let qComplex = {
@@ -1137,35 +1137,99 @@ describe("InsightFacade", function () {
 						AND: [
 							{
 								GT: {
-									set1_avg: 90,
+									ubc_avg: 90,
 								},
 							},
 							{
 								IS: {
-									set1_dept: "cpsc",
+									ubc_dept: "adhe",
 								},
 							},
 						],
 					},
 					{
 						EQ: {
-							set1_avg: 95,
+							ubc_avg: 95,
 						},
 					},
 				],
 			},
 			OPTIONS: {
-				COLUMNS: ["set1_dept", "set1_id", "set1_avg"],
-				ORDER: "set1_avg",
+				COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
+				ORDER: "ubc_avg",
 			},
 		};
 		let qBasicNoComparator = {
 			WHERE: {},
 			OPTIONS: {
-				COLUMNS: ["test_dept", "test_avg"],
-				ORDER: "test_dept",
+				COLUMNS: ["ubc_dept", "ubc_avg"],
+				ORDER: "ubc_avg",
 			},
 		};
+		let wc = {
+			WHERE: {
+				IS: {
+					ubc_dept: "*asc*",
+				},
+			},
+			OPTIONS: {
+				COLUMNS: ["ubc_dept", "ubc_avg"],
+				ORDER: "ubc_avg",
+			},
+		};
+		let allComp = {
+			WHERE: {
+				OR: [
+					{
+						AND: [
+							{
+								GT: {
+									ubc_avg: 50,
+								},
+							},
+							{
+								LT: {
+									ubc_avg: 90,
+								},
+							},
+							{
+								EQ: {
+									ubc_avg: 85,
+								},
+							},
+							{
+								IS: {
+									ubc_dept: "*c",
+								},
+							},
+						],
+					},
+					{
+						NOT: {
+							GT: {
+								ubc_avg: 1,
+							},
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
+				ORDER: "ubc_avg",
+			},
+		};
+		let yr1900 = {
+			WHERE: {
+				EQ: {
+					ubc_year: 1900,
+				},
+			},
+			OPTIONS: {
+				COLUMNS: ["ubc_dept", "ubc_avg"],
+				ORDER: "ubc_avg",
+			},
+		};
+		let pair: string;
 		let sec1;
 		let sec2;
 		let sec3;
@@ -1180,80 +1244,78 @@ describe("InsightFacade", function () {
 		let dataset1: Dataset;
 		let dataset2: Dataset;
 
-		before(function () {
+		before(async function () {
 			clearDisk();
 			facade = new InsightFacade();
-			sec1 = new Section("01", "110", "comptn, progrmng", "david", "math", 2020, 95, 46, 4, 4);
-			sec2 = new Section("02", "110", "comptn, progrmng", "david", "chem", 2021, 85, 49, 1, 0);
-			sec3 = new Section("03", "121", "logic", "andrew", "cpsc", 2020, 60, 25, 25, 0);
-			sec4 = new Section("04", "121", "logic", "andrew", "cpsc", 2021, 70, 30, 20, 1);
-			sec5 = new Section("05", "300", "biology", "andrew", "biol", 2000, 20, 3, 1, 1);
-
-			sec6 = new Section("06", "101", "intro", "david", "math", 2015, 95, 46, 2, 4);
-			sec7 = new Section("07", "310", "msd", "david", "phil", 2006, 66, 49, 1, 3);
-			sec8 = new Section("08", "221", "algs", "andrew", "cpsc", 2019, 42, 25, 3, 2);
-			sec9 = new Section("09", "313", "idk", "andrew", "frst", 2023, 76, 30, 0, 1);
-
-			sections = [sec1, sec2, sec3, sec4, sec5];
-			sections2 = [sec6, sec7, sec8, sec9];
-			// dataset1 = new Dataset("set1", InsightDatasetKind.Sections, sections, sections.length);
-			// dataset2 = new Dataset("set2", InsightDatasetKind.Sections, sections2, sections2.length);
-			facade.aDataset(dataset1);
-			facade.aDataset(dataset2);
+			await facade.initialize();
+			pair = getContentFromArchives("pair.zip");
+			await facade.addDataset("ubc", pair, InsightDatasetKind.Sections);
 		});
 
 		it("should execQuery (basic)", function () {
 			const result = facade.performQuery(qBasic);
-			console.log(result);
+			expect(result).to.eventually.be.length(48);
 		});
 
 		it("should execQuery (complex)", function () {
 			const result = facade.performQuery(qComplex);
-			console.log(result);
+			expect(result).to.eventually.be.length(50);
 		});
 
 		it("should execQuery (NO COMPARATOR)", function () {
 			const result = facade.performQuery(qBasicNoComparator);
-			console.log(result);
+			expect(result).to.eventually.be.rejectedWith(ResultTooLargeError);
+		});
+
+		it("should execQuery (wildcard contains)", function () {
+			const result = facade.performQuery(wc);
+			// expect(result).to.eventually.be.rejectedWith(ResultTooLargeError);
+		});
+
+		it("should fail with too large", function () {
+			const result = facade.performQuery(yr1900);
+			expect(result).to.eventually.be.rejectedWith(ResultTooLargeError);
 		});
 	});
-	// describe("performQuery", function () {
-	// 	let sections: string;
-	// 	let alt: string;
-	// 	let facade: InsightFacade;
-	//
-	// 	before(function () {
-	// 		clearDisk();
-	// 		sections = getContentFromArchives("pair.zip");
-	// 		alt = getContentFromArchives("basic.zip");
-	// 		facade = new InsightFacade();
-	// 		// await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
-	// 		// await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
-	// 		// facade.aDataset(new Dataset("sections", sections, InsightDatasetKind.Sections, sections.length));
-	// 	});
-	//
-	// 	function errorValidator(error: any): error is Error {
-	// 		return error === "InsightError" || error === "ResultTooLargeError";
-	// 	}
-	//
-	// 	type PQErrorKind = "ResultTooLargeError" | "InsightError";
-	//
-	// 	folderTest<unknown, Promise<InsightResult[]>, PQErrorKind>(
-	// 		"Dynamic InsightFacade PerformQuery tests",
-	// 		(input) => facade.performQuery(input),
-	// 		"./test/resources/queries",
-	// 		{
-	// 			assertOnResult: (actual, expected) => {
-	// 				// TODO add an assertion!
-	// 			},
-	// 			errorValidator: (error): error is PQErrorKind =>
-	// 				error === "ResultTooLargeError" || error === "InsightError",
-	// 			assertOnError: (actual, expected) => {
-	// 				// TODO add an assertion!
-	// 			},
-	// 		}
-	// 	);
-	// })};
+
+	describe("performQuery", function () {
+		let sections: string;
+		let alt: string;
+		let facade: InsightFacade;
+
+		before(async function () {
+			clearDisk();
+			sections = getContentFromArchives("pair.zip");
+			alt = getContentFromArchives("basic.zip");
+			facade = new InsightFacade();
+			await facade.initialize();
+			await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
+			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
+			// facade.aDataset(new Dataset("sections", sections, InsightDatasetKind.Sections, sections.length));
+		});
+
+		function errorValidator(error: any): error is Error {
+			return error === "InsightError" || error === "ResultTooLargeError";
+		}
+
+		type PQErrorKind = "ResultTooLargeError" | "InsightError";
+
+		folderTest<unknown, Promise<InsightResult[]>, PQErrorKind>(
+			"Dynamic InsightFacade PerformQuery tests",
+			(input) => facade.performQuery(input),
+			"./test/resources/queries",
+			{
+				assertOnResult: (actual, expected) => {
+					// TODO add an assertion!
+				},
+				errorValidator: (error): error is PQErrorKind =>
+					error === "ResultTooLargeError" || error === "InsightError",
+				assertOnError: (actual, expected) => {
+					// TODO add an assertion!
+				},
+			}
+		);
+	});
 });
 
 // describe("performQuery", function () {

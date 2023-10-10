@@ -1,0 +1,10 @@
+{
+  "WHERE":
+  { "AND": [ { "IS": { "ubc_dept": "c*" },"GT": { "ubc_avg": 97 } } ]
+
+
+{
+"AND":[{"GT":{"ubc_avg":90}},{"IS":{"ubc_dept":"adhe"}}
+
+]
+          }

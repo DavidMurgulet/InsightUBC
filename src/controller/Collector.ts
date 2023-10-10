@@ -100,12 +100,23 @@ export class Collector {
 		return Array.from(new Set(arr));
 	}
 
-	public filterDuplicates(arr: any[]): any[] {
-		const duplicatedValuesArray = arr.filter((value, index, array) => {
-			return array.indexOf(value) !== index;
+	// CHAT GPT FUNCTION
+	public filterDuplicates(sections: any[], n: number): any[] {
+		const sectionCountMap: Map<string, number> = new Map();
+
+		// Count the occurrences of each section in the original array
+		for (const section of sections) {
+			const sectionString = JSON.stringify(section);
+			sectionCountMap.set(sectionString, (sectionCountMap.get(sectionString) || 0) + 1);
+		}
+
+		// Filter sections that appear exactly 'n' times
+		const filteredSections = sections.filter((section) => {
+			const sectionString = JSON.stringify(section);
+			return sectionCountMap.get(sectionString) === n;
 		});
 
-		return Array.from(new Set(duplicatedValuesArray));
+		return Array.from(new Set(filteredSections));
 	}
 
 	public extractCol(columns: QueryNode): string[] {
@@ -130,7 +141,7 @@ export class Collector {
 				}
 			}
 			// filter out sections that aren't in all children arrays.
-			filtered = this.filterDuplicates(filtered);
+			filtered = this.filterDuplicates(filtered, node.getChilds().length);
 			return filtered;
 		} else if (operator === "OR") {
 			for (const child of node.getChilds()) {
@@ -159,7 +170,7 @@ export class Collector {
 			}
 			// take all sections that aren't present in filtered and return it.
 			return notFiltered;
-		} else if (operator === ("GT" || "LT" || "EQ" || "IS")) {
+		} else if (operator === "GT" || operator === "LT" || operator === "EQ" || operator === "IS") {
 			return this.queryLeaf(node);
 		}
 		return filtered;
@@ -221,16 +232,17 @@ export class Collector {
 		return filteredSections;
 	}
 
-
 	public filterSectionsByCondition(condition: string, datasetID: string, field: string, leafKey: any): Section[] {
 		const filteredSections: Section[] = [];
 
 		for (const set of this.getDatasets()) {
 			if (set.id === datasetID) {
 				for (const sec of set.sections) {
-					if ((condition === "GT" && sec[field] > leafKey) ||
+					if (
+						(condition === "GT" && sec[field] > leafKey) ||
 						(condition === "LT" && sec[field] < leafKey) ||
-						(condition === "EQ" && sec[field] === leafKey)) {
+						(condition === "EQ" && sec[field] === leafKey)
+					) {
 						filteredSections.push(sec);
 					}
 				}
@@ -239,5 +251,4 @@ export class Collector {
 
 		return filteredSections;
 	}
-
 }
