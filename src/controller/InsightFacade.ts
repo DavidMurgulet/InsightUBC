@@ -6,9 +6,16 @@ import {
 	InsightResult,
 	NotFoundError,
 } from "./IInsightFacade";
-import * as fs from "fs";
-import {Dataset} from "./Dataset";
 import {persistDir, isBase64Zip, validateDataset, loadDatasetsFromDirectory} from "./datasetUtils";
+import fs from "fs-extra";
+import {constants} from "http2";
+import {Dataset, Section} from "./Dataset";
+import {Query, Filter, Comp, QueryNode, MField, SField, Field} from "./Query";
+import {Suite} from "mocha";
+import {subtle} from "crypto";
+import {isKeyObject} from "util/types";
+import {makeLeaf, parseOpts, parseWhere} from "./Parse";
+import {validOpts, validWhere} from "./Validate";
 
 export default class InsightFacade implements IInsightFacade {
 	private listOfDatasets: Dataset[];
@@ -87,24 +94,55 @@ export default class InsightFacade implements IInsightFacade {
 			return Promise.reject(new InsightError());
 		}
 
-		// checking if path exists
-		if (fs.statSync(dirPath)) {
-			// remove path
-
+		try {
+			fs.statSync(dirPath);
 			fs.unlinkSync(dirPath);
-
-			// Update the listOfDatasets array without re-reading from the filesystem
 			this.listOfDatasets = this.listOfDatasets.filter((dataset) => dataset.id !== id);
-
 			return Promise.resolve(id);
-		} else {
-			// throw error, (dataset not found)
-			return Promise.reject(new NotFoundError());
+		} catch (e) {
+			if ((e as any).code === "ENOENT") {
+				// 'ENOENT' stands for 'Error NO ENTry', indicating the path does not exist.
+				return Promise.reject(new NotFoundError());
+			}
+			return Promise.reject(e); // Handle other potential errors
 		}
 	}
 
 	public performQuery(query: unknown): Promise<InsightResult[]> {
-		return Promise.reject("Not implemented.");
+		if (query instanceof Object) {
+			let where!: QueryNode;
+			let options!: QueryNode;
+
+			for (const k in query) {
+				if (Object.prototype.hasOwnProperty.call(query, k)) {
+					// let subQuery: object = (<any>query)[k];
+					let subQuery: object = (query as any)[k];
+					if (k === "WHERE") {
+						where = parseWhere(subQuery, k);
+					} else if (k === "OPTIONS") {
+						options = parseOpts(subQuery, k);
+						console.log("test");
+					} else {
+						// NO WHERE/OPTIONS KEY
+						return Promise.reject(new InsightError());
+					}
+				}
+			}
+
+			const parsedQuery = new Query(where, options);
+
+			// if both validWhere and validOpts return true, start querying the dataset.
+			if (validOpts(options) && validWhere(where)) {
+				console.log("buffer");
+				// perform query
+			} else {
+				return Promise.reject(new InsightError());
+			}
+		} else {
+			return Promise.reject(new InsightError());
+		}
+
+		return Promise.reject(new InsightError());
 	}
 
 	public listDatasets(): Promise<InsightDataset[]> {
