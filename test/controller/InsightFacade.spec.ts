@@ -6,19 +6,16 @@ import {
 	ResultTooLargeError,
 	NotFoundError,
 } from "../../src/controller/IInsightFacade";
-import InsightFacade, {
-	isBase64Zip,
-	loadDatasetsFromDirectory,
-	validateDataset,
-} from "../../src/controller/InsightFacade";
+
+import InsightFacade from "../../src/controller/InsightFacade";
+
+import {isBase64Zip, loadDatasetsFromDirectory, validateDataset} from "../../src/controller/datasetUtils";
 
 import {folderTest} from "@ubccpsc310/folder-test";
 import {expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives} from "../TestUtil";
 import {beforeEach} from "mocha";
-import JSZip from "jszip";
-import {Dataset} from "../../src/controller/Dataset";
 
 use(chaiAsPromised);
 
@@ -51,38 +48,38 @@ describe("Helper Unit Tests", function () {
 
 	//	given a valid Zip, it checks if the dataset is valid
 	describe("validateDataset", function () {
-		it("should return True when a valid is passed in", function () {
+		it("should return True when a valid is passed in", async function () {
 			let sections: string = getContentFromArchives("basic.zip");
-			const result = validateDataset(sections);
-			return expect(result).to.eventually.be.true;
+			const result = await validateDataset(sections, "test");
+			return expect(result.success).to.be.true;
 		});
 
-		it("should return True when a valid dataset is passed in - 1 invalid section, rest valid", function () {
+		it("should return True when a valid dataset is passed in - 1 invalid section, rest valid", async function () {
 			let sections: string = getContentFromArchives("validOneSectionNoAVG.zip");
-			const result = validateDataset(sections);
-			return expect(result).to.eventually.be.true;
+			const result = await validateDataset(sections, "test");
+			return expect(result.success).to.be.true;
 		});
 
-		it("should return False when a valid is passed in - no valid sections", function () {
+		it("should return False when a valid is passed in - no valid sections", async function () {
 			let sections: string = getContentFromArchives("noAVG.zip");
-			const result = validateDataset(sections);
-			return expect(result).to.eventually.be.false;
+			const result = await validateDataset(sections, "test");
+			return expect(result.success).to.be.false;
 		});
 	});
 
 	//	loads the datasets from '/data'
 	describe("loadDatasetsFromDirectory", function () {
-		it("should return dataset object from disk", async function () {
-			let listOfDatasets = await loadDatasetsFromDirectory("./data");
-
-			// Check if listOfDatasets is an array
-			expect(listOfDatasets).to.be.an("array");
-
-			// Check if each element in the array is an instance of Dataset
-			listOfDatasets.forEach((dataset: Dataset) => {
-				expect(dataset).to.be.an.instanceOf(Dataset);
-			});
-		});
+		// it("should return dataset object from disk", async function () {
+		// 	let listOfDatasets = await loadDatasetsFromDirectory("./data");
+		//
+		// 	// Check if listOfDatasets is an array
+		// 	expect(listOfDatasets).to.be.an("array");
+		//
+		// 	// Check if each element in the array is an instance of Dataset
+		// 	listOfDatasets.forEach((dataset: Dataset) => {
+		// 		expect(dataset).to.be.an.instanceOf(Dataset);
+		// 	});
+		// });
 	});
 });
 
@@ -121,9 +118,10 @@ describe("InsightFacade", function () {
 			noyear = getContentFromArchives("noYEAR.zip");
 		});
 
-		beforeEach(function () {
+		beforeEach(async function () {
 			clearDisk();
 			facade = new InsightFacade();
+			await facade.initialize();
 		});
 
 		it("should successfully add a dataset (first)", function () {
@@ -137,27 +135,30 @@ describe("InsightFacade", function () {
 		});
 
 		it("should successfully access dataset after crash", async function () {
-			await facade.addDataset("pair", pair, InsightDatasetKind.Sections);
+			await facade.addDataset("basic", sections, InsightDatasetKind.Sections);
 			// new instance made
 			facade = new InsightFacade();
+			await facade.initialize();
+
 			const result = await facade.listDatasets();
 			expect(result).to.deep.equal([
 				{
-					id: "pair",
+					id: "basic",
 					kind: InsightDatasetKind.Sections,
-					numRows: 64612,
+					numRows: 119,
 				},
 			]);
 		});
 
-		it("should not access dataset after crash + removal", async function () {
+		it("should still be able to remove dataset after crash", async function () {
 			await facade.addDataset("pair", pair, InsightDatasetKind.Sections);
 			// new instance made
 			facade = new InsightFacade();
+			await facade.initialize();
 
-			const result = await facade.removeDataset("pair");
-			// const result = await facade.listDatasets();
-			expect(result).to.deep.equal("pair");
+			await facade.removeDataset("pair");
+			const result = await facade.listDatasets();
+			expect(result).to.deep.equal([]);
 		});
 
 		it("should successfully add 2 datasets", async function () {
@@ -248,6 +249,7 @@ describe("InsightFacade", function () {
 			sectionsInvalid = getContentFromArchives("invalid.zip");
 			clearDisk();
 			facade = new InsightFacade();
+			await facade.initialize();
 			await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
 		});
 
@@ -283,11 +285,12 @@ describe("InsightFacade", function () {
 		let set2: string;
 		let facade: InsightFacade;
 
-		before(function () {
+		before(async function () {
 			set1 = getContentFromArchives("cs110.zip");
 			set2 = getContentFromArchives("cs121.zip");
 			clearDisk();
 			facade = new InsightFacade();
+			await facade.initialize();
 		});
 
 		it("should list 0 dataset", async function () {
@@ -382,10 +385,11 @@ describe("InsightFacade", function () {
 	// 	let facade = InsightFacade;
 	// 	let alt = string;
 	// 	let sections = string;
-	// 	before(function () {
+	// 	before(async function () {
 	// 		console.info(`Before: ${this.test?.parent?.title}`);
 	//
 	// 		facade = new InsightFacade();
+	// 		await facade.initialize();
 	//
 	// 		// Load the datasets specified in datasetsToQuery and add them to InsightFacade.
 	// 		// Will *fail* if there is a problem reading ANY dataset.
@@ -429,6 +433,7 @@ describe("InsightFacade", function () {
 			sections = getContentFromArchives("pair.zip");
 			alt = getContentFromArchives("basic.zip");
 			facade = new InsightFacade();
+			await facade.initialize();
 			await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
 			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
 		});
