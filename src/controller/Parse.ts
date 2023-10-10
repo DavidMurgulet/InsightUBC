@@ -19,6 +19,12 @@ export function parseWhere(query: any, key: string, parent?: QueryNode): QueryNo
 			}
 		}
 	}
+
+	// THIS IS AN IFFY CASE
+	if (key === "WHERE" && Object.keys(query).length === 0) {
+		return curr;
+	}
+
 	// LEAF CASE
 	if (Object.keys(query).length === 0 || typeof query === "string") {
 		let leaf = makeLeaf(query, curr);
@@ -28,7 +34,6 @@ export function parseWhere(query: any, key: string, parent?: QueryNode): QueryNo
 	// iterate through keys (kids) of current query
 	for (const k in query) {
 		if (Object.prototype.hasOwnProperty.call(query, k)) {
-			// change this to OBJECT
 			let subQuery: any = (query as any)[k];
 			if (Array.isArray(subQuery)) {
 				for (let c of subQuery) {
@@ -76,7 +81,7 @@ export function parseOpts(query: any, key: string): QueryNode {
 
 	for (const k in query) {
 		if (Object.prototype.hasOwnProperty.call(query, k)) {
-			let subQuery = query[k as keyof typeof query];
+			let subQuery = (query as any)[k];
 			if (typeof subQuery === "string") {
 				// const leaf = new queryNode(subQuery);
 				let child = parseOpts(subQuery, k);

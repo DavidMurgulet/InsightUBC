@@ -5,21 +5,26 @@ import {
 	InsightError,
 	InsightResult,
 	NotFoundError,
+	ResultTooLargeError,
 } from "./IInsightFacade";
+// <<<<<<< HEAD
 import {persistDir, isBase64Zip, validateDataset, loadDatasetsFromDirectory} from "./datasetUtils";
-import fs from "fs-extra";
 import {constants} from "http2";
+// =======
+import fs, {remove} from "fs-extra";
+import {Validator} from "./Validator";
+// >>>>>>> b192f10 (addDataset merge commit)
 import {Dataset, Section} from "./Dataset";
+// <<<<<<< Updated upstream
 import {Query, Filter, Comp, QueryNode, MField, SField, Field} from "./Query";
 import {Suite} from "mocha";
 import {subtle} from "crypto";
 import {isKeyObject} from "util/types";
 import {makeLeaf, parseOpts, parseWhere} from "./Parse";
-import {validOpts, validWhere} from "./Validate";
+import {Collector} from "./Collector";
 
 export default class InsightFacade implements IInsightFacade {
 	private listOfDatasets: Dataset[];
-
 	// //	access listOfDatasets for debugging
 	// public getListOfDatasets(): Dataset[] {
 	// 	return this.listOfDatasets;
@@ -35,7 +40,6 @@ export default class InsightFacade implements IInsightFacade {
 			console.error("Error loading datasets:", error);
 		}
 	}
-
 	constructor() {
 		console.log("InsightFacadeImpl::init()");
 		this.listOfDatasets = [];
@@ -85,6 +89,14 @@ export default class InsightFacade implements IInsightFacade {
 		return datasets.map((dataset) => dataset.id);
 	}
 
+	public getDatasets() {
+		return this.listOfDatasets;
+	}
+
+	public aDataset(dataset: Dataset) {
+		this.getDatasets().push(dataset);
+	}
+
 	public removeDataset(id: string): Promise<string> {
 		// path for data folders
 		let dirPath = persistDir + "/" + id + ".json";
@@ -98,6 +110,7 @@ export default class InsightFacade implements IInsightFacade {
 			fs.statSync(dirPath);
 			fs.unlinkSync(dirPath);
 			this.listOfDatasets = this.listOfDatasets.filter((dataset) => dataset.id !== id);
+
 			return Promise.resolve(id);
 		} catch (e) {
 			if ((e as any).code === "ENOENT") {
@@ -108,40 +121,56 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
+	// TODO: "NOT" in validation and querying (DONE)
+	// TODO: dataset checks in validation (DONE)
+	// TODO: implement ordering (DONE)
+	// 		TODO: tiebreakers in ordering
+	// TODO: double check validation WHERE validation
+	// TODO: order key must be in columns (DONE)
+	// TODO: wildcard handling in queryLeaf (DONE, needs testing)
+	// TODO: parsing for no comparator in WHERE (DONE kinda hardcoded)
+	// TODO: Semantic Checks
+
 	public performQuery(query: unknown): Promise<InsightResult[]> {
+		const dataCollector = new Collector(this.getDatasets());
+		const validator = new Validator(this.getDatasets());
 		if (query instanceof Object) {
 			let where!: QueryNode;
 			let options!: QueryNode;
-
+			// what if WHERE, OPTIONS, WHERE
 			for (const k in query) {
 				if (Object.prototype.hasOwnProperty.call(query, k)) {
-					// let subQuery: object = (<any>query)[k];
 					let subQuery: object = (query as any)[k];
 					if (k === "WHERE") {
 						where = parseWhere(subQuery, k);
 					} else if (k === "OPTIONS") {
 						options = parseOpts(subQuery, k);
-						console.log("test");
 					} else {
 						// NO WHERE/OPTIONS KEY
 						return Promise.reject(new InsightError());
 					}
 				}
 			}
-
 			const parsedQuery = new Query(where, options);
-
-			// if both validWhere and validOpts return true, start querying the dataset.
-			if (validOpts(options) && validWhere(where)) {
-				console.log("buffer");
-				// perform query
-			} else {
+			if (validator.validWhere(where) === 0 && validator.validateOptions(options) === 0) {
+				if (validator.checkDatasetValidity() === 0) {
+					let result = dataCollector.execQuery(parsedQuery);
+					if (result.length > 5000) {
+						return Promise.reject(new ResultTooLargeError());
+					} else {
+						return Promise.resolve(result);
+					}
+				} else if (validator.checkDatasetValidity() === 1) {
+					return Promise.reject(new InsightError());
+				} else {
+					return Promise.reject(new NotFoundError());
+				}
+			} else if (validator.validWhere(where) === 1 || validator.validateOptions(options) === 1) {
 				return Promise.reject(new InsightError());
 			}
 		} else {
 			return Promise.reject(new InsightError());
 		}
-
 		return Promise.reject(new InsightError());
 	}
 
