@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import {InsightDatasetKind} from "./IInsightFacade";
 
-const persistDir = "./data";
+export const persistDir = "./data";
 
 //	check if content string is base 64 ZIP
 export async function isBase64Zip(content: string): Promise<boolean> {

@@ -8,9 +8,7 @@ import {
 } from "./IInsightFacade";
 import * as fs from "fs";
 import {Dataset} from "./Dataset";
-import {isBase64Zip, validateDataset, loadDatasetsFromDirectory} from "./datasetUtils";
-
-const persistDir = "./data";
+import {persistDir, isBase64Zip, validateDataset, loadDatasetsFromDirectory} from "./datasetUtils";
 
 export default class InsightFacade implements IInsightFacade {
 	private listOfDatasets: Dataset[];
