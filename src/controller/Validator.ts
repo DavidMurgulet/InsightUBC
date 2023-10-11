@@ -1,12 +1,12 @@
 import {Field, MField, QueryNode, SField} from "./Query";
 import {Dataset} from "./Dataset";
+
 import {Collector} from "./Collector";
+
 
 // RETURN VALUE 0 = no errors
 // RETURN 1 = InsightError
 // RETURN 2 = NotFoundErro
-
-// let leafDatasets: string[];
 let colFields: string[];
 
 export class Validator {
@@ -220,7 +220,6 @@ export class Validator {
 		// needs to contain underscore
 		// parse string, first needs to be same as dataset.
 		// second needs to be a valid key
-
 		const key = node.getKey();
 		const children = node.getChilds();
 		if (children.length === 1) {
@@ -243,6 +242,7 @@ export class Validator {
 					} else {
 						// wrong key type in GT/LT/EQ
 						return {error: 1, msg: "wrong key type in GT LT EQ"};
+
 					}
 				} else if (parent === 1) {
 					if (Object.values(SField).includes(field)) {
@@ -287,3 +287,4 @@ export class Validator {
 		return {error: 0, msg: ""};
 	}
 }
+
