@@ -1229,20 +1229,23 @@ describe("InsightFacade", function () {
 				ORDER: "ubc_avg",
 			},
 		};
+		let noWHERE = {
+			OPTIONS: {
+				COLUMNS: ["ubc_dept", "ubc_avg"],
+				ORDER: "ubc_avg",
+			},
+		};
+		let noCOL: {
+			WHERE: {
+				GT: {
+					ubc_avg: 97;
+				};
+			};
+			OPTIONS: {
+				ORDER: "ubc_avg";
+			};
+		};
 		let pair: string;
-		let sec1;
-		let sec2;
-		let sec3;
-		let sec4;
-		let sec5;
-		let sec6;
-		let sec7;
-		let sec8;
-		let sec9;
-		let sections: Section[];
-		let sections2: Section[];
-		let dataset1: Dataset;
-		let dataset2: Dataset;
 
 		before(async function () {
 			clearDisk();
@@ -1276,9 +1279,63 @@ describe("InsightFacade", function () {
 			const result = facade.performQuery(yr1900);
 			expect(result).to.eventually.be.rejectedWith(ResultTooLargeError);
 		});
+
+		it("should fail missing where", function () {
+			const result = facade.performQuery(noWHERE);
+			expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should fail missing col", function () {
+			const result = facade.performQuery(noCOL);
+			expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
 	});
 
-	describe("performQuery", function () {
+	describe("performQueryORDER", function () {
+		let sections: string;
+		let alt: string;
+		let facade: InsightFacade;
+
+		before(async function () {
+			clearDisk();
+			sections = getContentFromArchives("pair.zip");
+			alt = getContentFromArchives("basic.zip");
+			facade = new InsightFacade();
+			await facade.initialize();
+			await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
+			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
+		});
+
+		function errorValidator(error: any): error is Error {
+			return error === "InsightError" || error === "ResultTooLargeError";
+		}
+
+		type PQErrorKind = "ResultTooLargeError" | "InsightError";
+
+		folderTest<unknown, Promise<InsightResult[]>, PQErrorKind>(
+			"Dynamic InsightFacade PerformQuery tests Ordered",
+			(input) => facade.performQuery(input),
+			"./test/resources/queries",
+			{
+				assertOnResult: async (actual, expected) => {
+					// TODO add an assertion!
+					// assert.includeDeepMembers(actual, expected);
+					expect(actual).to.have.deep.members(await expected);
+				},
+				errorValidator: (error): error is PQErrorKind =>
+					error === "ResultTooLargeError" || error === "InsightError",
+				assertOnError: (actual, expected) => {
+					if (expected === "InsightError") {
+						assert.instanceOf(actual, InsightError);
+					} else {
+						assert.instanceOf(actual, ResultTooLargeError);
+					}
+				},
+			}
+		);
+	});
+
+	describe("performQueryNoORDER", function () {
 		let sections: string;
 		let alt: string;
 		let facade: InsightFacade;
@@ -1301,57 +1358,24 @@ describe("InsightFacade", function () {
 		type PQErrorKind = "ResultTooLargeError" | "InsightError";
 
 		folderTest<unknown, Promise<InsightResult[]>, PQErrorKind>(
-			"Dynamic InsightFacade PerformQuery tests",
+			"Dynamic InsightFacade PerformQuery tests without Ordering",
 			(input) => facade.performQuery(input),
-			"./test/resources/queries",
+			"./test/resources/queriesNoORDER",
 			{
-				assertOnResult: (actual, expected) => {
+				assertOnResult: async (actual, expected) => {
 					// TODO add an assertion!
-					assert.deepEqual(actual, expected);
+					assert.equal(actual, expected);
 				},
 				errorValidator: (error): error is PQErrorKind =>
 					error === "ResultTooLargeError" || error === "InsightError",
 				assertOnError: (actual, expected) => {
-					// TODO add an assertion!
+					if (expected === "InsightError") {
+						assert.instanceOf(actual, InsightError);
+					} else {
+						assert.instanceOf(actual, ResultTooLargeError);
+					}
 				},
 			}
 		);
 	});
 });
-
-// describe("performQuery", function () {
-// 	let sections: string;
-// 	let alt: string;
-// 	let facade: InsightFacade;
-//
-// 	before(async function () {
-// 		clearDisk();
-// 		sections = getContentFromArchives("pair.zip");
-// 		alt = getContentFromArchives("basic.zip");
-// 		facade = new InsightFacade();
-// 		await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
-// 		await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
-// 	});
-//
-// 	// function errorValidator(error: any): error is Error {
-// 	// 	return error === "InsightError" || error === "ResultTooLargeError";
-// 	// }
-// 	//
-// 	// type PQErrorKind = "ResultTooLargeError" | "InsightError";
-// 	//
-// 	// folderTest<unknown, Promise<InsightResult[]>, PQErrorKind>(
-// 	// 	"Dynamic InsightFacade PerformQuery tests",
-// 	// 	(input) => facade.performQuery(input),
-// 	// 	"./test/resources/queries",
-// 	// 	{
-// 	// 		assertOnResult: (actual, expected) => {
-// 	// 			// TODO add an assertion!
-// 	// 		},
-// 	// 		errorValidator: (error): error is PQErrorKind =>
-// 	// 			error === "ResultTooLargeError" || error === "InsightError",
-// 	// 		assertOnError: (actual, expected) => {
-// 	// 			// TODO add an assertion!
-// 	// 		},
-// 	// 	}
-// 	// );
-// });

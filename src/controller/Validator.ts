@@ -3,7 +3,6 @@ import {Dataset} from "./Dataset";
 
 import {Collector} from "./Collector";
 
-
 // RETURN VALUE 0 = no errors
 // RETURN 1 = InsightError
 // RETURN 2 = NotFoundErro
@@ -12,18 +11,16 @@ let colFields: string[];
 export class Validator {
 	private datasets: Dataset[];
 	public leafDatasets: string[];
-
 	constructor(datasets: Dataset[]) {
 		this.datasets = datasets;
 		this.leafDatasets = [];
 	}
-
 	// MADE CHANGES
-	public validWhere(node: QueryNode): {error: number; msg: string} {
+	public validWhere(node: QueryNode, firstLoop?: boolean): {error: number; msg: string} {
 		const key = node.getKey();
 		const children = node.getChilds();
 		if (key === "WHERE") {
-			if (children.length !== (1 || 0)) {
+			if (children.length !== 1 && children.length !== 0) {
 				return {error: 1, msg: "Where has more than one mComp"};
 			}
 			for (const k of children) {
@@ -63,11 +60,10 @@ export class Validator {
 				return {error: 1, msg: temp.msg};
 			}
 		} else {
-			return {error: 1, msg: "invalid comparator"};
+			return {error: 1, msg: "invalid comparator / "};
 		}
 		return {error: 0, msg: ""};
 	}
-
 	public validateOptions(node: QueryNode): {error: number; msg: string} {
 		const key = node.getKey();
 		const children = node.getChilds();
@@ -77,76 +73,78 @@ export class Validator {
 			let childKeys = node.getChildKeys();
 			// check that options only has COLUMNS and ORDER as children
 			// if has both, ensure that COLUMNS is processed first
-
 			// empty options
 			if (children.length < 1) {
 				return {error: 1, msg: "options is empty"};
 			}
-			// keys can only be COLUMNS or ORDER
-			// 2 cases, only columns,
-			// if there are multiple instances of a col or order, check validity
-			// remove all except latest added.
-			// case 1: all childkeys are columns
-			//			if all come back valid, remove all but the last one
-			if (children.every((chi) => chi.getKey() === "COLUMNS")) {
-				for (const c of children) {
-					const temp = this.validateColumns(c);
-					if (temp.error === 1) {
-						return {error: 1, msg: temp.msg};
-					}
-				}
-				node.removeExcept(children[children.length - 1]);
-			} else if (children.every((chi) => chi.getKey() === "COLUMNS" || chi.getKey() === "ORDER")) {
-				// validate all columns
-				for (const c of children) {
-					if (c.getKey() === "COLUMNS") {
-						const temp = this.validateColumns(c);
-						if (temp.error === 1) {
-							return {error: 1, msg: temp.msg};
-						}
-					}
-				}
-				// validate all ORDER
-				for (const c of children) {
-					if (c.getKey() === "ORDER") {
-						const temp = this.validateOrder(c);
-						if (temp.error === 1) {
-							return {error: 1, msg: temp.msg};
-						}
-					}
-				}
-				node.removeOrderColumns("COLUMNS");
-				node.removeOrderColumns("ORDER");
-			} else {
-				return {error: 1, msg: "options contains not columns or order"};
-			}
-
+			// if (children.every((chi) => chi.getKey() === "COLUMNS")) {
+			// 	for (const c of children) {
+			// 		const temp = this.validateColumns(c);
+			// 		if (temp.error === 1) {
+			// 			return {error: 1, msg: temp.msg};
+			// 		}
+			// 	}
+			// 	node.removeExcept(children[children.length - 1]);
+			// } else if (children.every((chi) => chi.getKey() === "COLUMNS" || chi.getKey() === "ORDER")) {
+			// 	// validate all columns
+			// 	for (const c of children) {
+			// 		if (c.getKey() === "COLUMNS") {
+			// 			const temp = this.validateColumns(c);
+			// 			if (temp.error === 1) {
+			// 				return {error: 1, msg: temp.msg};
+			// 			}
+			// 		}
+			// 	}
+			// 	// validate all ORDER
+			// 	for (const c of children) {
+			// 		if (c.getKey() === "ORDER") {
+			// 			const temp = this.validateOrder(c);
+			// 			if (temp.error === 1) {
+			// 				return {error: 1, msg: temp.msg};
+			// 			}
+			// 		}
+			// 	}
+			// 	node.removeOrderColumns("COLUMNS");
+			// 	node.removeOrderColumns("ORDER");
+			// } else {
+			// 	return {error: 1, msg: "options contains not columns or order"};
+			// }
 			// case 2: multiple columns and multiple order childkeys
 			//			validate all columns, remove all but last.
 			//			validate all order, remove all but last.
-			// if (childKeys.length === 1 && childKeys.includes("COLUMNS")) {
-			// 	// only columns case, no need to check order
-			// 	const col = node.getChildWithKey("COLUMNS") as QueryNode;
-			// 	if (this.validateColumns(col) === 1) {
-			// 		return 1;
-			// 	}
-			// } else if (childKeys.length === 2 && childKeys.includes("COLUMNS") && childKeys.includes("ORDER")) {
-			// 	const col = node.getChildWithKey("COLUMNS") as QueryNode;
-			// 	const order = node.getChildWithKey("ORDER") as QueryNode;
-			//
-			// 	// validate columns
-			// 	if (this.validateColumns(col) === 1) {
-			// 		return 1;
-			// 	}
-			//
-			// 	// validate order
-			// 	if (this.validateOrder(order) === 1) {
-			// 		return 1;
-			// 	}
-			// } else {
-			// 	// error case
-			// 	return 1;
-			// }
+			if (childKeys.length === 1 && childKeys.includes("COLUMNS")) {
+				// only columns case, no need to check order
+				const col = node.getChildWithKey("COLUMNS") as QueryNode;
+				const temp = this.validateColumns(col);
+				if (temp.error === 1) {
+					return {error: 1, msg: temp.msg};
+				}
+				// if (this.validateColumns(col) === 1) {
+				// 	return 1;
+				// }
+			} else if (childKeys.length === 2 && childKeys.includes("COLUMNS") && childKeys.includes("ORDER")) {
+				const col = node.getChildWithKey("COLUMNS") as QueryNode;
+				const order = node.getChildWithKey("ORDER") as QueryNode;
+				// validate columns
+				// if (this.validateColumns(col) === 1) {
+				// 	return 1;
+				// }
+				const temp = this.validateColumns(col);
+				if (temp.error === 1) {
+					return {error: 1, msg: temp.msg};
+				}
+				// validate order
+				// if (this.validateOrder(order) === 1) {
+				// 	return 1;
+				// }
+				const ord = this.validateOrder(order);
+				if (ord.error === 1) {
+					return {error: 1, msg: ord.msg};
+				}
+			} else {
+				// error case
+				return {error: 1, msg: "error idk"};
+			}
 		} else {
 			return {error: 1, msg: "OPTIONS missing"};
 		}
@@ -154,15 +152,17 @@ export class Validator {
 		return {error: 0, msg: ""};
 	}
 
+	// should check that they're all the same
 	public checkDatasetValidity() {
 		if (this.leafDatasets.every((element) => element === this.leafDatasets[0])) {
+			// all the same,
 			for (const d of this.datasets) {
 				if (this.leafDatasets[0] === d.id) {
 					return 0;
 				}
 			}
 			// one of the keys has an invalid dataset
-			return 2;
+			return 1;
 		} else {
 			// keys dont match, m
 			return 1;
@@ -171,6 +171,10 @@ export class Validator {
 
 	public validateOrder(node: QueryNode): {error: number; msg: string} {
 		const key = node.getKey(); // ORDER
+
+		if (key !== "ORDER") {
+			return {error: 1, msg: "order missing"};
+		}
 		const children = node.getChilds(); // "sections_avg"
 
 		// order child cannot be type array
@@ -188,6 +192,11 @@ export class Validator {
 
 	public validateColumns(node: QueryNode): {error: number; msg: string} {
 		const key = node.getKey(); // COLUMNS
+
+		if (key !== "COLUMNS") {
+			return {error: 1, msg: "missing col"};
+		}
+
 		const children = node.getChilds(); // ["sections_avg", "sections_dept", "sections_pass"]
 		// COLUMNS cannot be empty
 		if (children.length < 1) {
@@ -242,7 +251,6 @@ export class Validator {
 					} else {
 						// wrong key type in GT/LT/EQ
 						return {error: 1, msg: "wrong key type in GT LT EQ"};
-
 					}
 				} else if (parent === 1) {
 					if (Object.values(SField).includes(field)) {
@@ -262,6 +270,8 @@ export class Validator {
 			} else {
 				return {error: 1, msg: "key is not in proper format (dataset_key)"};
 			}
+		} else {
+			return {error: 1, msg: "EQ/GT/LT is empty"};
 		}
 		return {error: 0, msg: ""};
 	}
@@ -287,4 +297,3 @@ export class Validator {
 		return {error: 0, msg: ""};
 	}
 }
-

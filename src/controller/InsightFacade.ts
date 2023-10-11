@@ -147,8 +147,13 @@ export default class InsightFacade implements IInsightFacade {
 					}
 				}
 			}
+
+			if (where === undefined || options === undefined) {
+				return Promise.reject(new InsightError());
+			}
+
 			const parsedQuery = new Query(where, options);
-			const whereValidated = validator.validWhere(where);
+			const whereValidated = validator.validWhere(where, true);
 			const optionsValidated = validator.validateOptions(options);
 			if (whereValidated.error === 0 && optionsValidated.error === 0) {
 				if (validator.checkDatasetValidity() === 0) {
@@ -159,9 +164,7 @@ export default class InsightFacade implements IInsightFacade {
 						return Promise.resolve(result);
 					}
 				} else if (validator.checkDatasetValidity() === 1) {
-					return Promise.reject(new InsightError("cannot query multiple datasets"));
-				} else {
-					return Promise.reject(new NotFoundError("dataset cannot be found"));
+					return Promise.reject(new InsightError("cannot query multiple datasets / invalid dataset queried"));
 				}
 			} else if (whereValidated.error === 1) {
 				return Promise.reject(new InsightError(whereValidated.msg));
