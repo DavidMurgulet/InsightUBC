@@ -1,7 +1,6 @@
 import {InsightDatasetKind} from "./IInsightFacade";
 
 export class Section {
-	[key: string]: number | string;
 	public uuid: string;
 	public id: string;
 	public title: string;
