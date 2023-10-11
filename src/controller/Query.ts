@@ -10,8 +10,6 @@ export class Query {
 	}
 }
 
-class Columns {}
-
 export class QueryNode {
 	public operator: string | number;
 	public children: any[];

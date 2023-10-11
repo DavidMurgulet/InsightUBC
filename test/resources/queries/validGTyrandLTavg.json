@@ -18,7 +18,8 @@
 		"OPTIONS": {
 			"COLUMNS": [
 				"sections_dept",
-				"sections_avg"
+				"sections_avg",
+				"sections_year"
 			]
 		}
 	},

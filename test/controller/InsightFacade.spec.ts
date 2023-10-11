@@ -555,7 +555,7 @@ describe("InsightFacade", function () {
 							AND: [
 								{
 									GT: {
-										ubc_avg: 90,
+										ubc_year: 2015,
 									},
 								},
 								{
@@ -985,13 +985,13 @@ describe("InsightFacade", function () {
 			WHERE: {
 				AND: [
 					{
-						LT: {
-							test_fail: 5,
+						EQ: {
+							test_year: 2015,
 						},
 					},
 					{
 						GT: {
-							test_avg: 59,
+							test_avg: 45,
 						},
 					},
 				],
@@ -1052,8 +1052,8 @@ describe("InsightFacade", function () {
 			clearDisk();
 			facade = new InsightFacade();
 			sec1 = new Section("01", "110", "comptn, progrmng", "david", "math", 2020, 80, 46, 4, 4);
-			sec2 = new Section("02", "110", "comptn, progrmng", "david", "chem", 2021, 85, 49, 1, 2);
-			sec3 = new Section("03", "121", "comptn, progrmng", "andrew", "cpsc", 2020, 60, 25, 25, 0);
+			sec2 = new Section("02", "110", "comptn, progrmng", "david", "chem", 2015, 85, 49, 1, 2);
+			sec3 = new Section("03", "121", "comptn, progrmng", "andrew", "cpsc", 2015, 60, 25, 25, 0);
 			sec4 = new Section("04", "121", "comptn, progrmng", "andrew", "cpsc", 2021, 70, 30, 20, 1);
 			sec5 = new Section("05", "300", "biology", "andrew", "biol", 2000, 20, 3, 1, 1);
 			sections = [sec1, sec2, sec3, sec4, sec5];
@@ -1082,9 +1082,9 @@ describe("InsightFacade", function () {
 			const parsedWhere = parsed.getChilds()[0];
 
 			const result: any[] = collector.execWhere(parsedWhere);
-			expect(result).to.includes(sec1);
+			expect(result).to.includes(sec3);
 			expect(result).to.includes(sec2);
-			expect(result).to.not.includes(sec3);
+			expect(result).to.not.includes(sec1);
 			expect(result).to.not.includes(sec4);
 			expect(result).to.not.includes(sec5);
 		});
@@ -1245,6 +1245,31 @@ describe("InsightFacade", function () {
 				ORDER: "ubc_avg";
 			};
 		};
+		let stackedNotsOr = {
+			WHERE: {
+				NOT: {
+					OR: [
+						{
+							NOT: {
+								LT: {
+									ubc_avg: 60,
+								},
+							},
+						},
+						{
+							NOT: {
+								IS: {
+									ubc_dept: "biol",
+								},
+							},
+						},
+					],
+				},
+			},
+			OPTIONS: {
+				COLUMNS: ["ubc_dept", "ubc_avg"],
+			},
+		};
 		let pair: string;
 
 		before(async function () {
@@ -1289,6 +1314,11 @@ describe("InsightFacade", function () {
 			const result = facade.performQuery(noCOL);
 			expect(result).to.eventually.be.rejectedWith(InsightError);
 		});
+
+		it("should return w size 8", function () {
+			const result = facade.performQuery(stackedNotsOr);
+			expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
 	});
 
 	describe("performQueryORDER", function () {
@@ -1318,8 +1348,6 @@ describe("InsightFacade", function () {
 			"./test/resources/queries",
 			{
 				assertOnResult: async (actual, expected) => {
-					// TODO add an assertion!
-					// assert.includeDeepMembers(actual, expected);
 					expect(actual).to.have.deep.members(await expected);
 				},
 				errorValidator: (error): error is PQErrorKind =>
