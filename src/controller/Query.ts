@@ -8,27 +8,13 @@ export class Query {
 		this.where = where;
 		this.options = opts;
 	}
-
-	public addWhere(node: QueryNode) {
-		this.where = node;
-	}
-
-	public addOpts(node: QueryNode) {
-		this.options = node;
-	}
 }
 
-// export class Where {
-// 	public mComparator: comparator;
-//
-// 	constructor() {
-// 	}
-//
-// }
+class Columns {}
 
 export class QueryNode {
 	public operator: string | number;
-	public children: QueryNode[];
+	public children: any[];
 	public leaf: boolean;
 	public parent!: QueryNode;
 
@@ -40,6 +26,43 @@ export class QueryNode {
 
 	public addChild(node: QueryNode) {
 		this.children.push(node);
+	}
+
+	public removeExcept(node: QueryNode) {
+		for (let i = this.children.length - 1; i >= 0; i--) {
+			if (this.children[i] !== node) {
+				this.children.splice(i, 1);
+			}
+		}
+	}
+
+	public removeOrderColumns(key: string) {
+		let seen = false;
+		for (let i = this.children.length - 1; i >= 0; i--) {
+			if (this.children[i].getKey() === key) {
+				if (!seen) {
+					seen = true;
+				} else {
+					this.children.splice(i, 1);
+				}
+			}
+		}
+	}
+	public getChildKeys() {
+		const keysArray = this.children.map((node) => node.operator);
+		return keysArray;
+	}
+
+	public getChildWithKey(key: string) {
+		for (const c of this.getChilds()) {
+			if (c.getKey() === key) {
+				return c;
+			}
+		}
+	}
+
+	public isLeaf() {
+		return this.leaf;
 	}
 
 	public getKey(): any {
