@@ -8,7 +8,7 @@ import {
 import {Dataset, Section} from "../../src/controller/Dataset";
 import InsightFacade from "../../src/controller/InsightFacade";
 import {isBase64Zip, loadDatasetsFromDirectory, validateDataset} from "../../src/controller/datasetUtils";
-import {expect, use} from "chai";
+import {assert, expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives} from "../TestUtil";
 import {Query} from "../../src/controller/Query";
@@ -1307,6 +1307,7 @@ describe("InsightFacade", function () {
 			{
 				assertOnResult: (actual, expected) => {
 					// TODO add an assertion!
+					assert.deepEqual(actual, expected);
 				},
 				errorValidator: (error): error is PQErrorKind =>
 					error === "ResultTooLargeError" || error === "InsightError",
