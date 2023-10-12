@@ -97,13 +97,20 @@ async function createDatasetFromSections(id: string, sections: Section[]): Promi
 // mapSectionToClass function with error handling
 function mapSectionToClass(section: any): Section {
 	try {
+		let year: number;
+
+		if (section.Section == "overall") {
+			year = 1900;
+		} else {
+			year = parseInt(section.Year, 10);
+		}
 		return new Section(
 			String(section.id),
 			section.Course,
 			section.Title,
 			section.Professor,
 			section.Subject,
-			parseInt(section.Year, 10),
+			year,
 			section.Avg,
 			section.Pass,
 			section.Fail,
