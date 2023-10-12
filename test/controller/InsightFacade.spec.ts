@@ -1295,9 +1295,52 @@ describe("InsightFacade", function () {
 				COLUMNS: ["ubc_dept", "ubc_avg"],
 			},
 		};
+		let invalid2Diffkeys = {
+			WHERE: {
+				GT: {
+					sections_avg: 97,
+					sections_fail: 99,
+				},
+			},
+			OPTIONS: {
+				COLUMNS: ["sections_dept", "sections_avg"],
+				ORDER: "sections_avg",
+			},
+		};
+		let valid2Order = {
+			WHERE: {
+				GT: {
+					sections_avg: 97,
+				},
+			},
+			OPTIONS: {
+				COLUMNS: ["sections_dept", "sections_avg"],
+				ORDER: "sections_avg",
+				//@ts-ignore
+				ORDER: "sections_dept",
+			},
+		};
+		let invalid2Keys = {
+			WHERE: {
+				AND: [
+					{
+						IS: {
+							sections_dept: "c*",
+						},
+						GT: {
+							sections_avg: 97,
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["sections_dept", "sections_avg"],
+				ORDER: "sections_avg",
+			},
+		};
 		let pair: string;
 
-		before(async function () {
+		beforeEach(async function () {
 			clearDisk();
 			facade = new InsightFacade();
 			await facade.initialize();
@@ -1347,6 +1390,16 @@ describe("InsightFacade", function () {
 
 		it("should return correctly", function () {
 			const result = facade.performQuery(lotsofnots);
+			expect(result).to.eventually.be.length(2);
+		});
+
+		it("should return correctly", function () {
+			const result = facade.performQuery(valid2Order);
+			expect(result).to.eventually.be.length(2);
+		});
+
+		it("should return correctly", function () {
+			const result = facade.performQuery(valid2Order);
 			expect(result).to.eventually.be.length(2);
 		});
 	});

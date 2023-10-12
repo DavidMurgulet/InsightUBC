@@ -85,7 +85,8 @@ export class Collector {
 
 		for (const sec of sections) {
 			// for each section, make a new result
-			const result = new Result();
+			// const result = new Result();
+			const result: InsightResult = {};
 			for (const col of columns) {
 				let field = this.splitKey(col)[1];
 				result[col] = sec[field];
