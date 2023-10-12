@@ -99,7 +99,7 @@ function mapSectionToClass(section: any): Section {
 	try {
 		let year: number;
 
-		if (section.Section == "overall") {
+		if (section.Section === "overall") {
 			year = 1900;
 		} else {
 			year = parseInt(section.Year, 10);

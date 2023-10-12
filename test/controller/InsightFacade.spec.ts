@@ -1270,6 +1270,31 @@ describe("InsightFacade", function () {
 				COLUMNS: ["ubc_dept", "ubc_avg"],
 			},
 		};
+		let lotsofnots = {
+			WHERE: {
+				NOT: {
+					OR: [
+						{
+							NOT: {
+								EQ: {
+									ubc_avg: 95,
+								},
+							},
+						},
+						{
+							NOT: {
+								IS: {
+									ubc_dept: "b*",
+								},
+							},
+						},
+					],
+				},
+			},
+			OPTIONS: {
+				COLUMNS: ["ubc_dept", "ubc_avg"],
+			},
+		};
 		let pair: string;
 
 		before(async function () {
@@ -1318,6 +1343,11 @@ describe("InsightFacade", function () {
 		it("should return w size 8", function () {
 			const result = facade.performQuery(stackedNotsOr);
 			expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should return correctly", function () {
+			const result = facade.performQuery(lotsofnots);
+			expect(result).to.eventually.be.length(2);
 		});
 	});
 

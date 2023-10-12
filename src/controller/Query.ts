@@ -1,5 +1,3 @@
-import e from "express";
-
 export class Query {
 	public where: QueryNode;
 	public options: QueryNode;
