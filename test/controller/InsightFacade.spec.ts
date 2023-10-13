@@ -1316,6 +1316,7 @@ describe("InsightFacade", function () {
 			OPTIONS: {
 				COLUMNS: ["ubc_dept", "ubc_avg"],
 				ORDER: "ubc_avg",
+
 			},
 		};
 		let invalid2Keys = {
