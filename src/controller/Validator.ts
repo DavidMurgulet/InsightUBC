@@ -5,7 +5,6 @@ import {Collector} from "./Collector";
 
 // RETURN VALUE 0 = no errors
 // RETURN 1 = InsightError
-// RETURN 2 = NotFoundErro
 let colFields: string[];
 
 export class Validator {

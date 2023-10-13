@@ -1,5 +1,3 @@
-import e from "express";
-
 export class Query {
 	public where: QueryNode;
 	public options: QueryNode;
@@ -9,8 +7,6 @@ export class Query {
 		this.options = opts;
 	}
 }
-
-class Columns {}
 
 export class QueryNode {
 	public operator: string | number;

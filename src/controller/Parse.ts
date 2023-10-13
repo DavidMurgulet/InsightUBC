@@ -8,15 +8,22 @@ export function makeLeaf(query: any, parent: QueryNode): QueryNode {
 	return leaf;
 }
 
+let sameParent = false;
+
 export function parseWhere(query: any, key: string, parent?: QueryNode): QueryNode {
 	let curr = new QueryNode(key);
 	// dealing with duplicates
 	if (parent instanceof QueryNode) {
 		for (let child of parent.getChilds()) {
-			if (child.getKey() === curr.getKey()) {
+			if (sameParent) {
 				curr = child;
-				break;
+				sameParent = false;
 			}
+
+			// if (child.getKey() === curr.getKey()) {
+			// 	curr = child;
+			// 	break;
+			// }
 		}
 	}
 
@@ -37,6 +44,7 @@ export function parseWhere(query: any, key: string, parent?: QueryNode): QueryNo
 			let subQuery: any = (query as any)[k];
 			if (Array.isArray(subQuery)) {
 				for (let c of subQuery) {
+					sameParent = true;
 					let child = parseWhere(c, k, curr);
 					if (!curr.getChilds().includes(child)) {
 						child.addParent(curr);

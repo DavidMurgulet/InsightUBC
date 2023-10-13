@@ -85,7 +85,8 @@ export class Collector {
 
 		for (const sec of sections) {
 			// for each section, make a new result
-			const result = new Result();
+			// const result = new Result();
+			const result: InsightResult = {};
 			for (const col of columns) {
 				let field = this.splitKey(col)[1];
 				result[col] = sec[field];
@@ -206,7 +207,7 @@ export class Collector {
 							const last = leafKey[leafKey.length - 1];
 							const key = leafKey.replace(/\*/g, "");
 							const matchVal: string = sec[field] as string;
-							if ((first && last) === "*") {
+							if (first === "*" && last === "*") {
 								if (matchVal.includes(key)) {
 									filteredSections.push(sec);
 								}
@@ -218,7 +219,7 @@ export class Collector {
 								if (matchVal.startsWith(key)) {
 									filteredSections.push(sec);
 								}
-							} else if ((first && last) !== "*") {
+							} else if (first !== "*" && last !== "*") {
 								if (matchVal === key) {
 									filteredSections.push(sec);
 								}
