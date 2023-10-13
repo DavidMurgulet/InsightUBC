@@ -47,6 +47,7 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
+		await this.initialize();
 		if (this.listOfDatasets.some((dataset) => dataset.id === id)) {
 			//	id exists
 			throw new InsightError("Dataset ID already exists.");
@@ -93,7 +94,8 @@ export default class InsightFacade implements IInsightFacade {
 		this.getDatasets().push(dataset);
 	}
 
-	public removeDataset(id: string): Promise<string> {
+	public async removeDataset(id: string): Promise<string> {
+		await this.initialize();
 		// path for data folders
 		let dirPath = persistDir + "/" + id + ".json";
 
@@ -177,7 +179,8 @@ export default class InsightFacade implements IInsightFacade {
 		return Promise.reject(new InsightError("shouldn't reach this"));
 	}
 
-	public listDatasets(): Promise<InsightDataset[]> {
+	public async listDatasets(): Promise<InsightDataset[]> {
+		await this.initialize();
 		return new Promise((resolve, reject) => {
 			try {
 				const datasetsInfo = this.listOfDatasets.map((dataset) => {
