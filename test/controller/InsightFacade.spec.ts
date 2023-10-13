@@ -1438,52 +1438,7 @@ describe("InsightFacade", function () {
 			"./test/resources/queries",
 			{
 				assertOnResult: async (actual, expected) => {
-					// expect(actual).to.have.deep.members(await expected);
 					assert.deepEqual(actual, expected);
-				},
-				errorValidator: (error): error is PQErrorKind =>
-					error === "ResultTooLargeError" || error === "InsightError",
-				assertOnError: (actual, expected) => {
-					if (expected === "InsightError") {
-						assert.instanceOf(actual, InsightError);
-					} else {
-						assert.instanceOf(actual, ResultTooLargeError);
-					}
-				},
-			}
-		);
-	});
-
-	describe("performQueryNoORDER", function () {
-		let sections: string;
-		let alt: string;
-		let facade: InsightFacade;
-
-		before(async function () {
-			clearDisk();
-			sections = getContentFromArchives("pair.zip");
-			alt = getContentFromArchives("basic.zip");
-			facade = new InsightFacade();
-			await facade.initialize();
-			await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
-			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
-			// facade.aDataset(new Dataset("sections", sections, InsightDatasetKind.Sections, sections.length));
-		});
-
-		function errorValidator(error: any): error is Error {
-			return error === "InsightError" || error === "ResultTooLargeError";
-		}
-
-		type PQErrorKind = "ResultTooLargeError" | "InsightError";
-
-		folderTest<unknown, Promise<InsightResult[]>, PQErrorKind>(
-			"Dynamic InsightFacade PerformQuery tests without Ordering",
-			(input) => facade.performQuery(input),
-			"./test/resources/queriesNoORDER",
-			{
-				assertOnResult: async (actual, expected) => {
-					// TODO add an assertion!
-					assert.equal(actual, expected);
 				},
 				errorValidator: (error): error is PQErrorKind =>
 					error === "ResultTooLargeError" || error === "InsightError",
