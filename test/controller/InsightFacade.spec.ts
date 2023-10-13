@@ -123,7 +123,6 @@ describe("InsightFacade", function () {
 		beforeEach(async function () {
 			clearDisk();
 			facade = new InsightFacade();
-			await facade.initialize();
 		});
 
 		it("should successfully add a dataset (first)", function () {
@@ -140,7 +139,6 @@ describe("InsightFacade", function () {
 			await facade.addDataset("basic", sections, InsightDatasetKind.Sections);
 			// new instance made
 			facade = new InsightFacade();
-			await facade.initialize();
 
 			const result = await facade.listDatasets();
 			expect(result).to.deep.equal([
@@ -156,7 +154,6 @@ describe("InsightFacade", function () {
 			await facade.addDataset("pair", pair, InsightDatasetKind.Sections);
 			// new instance made
 			facade = new InsightFacade();
-			await facade.initialize();
 
 			await facade.removeDataset("pair");
 			const result = await facade.listDatasets();
@@ -252,7 +249,7 @@ describe("InsightFacade", function () {
 		before(async function () {
 			clearDisk();
 			facade = new InsightFacade();
-			await facade.initialize();
+
 		});
 
 		it("should successfully remove dataset", async function () {
@@ -293,7 +290,7 @@ describe("InsightFacade", function () {
 			set2 = getContentFromArchives("cs121.zip");
 			clearDisk();
 			facade = new InsightFacade();
-			await facade.initialize();
+
 		});
 
 		it("should list 0 dataset", async function () {
@@ -320,12 +317,12 @@ describe("InsightFacade", function () {
 
 			expect(result).to.deep.equal([
 				{
-					id: "cs121",
+					id: "cs110",
 					kind: InsightDatasetKind.Sections,
 					numRows: 1,
 				},
 				{
-					id: "cs110",
+					id: "cs121",
 					kind: InsightDatasetKind.Sections,
 					numRows: 1,
 				},
@@ -392,7 +389,7 @@ describe("InsightFacade", function () {
 	// 		console.info(`Before: ${this.test?.parent?.title}`);
 	//
 	// 		facade = new InsightFacade();
-	// 		await facade.initialize();
+	//
 	//
 	// 		// Load the datasets specified in datasetsToQuery and add them to InsightFacade.
 	// 		// Will *fail* if there is a problem reading ANY dataset.
@@ -1342,7 +1339,7 @@ describe("InsightFacade", function () {
 		beforeEach(async function () {
 			clearDisk();
 			facade = new InsightFacade();
-			await facade.initialize();
+
 			pair = getContentFromArchives("pair.zip");
 			await facade.addDataset("ubc", pair, InsightDatasetKind.Sections);
 		});
@@ -1413,7 +1410,7 @@ describe("InsightFacade", function () {
 			sections = getContentFromArchives("pair.zip");
 			alt = getContentFromArchives("basic.zip");
 			facade = new InsightFacade();
-			await facade.initialize();
+
 			await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
 			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
 		});
@@ -1421,7 +1418,7 @@ describe("InsightFacade", function () {
 		// beforeEach(async function () {
 		// 	clearDisk();
 		// 	facade = new InsightFacade();
-		// 	await facade.initialize();
+		//
 		// 	await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
 		// 	await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
 		// });
