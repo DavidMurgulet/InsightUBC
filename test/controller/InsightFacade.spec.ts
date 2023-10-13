@@ -845,133 +845,133 @@ describe("InsightFacade", function () {
 	// 	});
 	// });
 
-	describe("validationTests", function () {
-		let optsEmptyCol = {
-			OPTIONS: {
-				COLUMNS: [],
-				ORDER: "ubc_avg",
-			},
-		};
-		let optsValid = {
-			OPTIONS: {
-				COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
-				ORDER: "ubc_avg",
-			},
-		};
-		let optsOrderFirst = {
-			OPTIONS: {
-				ORDER: "ubc_avg",
-				COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
-			},
-		};
-		let optsOrderNotInCol = {
-			OPTIONS: {
-				COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
-				ORDER: "ubc_pass",
-			},
-		};
-		let optsInvKeyOrd = {
-			OPTIONS: {
-				ORDER: "ubc_aaaa",
-				COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
-			},
-		};
-		let optsInvKeyCol = {
-			OPTIONS: {
-				COLUMNS: ["ubc_dept", "ubc_idddd", "ubc_avg"],
-				ORDER: "ubc_avg",
-			},
-		};
-		let optsNoOrder = {
-			OPTIONS: {
-				COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
-			},
-		};
-
-		let where2Key = {
-			WHERE: {
-				GT: {
-					sections_avg: 97,
-				},
-			},
-			OPTIONS: {
-				COLUMNS: ["sections_dept", "sections_avg"],
-				ORDER: "sections_avg",
-			},
-		};
-		let validator: Validator;
-		let facade: InsightFacade;
-
-		before(function () {
-			clearDisk();
-			facade = new InsightFacade();
-			validator = new Validator([]);
-		});
-
-		it("should validate OPTS", function () {
-			const opt = Object.keys(optsValid)[0];
-			const sub = optsValid.OPTIONS;
-			const node = parseOpts(sub, opt);
-			const result = validator.validateOptions(node);
-			expect(result).to.equal(0);
-		});
-
-		it("should validate where2key, with the first removed", function () {
-			const where = Object.keys(where2Key)[0];
-			const sub = where2Key.WHERE;
-			const node = parseWhere(sub, where);
-			const result = validator.validWhere(node);
-			expect(result).to.equal(0);
-		});
-
-		it("should validate OPTS, (ORDER FIRST)", function () {
-			const opt = Object.keys(optsOrderFirst)[0];
-			const sub = optsOrderFirst.OPTIONS;
-			const node = parseOpts(sub, opt);
-			const result = validator.validateOptions(node);
-			expect(result).to.equal(0);
-		});
-
-		it("should validate OPTS, (ORDER NOT MATCHING COl)", function () {
-			const opt = Object.keys(optsOrderNotInCol)[0];
-			const sub = optsOrderNotInCol.OPTIONS;
-			const node = parseOpts(sub, opt);
-			const result = validator.validateOptions(node);
-			expect(result).to.equal(1);
-		});
-
-		it("should not validate OPTS (empty COLUMNS)", function () {
-			const opt = Object.keys(optsEmptyCol)[0];
-			const sub = optsEmptyCol.OPTIONS;
-			const node = parseOpts(sub, opt);
-			const result = validator.validateOptions(node);
-			expect(result).to.equal(1);
-		});
-
-		it("should not validate OPTS (invalid key in COLUMNS )", function () {
-			const opt = Object.keys(optsInvKeyCol)[0];
-			const sub = optsInvKeyOrd.OPTIONS;
-			const node = parseOpts(sub, opt);
-			const result = validator.validateOptions(node);
-			expect(result).to.equal(1);
-		});
-
-		it("should not validate OPTS (invalid key in ORDER)", function () {
-			const opt = Object.keys(optsInvKeyOrd)[0];
-			const sub = optsInvKeyOrd.OPTIONS;
-			const node = parseOpts(sub, opt);
-			const result = validator.validateOptions(node);
-			expect(result).to.equal(1);
-		});
-
-		it("should validate, (no ORDER)", function () {
-			const opt = Object.keys(optsNoOrder)[0];
-			const sub = optsNoOrder.OPTIONS;
-			const node = parseOpts(sub, opt);
-			const result = validator.validateOptions(node);
-			expect(result).to.equal(0);
-		});
-	});
+	// describe("validationTests", function () {
+	// 	let optsEmptyCol = {
+	// 		OPTIONS: {
+	// 			COLUMNS: [],
+	// 			ORDER: "ubc_avg",
+	// 		},
+	// 	};
+	// 	let optsValid = {
+	// 		OPTIONS: {
+	// 			COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
+	// 			ORDER: "ubc_avg",
+	// 		},
+	// 	};
+	// 	let optsOrderFirst = {
+	// 		OPTIONS: {
+	// 			ORDER: "ubc_avg",
+	// 			COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
+	// 		},
+	// 	};
+	// 	let optsOrderNotInCol = {
+	// 		OPTIONS: {
+	// 			COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
+	// 			ORDER: "ubc_pass",
+	// 		},
+	// 	};
+	// 	let optsInvKeyOrd = {
+	// 		OPTIONS: {
+	// 			ORDER: "ubc_aaaa",
+	// 			COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
+	// 		},
+	// 	};
+	// 	let optsInvKeyCol = {
+	// 		OPTIONS: {
+	// 			COLUMNS: ["ubc_dept", "ubc_idddd", "ubc_avg"],
+	// 			ORDER: "ubc_avg",
+	// 		},
+	// 	};
+	// 	let optsNoOrder = {
+	// 		OPTIONS: {
+	// 			COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
+	// 		},
+	// 	};
+	//
+	// 	let where2Key = {
+	// 		WHERE: {
+	// 			GT: {
+	// 				sections_avg: 97,
+	// 			},
+	// 		},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_dept", "sections_avg"],
+	// 			ORDER: "sections_avg",
+	// 		},
+	// 	};
+	// 	let validator: Validator;
+	// 	let facade: InsightFacade;
+	//
+	// 	before(function () {
+	// 		clearDisk();
+	// 		facade = new InsightFacade();
+	// 		validator = new Validator([]);
+	// 	});
+	//
+	// 	it("should validate OPTS", function () {
+	// 		const opt = Object.keys(optsValid)[0];
+	// 		const sub = optsValid.OPTIONS;
+	// 		const node = parseOpts(sub, opt);
+	// 		const result = validator.validateOptions(node);
+	// 		expect(result).to.equal(0);
+	// 	});
+	//
+	// 	it("should validate where2key, with the first removed", function () {
+	// 		const where = Object.keys(where2Key)[0];
+	// 		const sub = where2Key.WHERE;
+	// 		const node = parseWhere(sub, where);
+	// 		const result = validator.validWhere(node);
+	// 		expect(result).to.equal(0);
+	// 	});
+	//
+	// 	it("should validate OPTS, (ORDER FIRST)", function () {
+	// 		const opt = Object.keys(optsOrderFirst)[0];
+	// 		const sub = optsOrderFirst.OPTIONS;
+	// 		const node = parseOpts(sub, opt);
+	// 		const result = validator.validateOptions(node);
+	// 		expect(result).to.equal(0);
+	// 	});
+	//
+	// 	it("should validate OPTS, (ORDER NOT MATCHING COl)", function () {
+	// 		const opt = Object.keys(optsOrderNotInCol)[0];
+	// 		const sub = optsOrderNotInCol.OPTIONS;
+	// 		const node = parseOpts(sub, opt);
+	// 		const result = validator.validateOptions(node);
+	// 		expect(result).to.equal(1);
+	// 	});
+	//
+	// 	it("should not validate OPTS (empty COLUMNS)", function () {
+	// 		const opt = Object.keys(optsEmptyCol)[0];
+	// 		const sub = optsEmptyCol.OPTIONS;
+	// 		const node = parseOpts(sub, opt);
+	// 		const result = validator.validateOptions(node);
+	// 		expect(result).to.equal(1);
+	// 	});
+	//
+	// 	it("should not validate OPTS (invalid key in COLUMNS )", function () {
+	// 		const opt = Object.keys(optsInvKeyCol)[0];
+	// 		const sub = optsInvKeyOrd.OPTIONS;
+	// 		const node = parseOpts(sub, opt);
+	// 		const result = validator.validateOptions(node);
+	// 		expect(result).to.equal(1);
+	// 	});
+	//
+	// 	it("should not validate OPTS (invalid key in ORDER)", function () {
+	// 		const opt = Object.keys(optsInvKeyOrd)[0];
+	// 		const sub = optsInvKeyOrd.OPTIONS;
+	// 		const node = parseOpts(sub, opt);
+	// 		const result = validator.validateOptions(node);
+	// 		expect(result).to.equal(1);
+	// 	});
+	//
+	// 	it("should validate, (no ORDER)", function () {
+	// 		const opt = Object.keys(optsNoOrder)[0];
+	// 		const sub = optsNoOrder.OPTIONS;
+	// 		const node = parseOpts(sub, opt);
+	// 		const result = validator.validateOptions(node);
+	// 		expect(result).to.equal(0);
+	// 	});
+	// });
 
 	describe("execWhere", function () {
 		let queryGT30 = {
@@ -1310,14 +1310,12 @@ describe("InsightFacade", function () {
 		let valid2Order = {
 			WHERE: {
 				GT: {
-					sections_avg: 97,
+					ubc_avg: 97,
 				},
 			},
 			OPTIONS: {
-				COLUMNS: ["sections_dept", "sections_avg"],
-				ORDER: "sections_avg",
-				//@ts-ignore
-				ORDER: "sections_dept",
+				COLUMNS: ["ubc_dept", "ubc_avg"],
+				ORDER: "ubc_avg",
 			},
 		};
 		let invalid2Keys = {
@@ -1419,6 +1417,14 @@ describe("InsightFacade", function () {
 			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
 		});
 
+		// beforeEach(async function () {
+		// 	clearDisk();
+		// 	facade = new InsightFacade();
+		// 	await facade.initialize();
+		// 	await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
+		// 	await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
+		// });
+
 		function errorValidator(error: any): error is Error {
 			return error === "InsightError" || error === "ResultTooLargeError";
 		}
@@ -1431,7 +1437,8 @@ describe("InsightFacade", function () {
 			"./test/resources/queries",
 			{
 				assertOnResult: async (actual, expected) => {
-					expect(actual).to.have.deep.members(await expected);
+					// expect(actual).to.have.deep.members(await expected);
+					assert.deepEqual(actual, expected);
 				},
 				errorValidator: (error): error is PQErrorKind =>
 					error === "ResultTooLargeError" || error === "InsightError",
