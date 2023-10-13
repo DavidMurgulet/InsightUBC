@@ -208,6 +208,9 @@ export class Validator {
 			if (leaf.getKey().includes("_")) {
 				const splitArr = leaf.getKey().split("_");
 				let datasetID = splitArr[0]; // "sections"
+				if (datasetID === "") {
+					return {error: 1, msg: "empty string instead of dataset"};
+				}
 				this.leafDatasets.push(datasetID);
 				let field = splitArr[1]; // "avg"
 
@@ -236,6 +239,9 @@ export class Validator {
 			if (key.includes("_")) {
 				const splitArr = key.split("_");
 				let dsetID = splitArr[0];
+				if (dsetID === "") {
+					return {error: 1, msg: "empty string instead of dataset"};
+				}
 				this.leafDatasets.push(dsetID);
 				let field = splitArr[1];
 
@@ -279,12 +285,6 @@ export class Validator {
 		// may need to change this in future.
 		if (wildcard.length === 0) {
 			return {error: 0, msg: ""};
-		}
-
-		if (wildcard.length === 1) {
-			if (wildcard === "*") {
-				return {error: 1, msg: "wildcard only contains *"};
-			}
 		}
 
 		for (let i = 1; i < wildcard.length - 1; i++) {
