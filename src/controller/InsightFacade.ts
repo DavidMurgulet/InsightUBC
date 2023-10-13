@@ -86,12 +86,14 @@ export default class InsightFacade implements IInsightFacade {
 		return datasets.map((dataset) => dataset.id);
 	}
 
-	public getDatasets() {
+	public async getDatasets() {
+		await this.initialize();
 		return this.listOfDatasets;
 	}
 
-	public aDataset(dataset: Dataset) {
-		this.getDatasets().push(dataset);
+	public async aDataset(dataset: Dataset) {
+		let datasets = await this.getDatasets();
+		datasets.push(dataset);
 	}
 
 	public async removeDataset(id: string): Promise<string> {
@@ -129,9 +131,11 @@ export default class InsightFacade implements IInsightFacade {
 	// TODO: parsing for no comparator in WHERE (DONE kinda hardcoded)
 	// TODO: Semantic Checks
 
-	public performQuery(query: unknown): Promise<InsightResult[]> {
-		const dataCollector = new Collector(this.getDatasets());
-		const validator = new Validator(this.getDatasets());
+	public async performQuery(query: unknown): Promise<InsightResult[]> {
+		await this.initialize();
+		let datasets = await this.getDatasets();
+		const dataCollector = new Collector(datasets);
+		const validator = new Validator(datasets);
 		if (query instanceof Object) {
 			let where!: QueryNode;
 			let options!: QueryNode;

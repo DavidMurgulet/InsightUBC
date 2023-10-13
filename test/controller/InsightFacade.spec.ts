@@ -15,11 +15,63 @@ import {Query} from "../../src/controller/Query";
 import {checkParsing, parseOpts, parseWhere} from "../../src/controller/Parse";
 
 import {Collector} from "../../src/controller/Collector";
-import {Validator} from "../../src/controller/Validator";
-import exp from "constants";
 import {folderTest} from "@ubccpsc310/folder-test";
 
 use(chaiAsPromised);
+
+describe("PQ Crash Tests", function () {
+	let facade: InsightFacade;
+	let qBasic = {
+		WHERE: {
+			GT: {
+				ubc_avg: 97,
+			},
+		},
+		OPTIONS: {
+			COLUMNS: ["ubc_dept", "ubc_avg"],
+			ORDER: "ubc_avg",
+		},
+	};
+
+	beforeEach(async function () {
+		clearDisk();
+		facade = new InsightFacade();
+
+		let pair = getContentFromArchives("pair.zip");
+		await facade.addDataset("ubc", pair, InsightDatasetKind.Sections);
+	});
+
+	it("should not query after crash", async function () {
+		let list = await facade.listDatasets();
+		console.log("before: " + JSON.stringify(list, null, 2));
+
+		await facade.removeDataset("ubc");
+		//	simulate crash
+		facade = new InsightFacade();
+
+		let list1 = await facade.listDatasets();
+		console.log("after: " + JSON.stringify(list1, null, 2));
+
+		let result = facade.performQuery(qBasic);
+		expect(result).to.eventually.be.rejectedWith(InsightError);
+	});
+
+	it("should query after crash", async function () {
+		let list = await facade.listDatasets();
+		console.log("before: " + JSON.stringify(list, null, 2));
+
+		//	simulate crash
+		facade = new InsightFacade();
+
+		let list1 = await facade.listDatasets();
+		console.log("after: " + JSON.stringify(list1, null, 2));
+
+		let result = await facade.performQuery(qBasic);
+
+		expect(result).to.be.length(49);
+		console.log(result);
+	});
+});
 
 describe("Helper Unit Tests", function () {
 	describe("isBase64Zip", function () {
@@ -160,6 +212,17 @@ describe("InsightFacade", function () {
 			expect(result).to.deep.equal([]);
 		});
 
+		it("should not be able to remove dataset after removal + crash", async function () {
+			await facade.addDataset("pair", pair, InsightDatasetKind.Sections);
+			await facade.removeDataset("pair");
+			// new instance made
+
+			facade = new InsightFacade();
+
+			const result = facade.removeDataset("pair");
+			return expect(result).to.eventually.be.rejectedWith(NotFoundError);
+		});
+
 		it("should successfully add 2 datasets", async function () {
 			await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
 			const result = facade.addDataset("pair", pair, InsightDatasetKind.Sections);
@@ -249,7 +312,6 @@ describe("InsightFacade", function () {
 		before(async function () {
 			clearDisk();
 			facade = new InsightFacade();
-
 		});
 
 		it("should successfully remove dataset", async function () {
@@ -290,7 +352,6 @@ describe("InsightFacade", function () {
 			set2 = getContentFromArchives("cs121.zip");
 			clearDisk();
 			facade = new InsightFacade();
-
 		});
 
 		it("should list 0 dataset", async function () {
@@ -1313,7 +1374,6 @@ describe("InsightFacade", function () {
 			OPTIONS: {
 				COLUMNS: ["ubc_dept", "ubc_avg"],
 				ORDER: "ubc_avg",
-
 			},
 		};
 		let invalid2Keys = {
@@ -1431,7 +1491,7 @@ describe("InsightFacade", function () {
 
 		folderTest<unknown, Promise<InsightResult[]>, PQErrorKind>(
 			"Dynamic InsightFacade PerformQuery tests Ordered",
-			(input) => facade.performQuery(input),
+			async (input) => await facade.performQuery(input),
 			"./test/resources/queries",
 			{
 				assertOnResult: async (actual, expected) => {
