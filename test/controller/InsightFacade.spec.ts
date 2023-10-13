@@ -1315,9 +1315,7 @@ describe("InsightFacade", function () {
 			},
 			OPTIONS: {
 				COLUMNS: ["sections_dept", "sections_avg"],
-				ORDER: "sections_avg",
-				//@ts-ignore
-				ORDER: "sections_dept",
+				ORDER: "sections_avg"
 			},
 		};
 		let invalid2Keys = {
