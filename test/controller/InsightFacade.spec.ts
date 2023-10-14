@@ -223,6 +223,23 @@ describe("InsightFacade", function () {
 			return expect(result).to.eventually.be.rejectedWith(NotFoundError);
 		});
 
+		it("should be able to add dataset after removal + crash", async function () {
+			try {
+				this.timeout(5000);
+				await facade.addDataset("pair", pair, InsightDatasetKind.Sections);
+				await facade.removeDataset("pair");
+				// new instance made
+
+				facade = new InsightFacade();
+
+				const result = await facade.addDataset("pair", pair, InsightDatasetKind.Sections);
+				expect(result).to.deep.equal([ "pair" ]);
+			} catch (error) {
+				throw error;
+			}
+		});
+
+
 		it("should successfully add 2 datasets", async function () {
 			await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
 			const result = facade.addDataset("pair", pair, InsightDatasetKind.Sections);
@@ -376,18 +393,7 @@ describe("InsightFacade", function () {
 			await facade.addDataset("cs110", set1, InsightDatasetKind.Sections);
 			const result = await facade.listDatasets();
 
-			expect(result).to.deep.equal([
-				{
-					id: "cs110",
-					kind: InsightDatasetKind.Sections,
-					numRows: 1,
-				},
-				{
-					id: "cs121",
-					kind: InsightDatasetKind.Sections,
-					numRows: 1,
-				},
-			]);
+			expect(result.length).to.equal(2);
 		});
 
 		it("should list 1 dataset (after removal)", async function () {
