@@ -1,4 +1,5 @@
 import {
+	InsightDataset,
 	InsightDatasetKind,
 	InsightError,
 	InsightResult,
@@ -1509,5 +1510,949 @@ describe("InsightFacade", function () {
 				},
 			}
 		);
+	});
+});
+
+describe("Test Suite", function () {
+	describe("addDataset Tests", function () {
+		let sections: string;
+		let facade: InsightFacade;
+
+		before(function () {
+			sections = getContentFromArchives("pair.zip");
+		});
+
+		beforeEach(function () {
+			clearDisk();
+			facade = new InsightFacade();
+		});
+
+		it("should pass with valid arguments", async function () {
+			const result = await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
+			expect(result).to.have.members(["ubc"]);
+		});
+
+		it("should reject with null id", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.addDataset(null as any, sections, InsightDatasetKind.Sections);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject with undefined id", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.addDataset(undefined as any, sections, InsightDatasetKind.Sections);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject with non-string id", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.addDataset(999 as any, sections, InsightDatasetKind.Sections);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject with an empty dataset id", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.addDataset("", sections, InsightDatasetKind.Sections);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject with whitespace in dataset id", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.addDataset("a ", sections, InsightDatasetKind.Sections);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject with underscore dataset id", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.addDataset("a_", sections, InsightDatasetKind.Sections);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should successfully add two datasets with different ids", async function () {
+			await facade.addDataset("ubc1", sections, InsightDatasetKind.Sections);
+			const result = await facade.addDataset("ubc2", sections, InsightDatasetKind.Sections);
+			expect(result).to.have.members(["ubc1", "ubc2"]);
+		});
+
+		it("should reject when adding a dataset with a duplicate id", async function () {
+			let errorWasThrown = false;
+			await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
+			try {
+				await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject with non-zip base 64 string", async function () {
+			let errorWasThrown = false;
+			let textFile: string = getContentFromArchives("test.txt");
+			try {
+				await facade.addDataset("ubc", textFile, InsightDatasetKind.Sections);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject with no valid sections in dataset", async function () {
+			let errorWasThrown = false;
+			let invalidDataset: string = getContentFromArchives("invalidDataset.zip");
+			try {
+				await facade.addDataset("ubc", invalidDataset, InsightDatasetKind.Sections);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should resolve with valid and invalid sections in dataset", async function () {
+			let mixedDataset: string = getContentFromArchives("mixedDataset.zip");
+			const result = await facade.addDataset("ubc", mixedDataset, InsightDatasetKind.Sections);
+			expect(result).to.have.members(["ubc"]);
+		});
+
+		it("should reject with rooms kind", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.addDataset("ubc", sections, InsightDatasetKind.Rooms);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+	});
+
+	describe("removeDataset Tests", function () {
+		let sections: string;
+		let facade: InsightFacade;
+
+		before(function () {
+			sections = getContentFromArchives("pair.zip");
+		});
+
+		beforeEach(function () {
+			clearDisk();
+			facade = new InsightFacade();
+		});
+
+		it("should successfully remove a dataset after adding it", async function () {
+			await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
+			const result = await facade.removeDataset("ubc");
+			expect(result).to.equal("ubc");
+		});
+
+		it("should reject when removing a dataset that hasn't been added", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.removeDataset("dne");
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(NotFoundError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject with undefined id", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.removeDataset(undefined as any);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject with null id", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.removeDataset(null as any);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject with non-string id", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.removeDataset(999 as any);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject when removing a dataset with an id containing an underscore", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.removeDataset("a_");
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject when removing a dataset with an id that has whitespace", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.removeDataset("a ");
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject when removing a dataset with an id that is empty", async function () {
+			let errorWasThrown = false;
+			try {
+				await facade.removeDataset("");
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+
+		it("should reject when trying to remove a dataset twice", async function () {
+			await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
+			await facade.removeDataset("ubc");
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.removeDataset("ubc");
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(NotFoundError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected the second removeDataset to throw an error, but it did not. :(");
+			}
+		});
+
+		it("should successfully remove same id after adding id and removing", async function () {
+			await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
+			await facade.removeDataset("ubc");
+			await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
+			const result = await facade.removeDataset("ubc");
+			expect(result).to.equal("ubc");
+		});
+
+		it("should successfully remove same id after adding id and removing", async function () {
+			const query = {
+				WHERE: {
+					IS: {
+						sections_dept: "xyz",
+					},
+				},
+				OPTIONS: {
+					COLUMNS: ["sections_dept", "sections_avg"],
+				},
+			};
+
+			let errorWasThrown = false;
+			try {
+				await facade.addDataset("xyz", sections, InsightDatasetKind.Sections);
+				await facade.removeDataset("xyz");
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			expect(errorWasThrown).to.be.true;
+		});
+	});
+
+	describe("performQuery Tests", function () {
+		let facade: InsightFacade;
+		let sections: string;
+
+		before(function () {
+			sections = getContentFromArchives("pair.zip");
+		});
+
+		beforeEach(function () {
+			clearDisk();
+			facade = new InsightFacade();
+		});
+
+		it("should reject query that is string", async function () {
+			const query: string =
+				'{"WHERE": {"GT": {"sections_avg": 97 }},' +
+				'"OPTIONS": { "COLUMNS": ["sections_dept", "sections_avg"],"ORDER": "sections_avg"}}';
+			let errorWasThrown = false;
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw error but, but it did not :(");
+			}
+		});
+
+		it("should reject query with empty WHERE", async function () {
+			const query = {
+				"": {GT: {sections_avg: 97}},
+				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg"], ORDER: "sections_avg"},
+			};
+			let errorWasThrown = false;
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw error but, but it did not :(");
+			}
+		});
+
+		it("should reject query with no WHERE", async function () {
+			const query = {
+				A: {GT: {sections_avg: 97}},
+				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg"], ORDER: "sections_avg"},
+			};
+
+			let errorWasThrown = false;
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw an error, but it did not :(");
+			}
+		});
+
+		it("should reject query with no OPTIONS", async function () {
+			const query = {WHERE: {GT: {sections_avg: 97}}};
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw an error, but it did not :(");
+			}
+		});
+
+		it("should reject query typo COLUMN", async function () {
+			const query = {
+				WHERE: {GT: {sections_avg: 97}},
+				OPTIONS: {COLUMS: ["sections_dept", "sections_avg"], ORDER: "sections_avg"},
+			};
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw an error, but it did not.");
+			}
+		});
+
+		it("should reject query idstring not datasetID", async function () {
+			const query = {
+				WHERE: {GT: {xxx_avg: 97}},
+				OPTIONS: {
+					COLUMNS: ["sections_dept", "sections_avg", "sections_pass"],
+					ORDER: "sections_pass",
+				},
+			};
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw error but, but it did not :(");
+			}
+		});
+
+		it("should reject query empty FILTER list", async function () {
+			const query = {
+				WHERE: {OR: {}},
+				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
+			};
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw error but, but it did not :(");
+			}
+		});
+
+		it("should reject query empty KEY list", async function () {
+			const query = {WHERE: {OR: {}}, OPTIONS: {COLUMNS: []}};
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw error, but it did not :(");
+			}
+		});
+
+		it("should reject query idsting with _", async function () {
+			const query = {
+				WHERE: {GT: {section_s_avg: 97}},
+				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
+			};
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw error, but it did not :(");
+			}
+		});
+
+		it("should reject query ORDER key must be in COLUMNS", async function () {
+			const query = {
+				WHERE: {GT: {sections_avg: 97}},
+				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg"], ORDER: "sections_pass"},
+			};
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw error, but it did not :(");
+			}
+		});
+
+		it("should reject query input string with *", async function () {
+			const query = {
+				WHERE: {GT: {"sections*_avg": 97}},
+				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
+			};
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw error, but it did not :(");
+			}
+		});
+
+		it("should resolve *input string*", async function () {
+			const query = {
+				WHERE: {IS: {sections_dept: "*hin*"}},
+				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
+			};
+
+			try {
+				const result = await facade.performQuery(query);
+				expect(result).to.have.lengthOf(990);
+			} catch (error) {
+				console.log(error);
+				throw new Error("Expected performQuery to resolve successfully, but it did not :(");
+			}
+		});
+
+		it("should resolve with 2 FILTERS", async function () {
+			const query = {
+				WHERE: {
+					AND: [
+						{
+							IS: {
+								sections_dept: "*japn*",
+							},
+						},
+						{
+							IS: {
+								sections_dept: "*japn*",
+							},
+						},
+					],
+				},
+				OPTIONS: {
+					COLUMNS: ["sections_dept", "sections_avg", "sections_pass"],
+					ORDER: "sections_pass",
+				},
+			};
+
+			try {
+				const result = await facade.performQuery(query);
+				expect(result).to.have.lengthOf(966);
+			} catch (error) {
+				throw new Error("Expected performQuery to resolve successfully, but it did not :(");
+			}
+		});
+
+		it("should reject as >5000 results", async function () {
+			const query = {
+				WHERE: {},
+				OPTIONS: {
+					COLUMNS: ["sections_dept"],
+				},
+			};
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				console.log(error);
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(ResultTooLargeError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw ResultTooLargeError, but it did not :(");
+			}
+		});
+
+		it("should return correct results for a simple query", async function () {
+			const query = {
+				WHERE: {
+					GT: {
+						sections_avg: 97,
+					},
+				},
+				OPTIONS: {
+					COLUMNS: ["sections_dept", "sections_avg"],
+					ORDER: "sections_avg",
+				},
+			};
+			const expected: InsightResult[] = [
+				{sections_dept: "math", sections_avg: 97.09},
+
+				{sections_dept: "math", sections_avg: 97.09},
+
+				{sections_dept: "epse", sections_avg: 97.09},
+
+				{sections_dept: "epse", sections_avg: 97.09},
+
+				{sections_dept: "math", sections_avg: 97.25},
+
+				{sections_dept: "math", sections_avg: 97.25},
+
+				{sections_dept: "epse", sections_avg: 97.29},
+
+				{sections_dept: "epse", sections_avg: 97.29},
+
+				{sections_dept: "nurs", sections_avg: 97.33},
+
+				{sections_dept: "nurs", sections_avg: 97.33},
+
+				{sections_dept: "epse", sections_avg: 97.41},
+
+				{sections_dept: "epse", sections_avg: 97.41},
+
+				{sections_dept: "cnps", sections_avg: 97.47},
+
+				{sections_dept: "cnps", sections_avg: 97.47},
+
+				{sections_dept: "math", sections_avg: 97.48},
+
+				{sections_dept: "math", sections_avg: 97.48},
+
+				{sections_dept: "educ", sections_avg: 97.5},
+
+				{sections_dept: "nurs", sections_avg: 97.53},
+
+				{sections_dept: "nurs", sections_avg: 97.53},
+
+				{sections_dept: "epse", sections_avg: 97.67},
+
+				{sections_dept: "epse", sections_avg: 97.69},
+
+				{sections_dept: "epse", sections_avg: 97.78},
+
+				{sections_dept: "crwr", sections_avg: 98},
+
+				{sections_dept: "crwr", sections_avg: 98},
+
+				{sections_dept: "epse", sections_avg: 98.08},
+
+				{sections_dept: "nurs", sections_avg: 98.21},
+
+				{sections_dept: "nurs", sections_avg: 98.21},
+
+				{sections_dept: "epse", sections_avg: 98.36},
+
+				{sections_dept: "epse", sections_avg: 98.45},
+
+				{sections_dept: "epse", sections_avg: 98.45},
+
+				{sections_dept: "nurs", sections_avg: 98.5},
+
+				{sections_dept: "nurs", sections_avg: 98.5},
+
+				{sections_dept: "nurs", sections_avg: 98.58},
+
+				{sections_dept: "nurs", sections_avg: 98.58},
+
+				{sections_dept: "epse", sections_avg: 98.58},
+
+				{sections_dept: "epse", sections_avg: 98.58},
+
+				{sections_dept: "epse", sections_avg: 98.7},
+
+				{sections_dept: "nurs", sections_avg: 98.71},
+
+				{sections_dept: "nurs", sections_avg: 98.71},
+
+				{sections_dept: "eece", sections_avg: 98.75},
+
+				{sections_dept: "eece", sections_avg: 98.75},
+
+				{sections_dept: "epse", sections_avg: 98.76},
+
+				{sections_dept: "epse", sections_avg: 98.76},
+
+				{sections_dept: "epse", sections_avg: 98.8},
+
+				{sections_dept: "spph", sections_avg: 98.98},
+
+				{sections_dept: "spph", sections_avg: 98.98},
+
+				{sections_dept: "cnps", sections_avg: 99.19},
+
+				{sections_dept: "math", sections_avg: 99.78},
+
+				{sections_dept: "math", sections_avg: 99.78},
+			];
+			const result = await facade.performQuery(query);
+			expect(result).to.deep.equal(expected);
+		});
+
+		it("should return correct results for a complex query", async function () {
+			//	timeout if it takes too long so other tests can perform
+			this.timeout(5000);
+			const query = {
+				WHERE: {
+					OR: [
+						{
+							AND: [
+								{
+									GT: {
+										ubc_avg: 90,
+									},
+								},
+								{
+									IS: {
+										ubc_dept: "adhe",
+									},
+								},
+							],
+						},
+						{
+							EQ: {
+								ubc_avg: 95,
+							},
+						},
+					],
+				},
+				OPTIONS: {
+					COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
+					ORDER: "ubc_avg",
+				},
+			};
+			const expected: InsightResult[] = [
+				{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 90.02},
+
+				{ubc_dept: "adhe", ubc_id: "412", ubc_avg: 90.16},
+
+				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.17},
+
+				{ubc_dept: "adhe", ubc_id: "412", ubc_avg: 90.18},
+
+				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.5},
+
+				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.72},
+
+				{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 90.82},
+
+				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.85},
+
+				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.29},
+
+				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.33},
+
+				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.33},
+
+				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.48},
+
+				{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 92.54},
+
+				{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 93.33},
+
+				{ubc_dept: "sowk", ubc_id: "570", ubc_avg: 95},
+
+				{ubc_dept: "rhsc", ubc_id: "501", ubc_avg: 95},
+
+				{ubc_dept: "psyc", ubc_id: "501", ubc_avg: 95},
+
+				{ubc_dept: "psyc", ubc_id: "501", ubc_avg: 95},
+
+				{ubc_dept: "obst", ubc_id: "549", ubc_avg: 95},
+
+				{ubc_dept: "nurs", ubc_id: "424", ubc_avg: 95},
+
+				{ubc_dept: "nurs", ubc_id: "424", ubc_avg: 95},
+
+				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+				{ubc_dept: "mtrl", ubc_id: "599", ubc_avg: 95},
+
+				{ubc_dept: "mtrl", ubc_id: "564", ubc_avg: 95},
+
+				{ubc_dept: "mtrl", ubc_id: "564", ubc_avg: 95},
+
+				{ubc_dept: "math", ubc_id: "532", ubc_avg: 95},
+
+				{ubc_dept: "math", ubc_id: "532", ubc_avg: 95},
+
+				{ubc_dept: "kin", ubc_id: "500", ubc_avg: 95},
+
+				{ubc_dept: "kin", ubc_id: "500", ubc_avg: 95},
+
+				{ubc_dept: "kin", ubc_id: "499", ubc_avg: 95},
+
+				{ubc_dept: "epse", ubc_id: "682", ubc_avg: 95},
+
+				{ubc_dept: "epse", ubc_id: "682", ubc_avg: 95},
+
+				{ubc_dept: "epse", ubc_id: "606", ubc_avg: 95},
+
+				{ubc_dept: "edcp", ubc_id: "473", ubc_avg: 95},
+
+				{ubc_dept: "edcp", ubc_id: "473", ubc_avg: 95},
+
+				{ubc_dept: "econ", ubc_id: "516", ubc_avg: 95},
+
+				{ubc_dept: "econ", ubc_id: "516", ubc_avg: 95},
+
+				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+				{ubc_dept: "cpsc", ubc_id: "589", ubc_avg: 95},
+
+				{ubc_dept: "cpsc", ubc_id: "589", ubc_avg: 95},
+
+				{ubc_dept: "cnps", ubc_id: "535", ubc_avg: 95},
+
+				{ubc_dept: "cnps", ubc_id: "535", ubc_avg: 95},
+
+				{ubc_dept: "bmeg", ubc_id: "597", ubc_avg: 95},
+
+				{ubc_dept: "bmeg", ubc_id: "597", ubc_avg: 95},
+
+				{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 96.11},
+			];
+			const actualResult = await facade.performQuery(query);
+			expect(actualResult).to.deep.equal(expected);
+		});
+
+		it("should reject for incorrect format for a simple query - invalid key in column", async function () {
+			const query = {
+				WHERE: {
+					GT: {
+						sections_avg: 97,
+					},
+				},
+				OPTIONS: {
+					COLUMNS: ["sections_dept", "_avg"],
+					ORDER: "sections_avg",
+				},
+			};
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw an InsightError, but it did not. :(");
+			}
+		});
+
+		it("should reject references dataset not added", async function () {
+			const query = {
+				WHERE: {
+					IS: {
+						ubc_dept: "*a",
+					},
+				},
+				OPTIONS: {
+					COLUMNS: ["sections_dept", "sections_avg"],
+					ORDER: "sections_avg",
+				},
+			};
+
+			let errorWasThrown = false;
+
+			try {
+				await facade.performQuery(query);
+			} catch (error) {
+				errorWasThrown = true;
+				expect(error).to.be.instanceOf(InsightError);
+			}
+
+			if (!errorWasThrown) {
+				throw new Error("Expected performQuery to throw an InsightError, but it did not. :(");
+			}
+		});
+	});
+
+	describe("listDatasets Tests", async function () {
+		let facade: InsightFacade;
+		let sections: string;
+		let initialDatasetCount: number;
+
+		before(async function () {
+			sections = getContentFromArchives("pair.zip");
+		});
+
+		beforeEach(async function () {
+			clearDisk();
+			facade = new InsightFacade();
+
+			// Get the initial dataset count
+			const initialDatasets = await facade.listDatasets();
+			initialDatasetCount = initialDatasets.length;
+
+			// Add two datasets
+			await Promise.all([
+				facade.addDataset("ubc", sections, InsightDatasetKind.Sections),
+				facade.addDataset("ubc2", sections, InsightDatasetKind.Rooms),
+			]);
+		});
+
+		it("should return all datasets that were added", async function () {
+			const datasets: InsightDataset[] = await facade.listDatasets();
+
+			// Check if the length increased by 2
+			expect(datasets)
+				.to.be.an("array")
+				.that.has.lengthOf(initialDatasetCount + 2);
+
+			datasets.forEach(function (dataset) {
+				expect(dataset).to.be.an("object");
+				expect(dataset).to.have.property("id").that.is.a("string");
+				expect(dataset.kind).to.be.oneOf([InsightDatasetKind.Sections, InsightDatasetKind.Rooms]);
+				expect(dataset).to.have.property("numRows").that.is.a("number");
+			});
+		});
 	});
 });
