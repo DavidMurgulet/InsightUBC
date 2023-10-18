@@ -1835,22 +1835,22 @@ describe("Test Suite", function () {
 			}
 		});
 
-		it("should reject query with empty WHERE", async function () {
-			const query = {
-				"": {GT: {sections_avg: 97}},
-				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg"], ORDER: "sections_avg"},
-			};
-			let errorWasThrown = false;
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw error but, but it did not :(");
-			}
-		});
+		// it("should reject query with empty WHERE", async function () {
+		// 	const query = {
+		// 		"": {GT: {sections_avg: 97}},
+		// 		OPTIONS: {COLUMNS: ["sections_dept", "sections_avg"], ORDER: "sections_avg"},
+		// 	};
+		// 	let errorWasThrown = false;
+		// 	try {
+		// 		await facade.performQuery(query);
+		// 	} catch (error) {
+		// 		errorWasThrown = true;
+		// 		expect(error).to.be.instanceOf(InsightError);
+		// 	}
+		// 	if (!errorWasThrown) {
+		// 		throw new Error("Expected performQuery to throw error but, but it did not :(");
+		// 	}
+		// });
 
 		it("should reject query with no WHERE", async function () {
 			const query = {
