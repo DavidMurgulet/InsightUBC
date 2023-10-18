@@ -224,21 +224,16 @@ describe("InsightFacade", function () {
 		});
 
 		it("should be able to add dataset after removal + crash", async function () {
-			try {
-				this.timeout(5000);
-				await facade.addDataset("pair", pair, InsightDatasetKind.Sections);
-				await facade.removeDataset("pair");
-				// new instance made
+			this.timeout(5000);
+			await facade.addDataset("pair", pair, InsightDatasetKind.Sections);
+			await facade.removeDataset("pair");
+			// new instance made
 
-				facade = new InsightFacade();
+			facade = new InsightFacade();
 
-				const result = await facade.addDataset("pair", pair, InsightDatasetKind.Sections);
-				expect(result).to.deep.equal([ "pair" ]);
-			} catch (error) {
-				throw error;
-			}
+			const result = await facade.addDataset("pair", pair, InsightDatasetKind.Sections);
+			expect(result).to.deep.equal(["pair"]);
 		});
-
 
 		it("should successfully add 2 datasets", async function () {
 			await facade.addDataset("ubc", sections, InsightDatasetKind.Sections);
