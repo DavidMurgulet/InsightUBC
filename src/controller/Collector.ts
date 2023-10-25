@@ -6,7 +6,7 @@ import InsightFacade from "./InsightFacade";
 import {InsightError, InsightResult} from "./IInsightFacade";
 
 export class Collector {
-	private datasets: Dataset[];
+	public datasets: Dataset[];
 	public currDatasetID!: string;
 	constructor(datasets: Dataset[]) {
 		this.datasets = datasets;

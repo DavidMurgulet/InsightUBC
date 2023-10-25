@@ -8,7 +8,7 @@ import {Collector} from "./Collector";
 let colFields: string[];
 
 export class Validator {
-	private datasets: Dataset[];
+	public datasets: Dataset[];
 	public leafDatasets: string[];
 	constructor(datasets: Dataset[]) {
 		this.datasets = datasets;
