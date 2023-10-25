@@ -53,7 +53,7 @@ export default class InsightFacade implements IInsightFacade {
 	public async addDataset(id: string, content: string, kind: InsightDatasetKind): Promise<string[]> {
 		await this.ensureInitialized();
 		if (!this.listOfDatasets) {
-			throw new InsightError("no list of Datasets")
+			throw new InsightError("no list of Datasets");
 		} else {
 			if (this.listOfDatasets.some((dataset) => dataset.id === id)) {
 				//	id exists
@@ -92,7 +92,6 @@ export default class InsightFacade implements IInsightFacade {
 			const datasets = this.listOfDatasets;
 			return datasets.map((dataset) => dataset.id);
 		}
-
 	}
 
 	public async getDatasets() {
@@ -103,7 +102,7 @@ export default class InsightFacade implements IInsightFacade {
 	public async aDataset(dataset: Dataset) {
 		let datasets = await this.getDatasets();
 		if (!datasets) {
-			throw new InsightError;
+			throw new InsightError();
 		}
 		datasets.push(dataset);
 	}
@@ -124,7 +123,7 @@ export default class InsightFacade implements IInsightFacade {
 
 			const datasets = await this.getDatasets();
 			if (!datasets) {
-				return Promise.reject( new InsightError);
+				return Promise.reject(new InsightError());
 			}
 			this.listOfDatasets = datasets.filter((dataset) => dataset.id !== id);
 
@@ -152,7 +151,6 @@ export default class InsightFacade implements IInsightFacade {
 		if (!datasets) {
 			return Promise.reject(new InsightError());
 		}
-
 		const dataCollector = new Collector(datasets);
 		const validator = new Validator(datasets);
 		if (query instanceof Object) {
@@ -172,7 +170,6 @@ export default class InsightFacade implements IInsightFacade {
 					}
 				}
 			}
-
 			if (where === undefined || options === undefined) {
 				return Promise.reject(new InsightError());
 			}
