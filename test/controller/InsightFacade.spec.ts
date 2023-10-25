@@ -1811,11 +1811,14 @@ describe("Test Suite", function () {
 
 		before(function () {
 			sections = getContentFromArchives("pair.zip");
+			facade = new InsightFacade();
+			facade.addDataset("sections", sections, InsightDatasetKind.Sections);
 		});
 
 		beforeEach(function () {
-			clearDisk();
-			facade = new InsightFacade();
+			//	clearDisk();
+
+
 		});
 
 		it("should reject query that is string", async function () {
