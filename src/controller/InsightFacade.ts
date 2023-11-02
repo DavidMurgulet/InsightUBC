@@ -10,7 +10,7 @@ import {
 import {persistDir, isBase64Zip, validateDataset, loadDatasetsFromDirectory} from "./datasetUtils";
 import {constants} from "http2";
 import fs, {remove} from "fs-extra";
-import {Validator} from "../../test/resources/queries/Validator";
+import {Validator} from "./Validator";
 import {Dataset, Section} from "./Dataset";
 import {
 	Query,

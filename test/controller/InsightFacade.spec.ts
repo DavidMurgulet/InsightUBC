@@ -22,7 +22,7 @@ import {
 } from "../../src/controller/Parse";
 
 import {Collector} from "../../src/controller/Collector";
-import {Validator} from "../resources/queries/Validator";
+import {Validator} from "../../src/controller/Validator";
 import exp from "constants";
 
 import {folderTest} from "@ubccpsc310/folder-test";
