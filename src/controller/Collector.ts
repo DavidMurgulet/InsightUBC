@@ -1,12 +1,11 @@
 import {Dataset, Section} from "./Dataset";
-import {Field, MField, Query, QueryNode, SField} from "./Query";
-import {Result} from "./Result";
-import {resolve} from "dns";
-import InsightFacade from "./InsightFacade";
-import {InsightError, InsightResult} from "./IInsightFacade";
+import {Columns, Comparator, LogicComparator, Options, Order, QueryNode, QueryRefactored, Where} from "./Query";
+import {InsightResult} from "./IInsightFacade";
+import {ApplyRule, GroupBlock, orderResultsRefactored, Transformations} from "./Transformations";
+import {Grouping} from "./Grouping";
 
 export class Collector {
-	private datasets: Dataset[];
+	public datasets: Dataset[];
 	public currDatasetID!: string;
 	constructor(datasets: Dataset[]) {
 		this.datasets = datasets;
@@ -16,212 +15,252 @@ export class Collector {
 		return this.datasets;
 	}
 
-	public execQuery(query: Query): InsightResult[] {
-		const where = query.where;
-		const options = query.options;
-		const col: QueryNode = options.getChildWithKey("COLUMNS") as QueryNode;
-		const resultFields = this.extractCol(col);
-		let hasComparator = false;
-		let filteredSections: Section[];
+	public executeOptionsRefactored(options: Options, data: any[], groups: boolean): InsightResult[] {
+		const col = options.columns as Columns;
+		const order = options.order;
 
-		if (where.getChilds().length === 1) {
-			hasComparator = true;
-		}
-
-		if (hasComparator) {
-			const comp = where.getChilds()[0];
-			filteredSections = this.execWhere(comp);
+		let results = [];
+		if (groups) {
+			for (const g of data) {
+				const result: InsightResult = {};
+				for (const c of col.cols) {
+					result[c] = g[c];
+				}
+				results.push(result);
+			}
 		} else {
-			let datasetID = this.splitKey(col.getChilds()[0].getKey())[0];
-			filteredSections = this.allSections(datasetID);
+			for (const d of data) {
+				const result: InsightResult = {};
+				for (const c of col.cols) {
+					let field = this.splitKey(c)[1];
+					result[c] = d[field];
+				}
+				results.push(result);
+			}
 		}
 
-		// apply all executed OPTIONS to it.
-		const results = this.execOpts(resultFields, filteredSections);
-
-		if (options.getChilds().length === 2) {
-			const order = options.getChildWithKey("ORDER") as QueryNode;
-			const orderBy = order.getChilds()[0].getKey();
-			return this.orderResults(results, orderBy);
+		if (order !== undefined) {
+			results = orderResultsRefactored(order, results);
 		}
 
 		return results;
 	}
 
+	public execQueryRefactored(query: QueryRefactored): InsightResult[] {
+		const where = query.where;
+		const options = query.options;
+		const col = options.columns as Columns;
+		const trans = query.transformations;
+		const resultFields = col.cols;
+		// TODO: check typing here.
+		let filteredData: any[] = [];
+		let hasTransformations = false;
+		let hasComparator = where.hasComparator;
+		if (trans !== undefined) {
+			hasTransformations = true;
+		}
+		if (!hasComparator) {
+			let dsetID = this.splitKey(col.cols[0])[0];
+			filteredData = this.allSections(dsetID);
+		} else {
+			filteredData = this.executeWhereRefactored(where);
+		}
+		if (hasTransformations) {
+			filteredData = this.executeTransformations(trans as Transformations, filteredData);
+		}
+		return this.executeOptionsRefactored(options, filteredData, hasTransformations);
+	}
 	public allSections(datasetID: string): Section[] {
 		let all: Section[] = [];
-
 		for (const set of this.getDatasets()) {
 			if (set.id === datasetID) {
-				for (const sec of set.sections) {
+				for (const sec of set.data as Section[]) {
 					all.push(sec);
 				}
 			}
 		}
-
 		return all;
 	}
-
-	public orderResults(results: InsightResult[], order: string): InsightResult[] {
-		let field = order;
-		let orderBy = this.splitKey(order)[1];
-
-		// CHAT GPT
-		return results.sort((a, b) => {
-			const valA = a[field];
-			const valB = b[field];
-			if (typeof valA === "number" && typeof valB === "number") {
-				return valA - valB;
-			} else if (typeof valA === "string" && typeof valB === "string") {
-				return valA.localeCompare(valB);
-			}
-			// Handle cases where the field values are not directly comparable (e.g., mixed types)
-			return 0;
-		});
-	}
-
-	public execOpts(columns: string[], sections: Section[]) {
-		const results: InsightResult[] = [];
-
-		for (const sec of sections) {
-			// for each section, make a new result
-			// const result = new Result();
-			const result: InsightResult = {};
-			for (const col of columns) {
-				let field = this.splitKey(col)[1];
-				result[col] = sec[field];
-			}
-			results.push(result);
+	public groupObjectsByProperties(objects: any[], propertyNames: string[]): Grouping[] {
+		const groupings: {[key: string]: Grouping} = {};
+		const allGroups: Grouping[] = []; // New array to store all grouping objects
+		const parsedGroupBy: string[] = [];
+		for (const p of propertyNames) {
+			let n = this.splitKey(p)[1];
+			parsedGroupBy.push(n);
 		}
 
+		for (const object of objects) {
+			const groupKey = parsedGroupBy.map((propertyName) => object[propertyName]).join("-");
+			if (!groupings[groupKey]) {
+				// changed typing from (number | string)[]
+				const groupKeyComponents: Array<number | string> = groupKey.split("-").map((component) => {
+					const numValue = parseFloat(component);
+					return isNaN(numValue) ? component : numValue;
+				});
+				groupings[groupKey] = new Grouping(propertyNames, groupKeyComponents);
+				allGroups.push(groupings[groupKey]); // Add the new grouping to allGroups
+			}
+			groupings[groupKey].addValue(object);
+		}
+		return allGroups; // Return the array of all grouping objects
+	}
+	public executeTransformations(transformations: Transformations, filtered: any[]): any[] {
+		const groupBlock = transformations.groupBlock as GroupBlock;
+		const groupBy = groupBlock.keys;
+		const applyRules = transformations.applyList;
+		let groups = this.groupObjectsByProperties(filtered, groupBy);
+		groups = this.executeApplyRules(applyRules, groups);
+		const results = [];
+		for (const d of groups) {
+			const groupObj: InsightResult = {};
+			for (let i = 0; i < d.groupKeys.length; i++) {
+				groupObj[d.groupKeys[i]] = d.gKeys[i];
+			}
+			for (const r of d.applyKeys) {
+				for (const k in r) {
+					groupObj[k] = r[k];
+				}
+			}
+			results.push(groupObj);
+		}
 		return results;
 	}
-
+	public executeApplyRules(rules: ApplyRule[], groups: Grouping[]): any[] {
+		for (const g of groups) {
+			for (const r of rules) {
+				const key = this.splitKey(r.key)[1];
+				if (r.applyToken === "AVG") {
+					g.calculateAvg(r.applyKey, key);
+				} else if (r.applyToken === "MIN") {
+					g.calculateMin(r.applyKey, key);
+				} else if (r.applyToken === "MAX") {
+					g.calculateMax(r.applyKey, key);
+				} else if (r.applyToken === "SUM") {
+					g.calculateSum(r.applyKey, key);
+				} else if (r.applyToken === "COUNT") {
+					g.calculateCount(r.applyKey, key);
+				}
+			}
+		}
+		return groups;
+	}
 	public removeDuplicates(arr: any[]): any[] {
 		return Array.from(new Set(arr));
 	}
-
-	// CHAT GPT FUNCTION
 	public filterDuplicates(sections: any[], n: number): any[] {
 		const sectionCountMap: Map<string, number> = new Map();
-
-		// Count the occurrences of each section in the original array
+		// Count the occurrences of each section in the original array GPT FUNCTION
 		for (const section of sections) {
 			const sectionString = JSON.stringify(section);
 			sectionCountMap.set(sectionString, (sectionCountMap.get(sectionString) || 0) + 1);
 		}
-
 		// Filter sections that appear exactly 'n' times
 		const filteredSections = sections.filter((section) => {
 			const sectionString = JSON.stringify(section);
 			return sectionCountMap.get(sectionString) === n;
 		});
-
 		return Array.from(new Set(filteredSections));
 	}
-
-	public extractCol(columns: QueryNode): string[] {
-		let cols: string[] = [];
-		for (const c of columns.getChilds()) {
-			cols.push(c.getKey());
-		}
-		return cols;
-	}
-
-	// returns an array of sections pertaining to the WHERE branch.
-	public execWhere(node: QueryNode): any[] {
-		const operator = node.getKey();
+	public executeWhereRefactored(where: Where): any[] {
 		let filtered: any[] = [];
-		let notFiltered: Section[] = [];
-
-		if (operator === "AND") {
-			for (const child of node.getChilds()) {
-				let returnedSec = this.execWhere(child);
-				for (const s of returnedSec) {
-					filtered.push(s);
-				}
-			}
-			// filter out sections that aren't in all children arrays.
-			filtered = this.filterDuplicates(filtered, node.getChilds().length);
-			return filtered;
-		} else if (operator === "OR") {
-			for (const child of node.getChilds()) {
-				let returnedSec = this.execWhere(child);
-				for (const s of returnedSec) {
-					filtered.push(s);
-				}
-			}
-			filtered = this.removeDuplicates(filtered);
-			return filtered;
-		} else if (operator === "NOT") {
-			for (const child of node.getChilds()) {
-				let returnedSec = this.execWhere(child);
-				for (const s of returnedSec) {
-					filtered.push(s);
-				}
-			}
-			for (const d of this.datasets) {
-				if (this.currDatasetID === d.id) {
-					for (const s of d.sections) {
-						if (!filtered.includes(s)) {
-							notFiltered.push(s);
-						}
-					}
-				}
-			}
-			// take all sections that aren't present in filtered and return it.
-			return notFiltered;
-		} else if (operator === "GT" || operator === "LT" || operator === "EQ" || operator === "IS") {
-			return this.queryLeaf(node);
+		if (where.comparator instanceof LogicComparator) {
+			filtered = this.executeLogic(where.comparator);
+		} else if (where.comparator instanceof Comparator) {
+			filtered = this.executeComparison(where.comparator);
 		}
 		return filtered;
 	}
-
-	// splits a key into "datasetID" and "key"
 	public splitKey(key: string) {
 		return key.split("_");
 	}
-
-	public queryLeaf(node: QueryNode): any[] {
-		let filteredSections: any[] = [];
-		const comparator = node.getKey(); // GT/EQ/LT/IS
-		const datasetID = this.splitKey(node.getChilds()[0].getKey())[0]; // ubc
-		const field = this.splitKey(node.getChilds()[0].getKey())[1]; // avg
-		const leafKey = node.getChilds()[0].getChilds()[0].getKey(); // 93
+	public logicOrComp(child: any): any[] {
+		return child instanceof LogicComparator ? this.executeLogic(child) : this.executeComparison(child);
+	}
+	public executeLogic(logic: LogicComparator): InsightResult[] {
+		let filtered: any[] = [];
+		let notFiltered: Section[] = [];
+		const op = logic.operator;
+		let returnedSec = [];
+		switch (op) {
+			case "AND":
+				for (const child of logic.children) {
+					returnedSec = this.logicOrComp(child);
+					for (const s of returnedSec) {
+						filtered.push(s);
+					}
+				}
+				return this.filterDuplicates(filtered, logic.children.length);
+			case "OR":
+				for (const child of logic.children) {
+					returnedSec = this.logicOrComp(child);
+					for (const s of returnedSec) {
+						filtered.push(s);
+					}
+				}
+				return this.removeDuplicates(filtered);
+			case "NOT":
+				for (const child of logic.children) {
+					returnedSec = this.logicOrComp(child);
+					for (const s of returnedSec) {
+						filtered.push(s);
+					}
+					for (const d of this.datasets) {
+						if (this.currDatasetID === d.id) {
+							for (const s of d.data as Section[]) {
+								if (!filtered.includes(s)) {
+									notFiltered.push(s);
+								}
+							}
+						}
+					}
+				}
+				return notFiltered;
+		}
+		return [];
+	}
+	public executeComparison(comp: Comparator): any[] {
+		let filtered: any[] = [];
+		const comparator = comp.operator; // GT/EQ/LT/IS
+		const datasetID = this.splitKey(Object.keys(comp.child)[0])[0];
+		const field = this.splitKey(Object.keys(comp.child)[0])[1];
+		let leafKey = Object.values(comp.child)[0];
 		this.currDatasetID = datasetID;
 		switch (comparator) {
 			case "GT":
-				filteredSections = this.filterSectionsByCondition("GT", datasetID, field, leafKey);
+				filtered = this.filterByCondition("GT", datasetID, field, leafKey);
 				break;
 			case "LT":
-				filteredSections = this.filterSectionsByCondition("LT", datasetID, field, leafKey);
+				filtered = this.filterByCondition("LT", datasetID, field, leafKey);
 				break;
 			case "EQ":
-				filteredSections = this.filterSectionsByCondition("EQ", datasetID, field, leafKey);
+				filtered = this.filterByCondition("EQ", datasetID, field, leafKey);
 				break;
 			case "IS":
 				for (const set of this.getDatasets()) {
 					if (set.id === datasetID) {
-						for (const sec of set.sections) {
+						for (const d of set.data) {
+							// TODO: possible error
+							leafKey = Object.values(comp.child)[0] as string;
 							const first = leafKey[0];
 							const last = leafKey[leafKey.length - 1];
 							const key = leafKey.replace(/\*/g, "");
-							const matchVal: string = sec[field] as string;
+							const matchVal: string = d[field] as string;
 							if (first === "*" && last === "*") {
 								if (matchVal.includes(key)) {
-									filteredSections.push(sec);
+									filtered.push(d);
 								}
 							} else if (first === "*") {
 								if (matchVal.endsWith(key)) {
-									filteredSections.push(sec);
+									filtered.push(d);
 								}
 							} else if (last === "*") {
 								if (matchVal.startsWith(key)) {
-									filteredSections.push(sec);
+									filtered.push(d);
 								}
 							} else if (first !== "*" && last !== "*") {
 								if (matchVal === key) {
-									filteredSections.push(sec);
+									filtered.push(d);
 								}
 							}
 						}
@@ -229,22 +268,20 @@ export class Collector {
 				}
 				break;
 		}
-
-		return filteredSections;
+		return filtered;
 	}
-
-	public filterSectionsByCondition(condition: string, datasetID: string, field: string, leafKey: any): Section[] {
-		const filteredSections: Section[] = [];
+	public filterByCondition(condition: string, datasetID: string, field: string, leafKey: any): any[] {
+		const filteredSections: any[] = [];
 
 		for (const set of this.getDatasets()) {
 			if (set.id === datasetID) {
-				for (const sec of set.sections) {
+				for (const d of set.data) {
 					if (
-						(condition === "GT" && sec[field] > leafKey) ||
-						(condition === "LT" && sec[field] < leafKey) ||
-						(condition === "EQ" && sec[field] === leafKey)
+						(condition === "GT" && d[field] > leafKey) ||
+						(condition === "LT" && d[field] < leafKey) ||
+						(condition === "EQ" && d[field] === leafKey)
 					) {
-						filteredSections.push(sec);
+						filteredSections.push(d);
 					}
 				}
 			}
