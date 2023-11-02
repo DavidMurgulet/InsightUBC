@@ -33,7 +33,8 @@ import {Transformations} from "./Transformations";
 import {transformAsserterArgs} from "chai-as-promised";
 
 export default class InsightFacade implements IInsightFacade {
-	private listOfDatasets: Dataset[] | null;
+	public listOfDatasets: Dataset[] | null;
+	// TODO: change to null
 	// //	access listOfDatasets for debugging
 
 	public async reloadDatasets(): Promise<void> {
@@ -108,8 +109,8 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	public async getDatasets() {
-		await this.ensureInitialized();
+	public getDatasets() {
+		// await this.ensureInitialized();
 		return this.listOfDatasets;
 	}
 
@@ -161,10 +162,13 @@ export default class InsightFacade implements IInsightFacade {
 	// TODO: Semantic Checks?
 
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
-		let datasets = await this.getDatasets();
-		if (!datasets) {
-			return Promise.reject(new InsightError());
-		}
+		// let datasets = await this.getDatasets();
+		// let datasets = await this.getDatasets();
+		// if (!datasets) {
+		// 	return Promise.reject(new InsightError());
+		// }
+
+		let datasets = this.listOfDatasets as Dataset[];
 		const dataCollector = new Collector(datasets);
 		const validator = new Validator(datasets);
 		if (query instanceof Object) {

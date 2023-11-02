@@ -1,4 +1,4 @@
-import {Dataset, Section} from "./Dataset";
+import {Dataset, Room, Section} from "./Dataset";
 import {Columns, Comparator, LogicComparator, Options, Order, QueryNode, QueryRefactored, Where} from "./Query";
 import {InsightResult} from "./IInsightFacade";
 import {ApplyRule, GroupBlock, orderResultsRefactored, Transformations} from "./Transformations";
@@ -183,15 +183,14 @@ export class Collector {
 		return child instanceof LogicComparator ? this.executeLogic(child) : this.executeComparison(child);
 	}
 
-	public executeLogic(logic: LogicComparator): InsightResult[] {
+	public executeLogic(logic: LogicComparator): any[] {
 		let filtered: any[] = [];
-		let notFiltered: Section[] = [];
+		let notFiltered: any[] = [];
 		const op = logic.operator;
-		let returnedSec = [];
 		switch (op) {
 			case "AND":
 				for (const child of logic.children) {
-					returnedSec = this.logicOrComp(child);
+					let returnedSec = this.logicOrComp(child);
 					for (const s of returnedSec) {
 						filtered.push(s);
 					}
@@ -199,7 +198,7 @@ export class Collector {
 				return this.filterDuplicates(filtered, logic.children.length);
 			case "OR":
 				for (const child of logic.children) {
-					returnedSec = this.logicOrComp(child);
+					let returnedSec = this.logicOrComp(child);
 					for (const s of returnedSec) {
 						filtered.push(s);
 					}
@@ -207,17 +206,16 @@ export class Collector {
 				return this.removeDuplicates(filtered);
 			case "NOT":
 				for (const child of logic.children) {
-					returnedSec = this.logicOrComp(child);
+					let returnedSec = this.logicOrComp(child);
 					for (const s of returnedSec) {
 						filtered.push(s);
 					}
 					for (const d of this.datasets) {
 						if (this.currDatasetID === d.id) {
-							for (const s of d.data as Section[]) {
-								if (!filtered.includes(s)) {
-									notFiltered.push(s);
-								}
-							}
+							// compare d.data, and filtered., fold theme into new array with ones that arent in both?
+							const allSections: any[] = d.data as Section[] | Room[];
+							notFiltered = allSections.filter((data: any) => !filtered.includes(data));
+							return notFiltered;
 						}
 					}
 				}
