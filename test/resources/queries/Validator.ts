@@ -27,6 +27,7 @@ export class Validator {
 		this.datasets = datasets;
 		this.leafDatasets = [];
 	}
+
 	public validateWhereRefactored(where: Where): {error: number; msg: string} {
 		if (where.comparator !== undefined) {
 			where.hasComparator = true;
@@ -44,10 +45,9 @@ export class Validator {
 		}
 		return {error: 0, msg: ""};
 	}
+
 	public validateLogicComp(logic: LogicComparator): {error: number; msg: string} {
-		// must be non-empty array, no {}
-		// must have at least 1 key
-		// TODO: possibly redundant, check the parsing code
+		// must be non-empty array, no {} // must have at least 1 key // TODO: possibly redundant, check the parsing cod
 		if (logic.operator === "NOT") {
 			if (logic.children.length !== 1) {
 				return {error: 1, msg: "NOT error"};
@@ -72,6 +72,7 @@ export class Validator {
 		}
 		return {error: 0, msg: ""};
 	}
+
 	public validateComp(comp: Comparator) {
 		let op = comp.operator;
 		let key = Object.keys(comp.child)[0];
@@ -93,6 +94,7 @@ export class Validator {
 		}
 		return {error: 0, msg: ""};
 	}
+
 	public validateOptionsRefactored(options: Options): {error: number; msg: string} {
 		if (options.columns === undefined) {
 			return {error: 1, msg: "columns is undefined"};
@@ -107,6 +109,7 @@ export class Validator {
 		}
 		return {error: 0, msg: ""};
 	}
+
 	public validateTransformations(transformations: Transformations): {error: number; msg: string} {
 		this.hasTransformations = true;
 		if (transformations.groupBlock === undefined || !transformations.hasApply) {
@@ -120,6 +123,7 @@ export class Validator {
 		}
 		return {error: 0, msg: ""};
 	}
+
 	public validateGroupBlock(group: GroupBlock): {error: number; msg: string} {
 		if (group.keys.length === 0) {
 			return {error: 1, msg: "group cannot be empty"};
@@ -132,6 +136,7 @@ export class Validator {
 		}
 		return {error: 0, msg: ""};
 	}
+
 	public validateKey(key: string, operator?: string): {error: number; msg: string} {
 		if (key.includes("_")) {
 			let dsetID = key.split("_")[0];
@@ -176,6 +181,7 @@ export class Validator {
 		}
 		return {error: 0, msg: ""};
 	}
+
 	public validateSectionField(operator: string, field: string): {error: number; msg: string} {
 		if (operator === "GT" || operator === "LT" || operator === "EQ") {
 			if (!Object.values(SectionMField).includes(field as any)) {
@@ -190,6 +196,7 @@ export class Validator {
 		}
 		return {error: 0, msg: ""};
 	}
+
 	public validateApplyBlock(rule: ApplyRule[]): {error: number; msg: string} {
 		let seenKeys: string[] = [];
 		for (const i of rule) {
@@ -219,18 +226,15 @@ export class Validator {
 		}
 		return {error: 0, msg: ""};
 	}
+
 	public validateColumnsRefactored(columns: Columns): {error: number; msg: string} {
-		// TODO: check key = columns should have been done in parsing
-		// 	5. if GROUP not empty, all COL keys must be in GROUP, or be an APPLY rule
-		// 	Keys in COLUMNS must be in GROUP or APPLY when TRANSFORMATIONS is present
+		// 5. if GROUP not empty, all COL keys must be  in GROUP, or be an APPLY rule Keys in COLUMNS must be in GROUP
 		const cols = columns.cols; // ["sections_avg", "sections_dept", "sections_pass"]
 		if (cols.length < 1) {
 			return {error: 1, msg: "empty columns"};
 		}
 		for (const key of cols) {
-			// if (this.validateKey(key).error === 1) {
-			// 	return {error: 1, msg: "invalid key in columns"};
-			// }
+			// if (this.validateKey(key).error === 1) {return {error: 1, msg: "invalid key in columns"};
 			if (this.hasTransformations) {
 				if (!this.transformationKeys.includes(key)) {
 					return {error: 1, msg: "key not in group/applyRules"};
@@ -241,14 +245,12 @@ export class Validator {
 				}
 			}
 		}
-
 		colFields = cols;
 		return {error: 0, msg: ""};
 	}
+
 	public validateOrderRefactored(order: Order): {error: number; msg: string} {
-		// TODO: check key = order should have been done in parsing
 		if (order.isSingleColumn()) {
-			// case 1: no dir, 1 column
 			for (const s of colFields) {
 				if (order.keys === s) {
 					return {error: 0, msg: ""};
@@ -266,9 +268,9 @@ export class Validator {
 				}
 			}
 		}
-
 		return {error: 0, msg: ""};
 	}
+
 	public checkDatasetValidity() {
 		if (this.leafDatasets.every((element) => element === this.leafDatasets[0])) {
 			for (const d of this.datasets) {
@@ -281,12 +283,12 @@ export class Validator {
 			return 1;
 		}
 	}
+
 	public validWildcard(wildcard: string): {error: number; msg: string} {
 		// may need to change this in future.
 		if (wildcard.length === 0) {
 			return {error: 0, msg: ""};
 		}
-
 		for (let i = 1; i < wildcard.length - 1; i++) {
 			const char = wildcard.charAt(i);
 			if (char === "*") {

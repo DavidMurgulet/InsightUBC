@@ -18,7 +18,6 @@ export class Collector {
 	public executeOptionsRefactored(options: Options, data: any[], groups: boolean): InsightResult[] {
 		const col = options.columns as Columns;
 		const order = options.order;
-
 		let results = [];
 		if (groups) {
 			for (const g of data) {
@@ -38,11 +37,9 @@ export class Collector {
 				results.push(result);
 			}
 		}
-
 		if (order !== undefined) {
 			results = orderResultsRefactored(order, results);
 		}
-
 		return results;
 	}
 
@@ -70,6 +67,7 @@ export class Collector {
 		}
 		return this.executeOptionsRefactored(options, filteredData, hasTransformations);
 	}
+
 	public allSections(datasetID: string): Section[] {
 		let all: Section[] = [];
 		for (const set of this.getDatasets()) {
@@ -81,6 +79,7 @@ export class Collector {
 		}
 		return all;
 	}
+
 	public groupObjectsByProperties(objects: any[], propertyNames: string[]): Grouping[] {
 		const groupings: {[key: string]: Grouping} = {};
 		const allGroups: Grouping[] = []; // New array to store all grouping objects
@@ -105,6 +104,7 @@ export class Collector {
 		}
 		return allGroups; // Return the array of all grouping objects
 	}
+
 	public executeTransformations(transformations: Transformations, filtered: any[]): any[] {
 		const groupBlock = transformations.groupBlock as GroupBlock;
 		const groupBy = groupBlock.keys;
@@ -126,6 +126,7 @@ export class Collector {
 		}
 		return results;
 	}
+
 	public executeApplyRules(rules: ApplyRule[], groups: Grouping[]): any[] {
 		for (const g of groups) {
 			for (const r of rules) {
@@ -145,23 +146,25 @@ export class Collector {
 		}
 		return groups;
 	}
+
 	public removeDuplicates(arr: any[]): any[] {
 		return Array.from(new Set(arr));
 	}
+
 	public filterDuplicates(sections: any[], n: number): any[] {
 		const sectionCountMap: Map<string, number> = new Map();
-		// Count the occurrences of each section in the original array GPT FUNCTION
+		// Count occurrences of each section in the original array GPT Filter sections that appear exactly 'n' times
 		for (const section of sections) {
 			const sectionString = JSON.stringify(section);
 			sectionCountMap.set(sectionString, (sectionCountMap.get(sectionString) || 0) + 1);
 		}
-		// Filter sections that appear exactly 'n' times
 		const filteredSections = sections.filter((section) => {
 			const sectionString = JSON.stringify(section);
 			return sectionCountMap.get(sectionString) === n;
 		});
 		return Array.from(new Set(filteredSections));
 	}
+
 	public executeWhereRefactored(where: Where): any[] {
 		let filtered: any[] = [];
 		if (where.comparator instanceof LogicComparator) {
@@ -171,12 +174,15 @@ export class Collector {
 		}
 		return filtered;
 	}
+
 	public splitKey(key: string) {
 		return key.split("_");
 	}
+
 	public logicOrComp(child: any): any[] {
 		return child instanceof LogicComparator ? this.executeLogic(child) : this.executeComparison(child);
 	}
+
 	public executeLogic(logic: LogicComparator): InsightResult[] {
 		let filtered: any[] = [];
 		let notFiltered: Section[] = [];
@@ -219,6 +225,7 @@ export class Collector {
 		}
 		return [];
 	}
+
 	public executeComparison(comp: Comparator): any[] {
 		let filtered: any[] = [];
 		const comparator = comp.operator; // GT/EQ/LT/IS
@@ -270,9 +277,9 @@ export class Collector {
 		}
 		return filtered;
 	}
+
 	public filterByCondition(condition: string, datasetID: string, field: string, leafKey: any): any[] {
 		const filteredSections: any[] = [];
-
 		for (const set of this.getDatasets()) {
 			if (set.id === datasetID) {
 				for (const d of set.data) {
@@ -286,7 +293,6 @@ export class Collector {
 				}
 			}
 		}
-
 		return filteredSections;
 	}
 }

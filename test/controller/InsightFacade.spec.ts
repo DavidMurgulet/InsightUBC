@@ -2196,7 +2196,6 @@ describe("InsightFacade", function () {
 			// facade.aDataset(dataset2);
 		});
 
-
 		function errorValidator(error: any): error is Error {
 			return error === "InsightError" || error === "ResultTooLargeError";
 		}

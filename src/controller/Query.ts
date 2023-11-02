@@ -132,6 +132,7 @@ export class QueryNode {
 			}
 		}
 	}
+
 	public getChildKeys() {
 		const keysArray = this.children.map((node) => node.operator);
 		return keysArray;
@@ -152,6 +153,7 @@ export class QueryNode {
 	public getKey(): any {
 		return this.operator;
 	}
+
 	public setLeaf() {
 		this.leaf = true;
 	}

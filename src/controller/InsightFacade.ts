@@ -47,6 +47,7 @@ export default class InsightFacade implements IInsightFacade {
 			console.error("Error loading datasets:", error);
 		}
 	}
+
 	constructor() {
 		console.log("InsightFacadeImpl::init()");
 		this.listOfDatasets = null;
@@ -188,52 +189,26 @@ export default class InsightFacade implements IInsightFacade {
 			if (where === undefined || options === undefined) {
 				return Promise.reject(new InsightError());
 			}
-			let whereValidated: {error: number; msg: string};
-			let optionsValidated: {error: number; msg: string};
-			let transValidated: {error: number; msg: string};
 			try {
 				if (transformations !== undefined) {
 					validator.hasTransformations = true;
 					parsedQuery = new QueryRefactored(where, options, transformations);
-					transValidated = validator.validateTransformations(transformations);
+					const transValidated = validator.validateTransformations(transformations);
 					if (transValidated.error === 1) {
 						return Promise.reject(new InsightError(transValidated.msg));
 					}
 				} else {
 					parsedQuery = new QueryRefactored(where, options);
 				}
-				whereValidated = validator.validateWhereRefactored(where);
-				optionsValidated = validator.validateOptionsRefactored(options);
+				const whereValidated = validator.validateWhereRefactored(where);
+				const optionsValidated = validator.validateOptionsRefactored(options);
+				return this.validate(whereValidated, optionsValidated, validator, dataCollector, parsedQuery);
 			} catch (e) {
 				throw new InsightError();
 			}
-			// if (transformations !== undefined) {
-			// 	validator.hasTransformations = true;
-			// 	parsedQuery = new QueryRefactored(where, options, transformations);
-			//
-			// 	try {
-			// 		transValidated = validator.validateTransformations(transformations);
-			// 		if (transValidated.error === 1) {
-			// 			return Promise.reject(new InsightError(transValidated.msg));
-			// 		}
-			// 	} catch (e) {
-			// 		throw new InsightError();
-			// 	}
-			// } else {
-			// 	parsedQuery = new QueryRefactored(where, options);
-			// }
-			//
-			// try {
-			// 	whereValidated = validator.validateWhereRefactored(where);
-			// 	optionsValidated = validator.validateOptionsRefactored(options);
-			// } catch (e) {
-			// 	throw new InsightError("error in parsing");
-			// }
-			return this.validate(whereValidated, optionsValidated, validator, dataCollector, parsedQuery);
 		} else {
 			return Promise.reject(new InsightError("query not an object"));
 		}
-		return Promise.reject(new InsightError("Shouldn't reach this far"));
 	}
 
 	public validate(
