@@ -1,0 +1,162 @@
+{
+	"title": "validAllApplyKeysandORDERING",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"sections_dept": "*sc*"
+					}
+				},
+				{
+					"GT": {
+						"sections_pass": 10
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"maxAvg",
+				"minFail",
+				"avgAud",
+				"countTotal",
+				"sumFail"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"maxAvg",
+					"minFail",
+					"avgAud",
+					"countTotal",
+					"sumFail"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_dept"
+			],
+			"APPLY": [
+				{
+					"maxAvg": {
+						"MAX": "sections_avg"
+					}
+				},
+				{
+					"minFail": {
+						"MIN": "sections_fail"
+					}
+				},
+				{
+					"avgAud": {
+						"AVG": "sections_audit"
+					}
+				},
+				{
+					"countTotal": {
+						"COUNT": "sections_pass"
+					}
+				},
+				{
+					"sumFail": {
+						"SUM": "sections_fail"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "apsc",
+			"maxAvg": 96,
+			"minFail": 0,
+			"avgAud": 0.05,
+			"countTotal": 171,
+			"sumFail": 3554
+		},
+		{
+			"sections_dept": "eosc",
+			"maxAvg": 93.47,
+			"minFail": 0,
+			"avgAud": 0.11,
+			"countTotal": 281,
+			"sumFail": 4740
+		},
+		{
+			"sections_dept": "musc",
+			"maxAvg": 93.45,
+			"minFail": 0,
+			"avgAud": 0.26,
+			"countTotal": 80,
+			"sumFail": 983
+		},
+		{
+			"sections_dept": "cpsc",
+			"maxAvg": 92.4,
+			"minFail": 0,
+			"avgAud": 0.22,
+			"countTotal": 224,
+			"sumFail": 5666
+		},
+		{
+			"sections_dept": "rhsc",
+			"maxAvg": 91.92,
+			"minFail": 0,
+			"avgAud": 2.57,
+			"countTotal": 28,
+			"sumFail": 9
+		},
+		{
+			"sections_dept": "isci",
+			"maxAvg": 90.44,
+			"minFail": 0,
+			"avgAud": 0,
+			"countTotal": 22,
+			"sumFail": 16
+		},
+		{
+			"sections_dept": "scie",
+			"maxAvg": 86.81,
+			"minFail": 0,
+			"avgAud": 0,
+			"countTotal": 27,
+			"sumFail": 166
+		},
+		{
+			"sections_dept": "scan",
+			"maxAvg": 86.35,
+			"minFail": 0,
+			"avgAud": 0,
+			"countTotal": 14,
+			"sumFail": 24
+		},
+		{
+			"sections_dept": "nrsc",
+			"maxAvg": 86.26,
+			"minFail": 0,
+			"avgAud": 0.89,
+			"countTotal": 13,
+			"sumFail": 4
+		},
+		{
+			"sections_dept": "basc",
+			"maxAvg": 86.04,
+			"minFail": 0,
+			"avgAud": 0,
+			"countTotal": 48,
+			"sumFail": 4
+		},
+		{
+			"sections_dept": "atsc",
+			"maxAvg": 85.75,
+			"minFail": 0,
+			"avgAud": 0.3,
+			"countTotal": 16,
+			"sumFail": 22
+		}
+	]
+}

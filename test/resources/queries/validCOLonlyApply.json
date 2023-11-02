@@ -1,0 +1,150 @@
+{
+	"title": "validCOLonlyApply",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"sections_dept": "*sc*"
+					}
+				},
+				{
+					"GT": {
+						"sections_pass": 10
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"maxAvg",
+				"minFail",
+				"avgAud",
+				"countTotal",
+				"sumFail"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"maxAvg",
+					"minFail",
+					"avgAud",
+					"countTotal",
+					"sumFail"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_dept"
+			],
+			"APPLY": [
+				{
+					"maxAvg": {
+						"MAX": "sections_avg"
+					}
+				},
+				{
+					"minFail": {
+						"MIN": "sections_fail"
+					}
+				},
+				{
+					"avgAud": {
+						"AVG": "sections_audit"
+					}
+				},
+				{
+					"countTotal": {
+						"COUNT": "sections_dept"
+					}
+				},
+				{
+					"sumFail": {
+						"SUM": "sections_fail"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"maxAvg": 96,
+			"minFail": 0,
+			"avgAud": 0.05,
+			"countTotal": 1,
+			"sumFail": 3554
+		},
+		{
+			"maxAvg": 93.47,
+			"minFail": 0,
+			"avgAud": 0.11,
+			"countTotal": 1,
+			"sumFail": 4740
+		},
+		{
+			"maxAvg": 93.45,
+			"minFail": 0,
+			"avgAud": 0.26,
+			"countTotal": 1,
+			"sumFail": 983
+		},
+		{
+			"maxAvg": 92.4,
+			"minFail": 0,
+			"avgAud": 0.22,
+			"countTotal": 1,
+			"sumFail": 5666
+		},
+		{
+			"maxAvg": 91.92,
+			"minFail": 0,
+			"avgAud": 2.57,
+			"countTotal": 1,
+			"sumFail": 9
+		},
+		{
+			"maxAvg": 90.44,
+			"minFail": 0,
+			"avgAud": 0,
+			"countTotal": 1,
+			"sumFail": 16
+		},
+		{
+			"maxAvg": 86.81,
+			"minFail": 0,
+			"avgAud": 0,
+			"countTotal": 1,
+			"sumFail": 166
+		},
+		{
+			"maxAvg": 86.35,
+			"minFail": 0,
+			"avgAud": 0,
+			"countTotal": 1,
+			"sumFail": 24
+		},
+		{
+			"maxAvg": 86.26,
+			"minFail": 0,
+			"avgAud": 0.89,
+			"countTotal": 1,
+			"sumFail": 4
+		},
+		{
+			"maxAvg": 86.04,
+			"minFail": 0,
+			"avgAud": 0,
+			"countTotal": 1,
+			"sumFail": 4
+		},
+		{
+			"maxAvg": 85.75,
+			"minFail": 0,
+			"avgAud": 0.3,
+			"countTotal": 1,
+			"sumFail": 22
+		}
+	]
+}
