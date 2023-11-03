@@ -34,7 +34,6 @@ import {transformAsserterArgs} from "chai-as-promised";
 
 export default class InsightFacade implements IInsightFacade {
 	public listOfDatasets: Dataset[] | null;
-	// TODO: change to null
 	// //	access listOfDatasets for debugging
 
 	public async reloadDatasets(): Promise<void> {
@@ -109,8 +108,8 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	public getDatasets() {
-		// await this.ensureInitialized();
+	public async getDatasets() {
+		await this.ensureInitialized();
 		return this.listOfDatasets;
 	}
 
@@ -151,24 +150,11 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	// TODO: "NOT" in validation and querying (DONE)
-	// TODO: dataset checks in validation (DONE)
-	// TODO: implement ordering (DONE)
-	// TODO: tiebreakers in ordering
-	// TODO: double check validation WHERE validation
-	// TODO: order key must be in columns (DONE)
-	// TODO: wildcard handling in queryLeaf (DONE, needs testing)
-	// TODO: parsing for no comparator in WHERE (DONE kinda hardcoded)
-	// TODO: Semantic Checks?
-
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
-		// let datasets = await this.getDatasets();
-		// let datasets = await this.getDatasets();
-		// if (!datasets) {
-		// 	return Promise.reject(new InsightError());
-		// }
-
-		let datasets = this.listOfDatasets as Dataset[];
+		let datasets = await this.getDatasets();
+		if (!datasets) {
+			return Promise.reject(new InsightError());
+		}
 		const dataCollector = new Collector(datasets);
 		const validator = new Validator(datasets);
 		if (query instanceof Object) {
