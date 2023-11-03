@@ -3,6 +3,7 @@ import {Columns, Comparator, LogicComparator, Options, Order, QueryNode, QueryRe
 import {InsightResult} from "./IInsightFacade";
 import {ApplyRule, GroupBlock, orderResultsRefactored, Transformations} from "./Transformations";
 import {Grouping} from "./Grouping";
+import {filterDuplicates, removeDuplicates} from "./Parse";
 
 export class Collector {
 	public datasets: Dataset[];
@@ -43,6 +44,7 @@ export class Collector {
 		return results;
 	}
 
+	// Group cannot have applyKeys, will always query dataset
 	public execQueryRefactored(query: QueryRefactored): InsightResult[] {
 		const where = query.where;
 		const options = query.options;
@@ -56,9 +58,22 @@ export class Collector {
 		if (trans !== undefined) {
 			hasTransformations = true;
 		}
+
 		if (!hasComparator) {
-			let dsetID = this.splitKey(col.cols[0])[0];
-			filteredData = this.allSections(dsetID);
+			if (hasTransformations) {
+				const tr = query.transformations as Transformations;
+				const gblock = tr.groupBlock as GroupBlock;
+				for (const k of gblock.keys) {
+					// find k with a underscore and take its dset id
+					if (k.includes("_")) {
+						let dsetID = this.splitKey(k)[0];
+						filteredData = this.allSections(dsetID);
+					}
+				}
+			} else {
+				let dsetID = this.splitKey(col.cols[0])[0];
+				filteredData = this.allSections(dsetID);
+			}
 		} else {
 			filteredData = this.executeWhereRefactored(where);
 		}
@@ -68,12 +83,13 @@ export class Collector {
 		return this.executeOptionsRefactored(options, filteredData, hasTransformations);
 	}
 
-	public allSections(datasetID: string): Section[] {
-		let all: Section[] = [];
+	public allSections(datasetID: string): any[] {
+		// type error here
+		let all = [];
 		for (const set of this.getDatasets()) {
 			if (set.id === datasetID) {
-				for (const sec of set.data as Section[]) {
-					all.push(sec);
+				for (const d of set.data as Section[] | Room[]) {
+					all.push(d);
 				}
 			}
 		}
@@ -147,24 +163,6 @@ export class Collector {
 		return groups;
 	}
 
-	public removeDuplicates(arr: any[]): any[] {
-		return Array.from(new Set(arr));
-	}
-
-	public filterDuplicates(sections: any[], n: number): any[] {
-		const sectionCountMap: Map<string, number> = new Map();
-		// Count occurrences of each section in the original array GPT Filter sections that appear exactly 'n' times
-		for (const section of sections) {
-			const sectionString = JSON.stringify(section);
-			sectionCountMap.set(sectionString, (sectionCountMap.get(sectionString) || 0) + 1);
-		}
-		const filteredSections = sections.filter((section) => {
-			const sectionString = JSON.stringify(section);
-			return sectionCountMap.get(sectionString) === n;
-		});
-		return Array.from(new Set(filteredSections));
-	}
-
 	public executeWhereRefactored(where: Where): any[] {
 		let filtered: any[] = [];
 		if (where.comparator instanceof LogicComparator) {
@@ -195,7 +193,7 @@ export class Collector {
 						filtered.push(s);
 					}
 				}
-				return this.filterDuplicates(filtered, logic.children.length);
+				return filterDuplicates(filtered, logic.children.length);
 			case "OR":
 				for (const child of logic.children) {
 					let returnedSec = this.logicOrComp(child);
@@ -203,7 +201,7 @@ export class Collector {
 						filtered.push(s);
 					}
 				}
-				return this.removeDuplicates(filtered);
+				return removeDuplicates(filtered);
 			case "NOT":
 				for (const child of logic.children) {
 					let returnedSec = this.logicOrComp(child);
@@ -281,9 +279,7 @@ export class Collector {
 		for (const set of this.getDatasets()) {
 			if (set.id === datasetID) {
 				for (const d of set.data) {
-					if (
-						(condition === "GT" && d[field] > leafKey) ||
-						(condition === "LT" && d[field] < leafKey) ||
+					if ((condition === "GT" && d[field] > leafKey) || (condition === "LT" && d[field] < leafKey) ||
 						(condition === "EQ" && d[field] === leafKey)
 					) {
 						filteredSections.push(d);

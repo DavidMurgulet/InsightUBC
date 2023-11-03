@@ -69,6 +69,9 @@ export function parseWhereRefactored(query: any, key: string): Where {
 export function parseTransformations(query: any, key: string): Transformations {
 	if (key === "TRANSFORMATIONS") {
 		const trans = new Transformations();
+		if (Array.isArray(query)) {
+			throw new InsightError();
+		}
 		for (const k in query) {
 			if (Object.prototype.hasOwnProperty.call(query, k)) {
 				if (k === "GROUP") {
@@ -136,6 +139,24 @@ export function parseColumns(columns: any, key: string): Columns {
 
 	return new Columns(keys);
 }
+
+export function removeDuplicates(arr: any[]): any[] {
+	return Array.from(new Set(arr));
+}
+
+export function filterDuplicates(sections: any[], n: number): any[] {
+	const sectionCountMap: Map<string, number> = new Map();
+	// Count occurrences of each section in the original array GPT Filter sections that appear exactly 'n' times
+	for (const section of sections) {
+		const sectionString = JSON.stringify(section);
+		sectionCountMap.set(sectionString, (sectionCountMap.get(sectionString) || 0) + 1);
+	}
+	const filteredSections = sections.filter((section) => {
+		const sectionString = JSON.stringify(section);
+		return sectionCountMap.get(sectionString) === n;
+	});
+	return Array.from(new Set(filteredSections));
+}
 export function parseOrder(order: any, key: string): Order {
 	let dir;
 	let keys;
@@ -153,6 +174,9 @@ export function parseOrder(order: any, key: string): Order {
 				if (Object.prototype.hasOwnProperty.call(order, k)) {
 					if (k === "keys") {
 						keys = order[k];
+						if (keys.length === 0) {
+							throw new InsightError();
+						}
 					} else if (k === "dir") {
 						dir = order[k];
 					}

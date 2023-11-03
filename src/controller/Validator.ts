@@ -37,9 +37,11 @@ export class Validator {
 					return v;
 				}
 			} else {
-				let v = this.validateComp(where.comparator);
-				if (v.error === 1) {
-					return v;
+				{
+					let v = this.validateComp(where.comparator);
+					if (v.error === 1) {
+						return v;
+					}
 				}
 			}
 		}
@@ -59,9 +61,8 @@ export class Validator {
 		}
 		for (const c of logic.children) {
 			if (c instanceof LogicComparator) {
-				let v = this.validateLogicComp(c);
-				if (v.error === 1) {
-					return v;
+				if (this.validateLogicComp(c).error === 1) {
+					return this.validateLogicComp(c);
 				}
 			} else {
 				let v = this.validateComp(c);
@@ -261,6 +262,11 @@ export class Validator {
 			if (order.dir !== "UP" && order.dir !== "DOWN") {
 				return {error: 1, msg: "dir is not UP or DOWN"};
 			}
+
+			if (order.keys.length < 1) {
+				return {error: 1, msg: "cannot be empty"};
+			}
+
 			for (const k of order.keys) {
 				if (!colFields.includes(k)) {
 					return {error: 1, msg: "order key not in columns/applyRules"};
@@ -271,17 +277,11 @@ export class Validator {
 		return {error: 0, msg: ""};
 	}
 
-	public checkDatasetValidity() {
+	public checkDatasetValidity(): number {
 		if (this.leafDatasets.every((element) => element === this.leafDatasets[0])) {
-			for (const d of this.datasets) {
-				if (this.leafDatasets[0] === d.id) {
-					return 0;
-				}
-			}
-			return 1;
-		} else {
-			return 1;
+			return this.datasets.some((d) => d.id === this.leafDatasets[0]) ? 0 : 1;
 		}
+		return 1;
 	}
 
 	public validWildcard(wildcard: string): {error: number; msg: string} {

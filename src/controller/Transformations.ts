@@ -62,11 +62,13 @@ export function orderResultsRefactored(order: Order, results: any[]): InsightRes
 			return 0;
 		});
 	} else {
-		let isAsc = false;
+		let isAsc: null | boolean = null;
 		const orderBy = order.keys;
 		// can contain fields or applyKeys
 		if (order.dir === "UP") {
 			isAsc = true;
+		} else if (order.dir === "DOWN") {
+			isAsc = false;
 		}
 		return results.sort((a, b) => {
 			for (const i of orderBy) {

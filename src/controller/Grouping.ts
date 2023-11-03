@@ -5,7 +5,6 @@ export class Grouping {
 	public gKeys: Array<string | number>;
 	public data: any[] = [];
 	public applyKeys: Array<{[key: string]: number}> = [];
-	// {[key: string]: number}[] = [];
 
 	constructor(keys: string[], components: Array<string | number>) {
 		this.groupKeys = keys;
@@ -31,7 +30,11 @@ export class Grouping {
 	}
 
 	public calculateMin(applyKey: string, field: string) {
-		let min = 101;
+		if (this.data.length === 0) {
+			// no sections/rooms
+			return undefined;
+		}
+		let min = this.data[0][field];
 		for (const d of this.data) {
 			if (min > d[field]) {
 				min = d[field];
@@ -43,7 +46,11 @@ export class Grouping {
 	}
 
 	public calculateMax(applyKey: string, field: string) {
-		let max = -1;
+		if (this.data.length === 0) {
+			// no sections/rooms
+			return undefined;
+		}
+		let max = this.data[0][field];
 		for (const d of this.data) {
 			if (max < d[field]) {
 				max = d[field];
