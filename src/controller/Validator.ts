@@ -11,10 +11,10 @@ import {
 	SectionMField,
 	SectionSField,
 	Where,
-} from "../../../src/controller/Query";
-import {Dataset} from "../../../src/controller/Dataset";
-import {ApplyRule, GroupBlock, Transformations} from "../../../src/controller/Transformations";
-import {InsightDatasetKind} from "../../../src/controller/IInsightFacade";
+} from "./Query";
+import {Dataset} from "./Dataset";
+import {ApplyRule, GroupBlock, Transformations} from "./Transformations";
+import {InsightDatasetKind} from "./IInsightFacade";
 
 let colFields: string[];
 
