@@ -12,15 +12,28 @@ import {constants} from "http2";
 import fs, {remove} from "fs-extra";
 import {Validator} from "./Validator";
 import {Dataset, Section} from "./Dataset";
-import {Query, Filter, Comp, QueryNode, MField, SField, Field} from "./Query";
+import {
+	Query,
+	Filter,
+	Comp,
+	QueryNode,
+	SectionMField,
+	SectionSField,
+	SectionField,
+	Where,
+	Options,
+	QueryRefactored,
+} from "./Query";
 import {Suite} from "mocha";
 import {subtle} from "crypto";
 import {isKeyObject} from "util/types";
-import {makeLeaf, parseOpts, parseWhere} from "./Parse";
+import {makeLeaf, parseOptionsRefactored, parseTransformations, parseWhereRefactored} from "./Parse";
 import {Collector} from "./Collector";
+import {Transformations} from "./Transformations";
+import {transformAsserterArgs} from "chai-as-promised";
 
 export default class InsightFacade implements IInsightFacade {
-	private listOfDatasets: Dataset[] | null;
+	public listOfDatasets: Dataset[] | null;
 	// //	access listOfDatasets for debugging
 
 	public async reloadDatasets(): Promise<void> {
@@ -34,6 +47,7 @@ export default class InsightFacade implements IInsightFacade {
 			console.error("Error loading datasets:", error);
 		}
 	}
+
 	constructor() {
 		console.log("InsightFacadeImpl::init()");
 		this.listOfDatasets = null;
@@ -136,16 +150,6 @@ export default class InsightFacade implements IInsightFacade {
 		}
 	}
 
-	// TODO: "NOT" in validation and querying (DONE)
-	// TODO: dataset checks in validation (DONE)
-	// TODO: implement ordering (DONE)
-	// 		TODO: tiebreakers in ordering
-	// TODO: double check validation WHERE validation
-	// TODO: order key must be in columns (DONE)
-	// TODO: wildcard handling in queryLeaf (DONE, needs testing)
-	// TODO: parsing for no comparator in WHERE (DONE kinda hardcoded)
-	// TODO: Semantic Checks
-
 	public async performQuery(query: unknown): Promise<InsightResult[]> {
 		let datasets = await this.getDatasets();
 		if (!datasets) {
@@ -154,18 +158,20 @@ export default class InsightFacade implements IInsightFacade {
 		const dataCollector = new Collector(datasets);
 		const validator = new Validator(datasets);
 		if (query instanceof Object) {
-			let where!: QueryNode;
-			let options!: QueryNode;
-			// what if WHERE, OPTIONS, WHERE
+			let where!: Where;
+			let options!: Options;
+			let transformations!: Transformations;
+			let parsedQuery: QueryRefactored;
 			for (const k in query) {
 				if (Object.prototype.hasOwnProperty.call(query, k)) {
 					let subQuery: object = (query as any)[k];
 					if (k === "WHERE") {
-						where = parseWhere(subQuery, k);
+						where = parseWhereRefactored(subQuery, k);
 					} else if (k === "OPTIONS") {
-						options = parseOpts(subQuery, k);
+						options = parseOptionsRefactored(subQuery, k);
+					} else if (k === "TRANSFORMATIONS") {
+						transformations = parseTransformations(subQuery, k);
 					} else {
-						// NO WHERE/OPTIONS KEY
 						return Promise.reject(new InsightError());
 					}
 				}
@@ -173,30 +179,52 @@ export default class InsightFacade implements IInsightFacade {
 			if (where === undefined || options === undefined) {
 				return Promise.reject(new InsightError());
 			}
-
-			const parsedQuery = new Query(where, options);
-			const whereValidated = validator.validWhere(where, true);
-			const optionsValidated = validator.validateOptions(options);
-			if (whereValidated.error === 0 && optionsValidated.error === 0) {
-				if (validator.checkDatasetValidity() === 0) {
-					let result = dataCollector.execQuery(parsedQuery);
-					if (result.length > 5000) {
-						return Promise.reject(new ResultTooLargeError("result is too large"));
-					} else {
-						return Promise.resolve(result);
+			try {
+				if (transformations !== undefined) {
+					validator.hasTransformations = true;
+					parsedQuery = new QueryRefactored(where, options, transformations);
+					const transValidated = validator.validateTransformations(transformations);
+					if (transValidated.error === 1) {
+						return Promise.reject(new InsightError(transValidated.msg));
 					}
-				} else if (validator.checkDatasetValidity() === 1) {
-					return Promise.reject(new InsightError("cannot query multiple datasets / invalid dataset queried"));
+				} else {
+					parsedQuery = new QueryRefactored(where, options);
 				}
-			} else if (whereValidated.error === 1) {
-				return Promise.reject(new InsightError(whereValidated.msg));
-			} else if (optionsValidated.error === 1) {
-				return Promise.reject(new InsightError(optionsValidated.msg));
+				const whereValidated = validator.validateWhereRefactored(where);
+				const optionsValidated = validator.validateOptionsRefactored(options);
+				return this.validate(whereValidated, optionsValidated, validator, dataCollector, parsedQuery);
+			} catch (e) {
+				throw new InsightError();
 			}
 		} else {
 			return Promise.reject(new InsightError("query not an object"));
 		}
-		return Promise.reject(new InsightError("shouldn't reach this"));
+	}
+
+	public validate(
+		where: {error: number; msg: string},
+		option: {error: number; msg: string},
+		validator: Validator,
+		dataCollector: Collector,
+		query: QueryRefactored
+	): Promise<InsightResult[]> {
+		if (where.error === 0 && option.error === 0) {
+			if (validator.checkDatasetValidity() === 0) {
+				let result = dataCollector.execQueryRefactored(query);
+				if (result.length > 5000) {
+					return Promise.reject(new ResultTooLargeError("result is too large"));
+				} else {
+					return Promise.resolve(result);
+				}
+			} else if (validator.checkDatasetValidity() === 1) {
+				return Promise.reject(new InsightError("cannot query multiple datasets / invalid dataset queried"));
+			}
+		} else if (where.error === 1) {
+			return Promise.reject(new InsightError(where.msg));
+		} else if (option.error === 1) {
+			return Promise.reject(new InsightError(option.msg));
+		}
+		return Promise.reject(new InsightError("nope"));
 	}
 
 	public async listDatasets(): Promise<InsightDataset[]> {
@@ -210,7 +238,7 @@ export default class InsightFacade implements IInsightFacade {
 					return {
 						id: dataset.id,
 						kind: dataset.kind,
-						numRows: dataset.sections.length,
+						numRows: dataset.data.length,
 					};
 				});
 				resolve(datasetsInfo);

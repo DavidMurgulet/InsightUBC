@@ -1,284 +1,287 @@
-import {Field, MField, QueryNode, SField} from "./Query";
+import {
+	Columns,
+	Comparator,
+	LogicComparator,
+	Options,
+	Order,
+	RoomField,
+	RoomMField,
+	RoomSField,
+	SectionField,
+	SectionMField,
+	SectionSField,
+	Where,
+} from "./Query";
 import {Dataset} from "./Dataset";
+import {ApplyRule, GroupBlock, Transformations} from "./Transformations";
+import {InsightDatasetKind} from "./IInsightFacade";
 
-import {Collector} from "./Collector";
-
-// RETURN VALUE 0 = no errors
-// RETURN 1 = InsightError
 let colFields: string[];
 
 export class Validator {
 	public datasets: Dataset[];
 	public leafDatasets: string[];
+	public transformationKeys: string[] = [];
+	public hasTransformations: boolean = false;
 	constructor(datasets: Dataset[]) {
 		this.datasets = datasets;
 		this.leafDatasets = [];
 	}
-	// MADE CHANGES
-	public validWhere(node: QueryNode, firstLoop?: boolean): {error: number; msg: string} {
-		const key = node.getKey();
-		const children = node.getChilds();
-		if (key === "WHERE") {
-			if (children.length !== 1 && children.length !== 0) {
-				return {error: 1, msg: "Where has more than one mComp"};
-			}
-			for (const k of children) {
-				let temp = this.validWhere(k);
-				if (temp.error === 1) {
-					return {error: 1, msg: temp.msg};
-				}
-			}
-		} else if (key === "AND" || key === "OR" || key === "NOT") {
-			// must be non-empty array, no {}
-			// must have at least 1 key
-			if (children.length === 0) {
-				return {error: 1, msg: "Error message for code 1"};
-			}
-			for (const k of children) {
-				let temp = this.validWhere(k);
-				if (temp.error === 1) {
-					return {error: 1, msg: temp.msg};
-				}
-			}
-		} else if (key === "GT" || key === "LT" || key === "EQ" || key === "IS") {
-			if (children.length === 0) {
-				return {error: 1, msg: "empty GT/LT/EQ/IS"};
-			}
-			if (children.length > 1) {
-				const fkey = children[0].getKey();
-				if (children.every((c) => c.getKey() === fkey)) {
-					node.removeExcept(children[children.length - 1]);
-				} else {
-					return {error: 1, msg: "only one key in GT allowed"};
-				}
-			}
-			const compCode = key === "IS" ? 1 : 0;
-			let child = children[0];
-			let temp = this.validateLeaf(child, compCode);
-			if (temp.error === 1) {
-				return {error: 1, msg: temp.msg};
-			}
-		} else {
-			return {error: 1, msg: "invalid comparator / "};
-		}
-		return {error: 0, msg: ""};
-	}
-	public validateOptions(node: QueryNode): {error: number; msg: string} {
-		const key = node.getKey();
-		const children = node.getChilds();
-		if (key === "OPTIONS") {
-			// check that children are COL and ORDER
-			// one of the children must be COL, the other ORDER, may be multiple
-			let childKeys = node.getChildKeys();
-			// check that options only has COLUMNS and ORDER as children
-			// if has both, ensure that COLUMNS is processed first
-			// empty options
-			if (children.length < 1) {
-				return {error: 1, msg: "options is empty"};
-			}
-			// if (children.every((chi) => chi.getKey() === "COLUMNS")) {
-			// 	for (const c of children) {
-			// 		const temp = this.validateColumns(c);
-			// 		if (temp.error === 1) {
-			// 			return {error: 1, msg: temp.msg};
-			// 		}
-			// 	}
-			// 	node.removeExcept(children[children.length - 1]);
-			// } else if (children.every((chi) => chi.getKey() === "COLUMNS" || chi.getKey() === "ORDER")) {
-			// 	// validate all columns
-			// 	for (const c of children) {
-			// 		if (c.getKey() === "COLUMNS") {
-			// 			const temp = this.validateColumns(c);
-			// 			if (temp.error === 1) {
-			// 				return {error: 1, msg: temp.msg};
-			// 			}
-			// 		}
-			// 	}
-			// 	// validate all ORDER
-			// 	for (const c of children) {
-			// 		if (c.getKey() === "ORDER") {
-			// 			const temp = this.validateOrder(c);
-			// 			if (temp.error === 1) {
-			// 				return {error: 1, msg: temp.msg};
-			// 			}
-			// 		}
-			// 	}
-			// 	node.removeOrderColumns("COLUMNS");
-			// 	node.removeOrderColumns("ORDER");
-			// } else {
-			// 	return {error: 1, msg: "options contains not columns or order"};
-			// }
-			// case 2: multiple columns and multiple order childkeys
-			//			validate all columns, remove all but last.
-			//			validate all order, remove all but last.
-			if (childKeys.length === 1 && childKeys.includes("COLUMNS")) {
-				// only columns case, no need to check order
-				const col = node.getChildWithKey("COLUMNS") as QueryNode;
-				const temp = this.validateColumns(col);
-				if (temp.error === 1) {
-					return {error: 1, msg: temp.msg};
-				}
-				// if (this.validateColumns(col) === 1) {
-				// 	return 1;
-				// }
-			} else if (childKeys.length === 2 && childKeys.includes("COLUMNS") && childKeys.includes("ORDER")) {
-				const col = node.getChildWithKey("COLUMNS") as QueryNode;
-				const order = node.getChildWithKey("ORDER") as QueryNode;
-				// validate columns
-				// if (this.validateColumns(col) === 1) {
-				// 	return 1;
-				// }
-				const temp = this.validateColumns(col);
-				if (temp.error === 1) {
-					return {error: 1, msg: temp.msg};
-				}
-				// validate order
-				// if (this.validateOrder(order) === 1) {
-				// 	return 1;
-				// }
-				const ord = this.validateOrder(order);
-				if (ord.error === 1) {
-					return {error: 1, msg: ord.msg};
+
+	public validateWhereRefactored(where: Where): {error: number; msg: string} {
+		if (where.comparator !== undefined) {
+			where.hasComparator = true;
+			if (where.comparator instanceof LogicComparator) {
+				let v = this.validateLogicComp(where.comparator);
+				if (v.error === 1) {
+					return v;
 				}
 			} else {
-				// error case
-				return {error: 1, msg: "error idk"};
+				{
+					let v = this.validateComp(where.comparator);
+					if (v.error === 1) {
+						return v;
+					}
+				}
 			}
-		} else {
-			return {error: 1, msg: "OPTIONS missing"};
 		}
-
 		return {error: 0, msg: ""};
 	}
 
-	// should check that they're all the same
-	public checkDatasetValidity() {
-		if (this.leafDatasets.every((element) => element === this.leafDatasets[0])) {
-			// all the same,
-			for (const d of this.datasets) {
-				if (this.leafDatasets[0] === d.id) {
-					return 0;
+	public validateLogicComp(logic: LogicComparator): {error: number; msg: string} {
+		// must be non-empty array, no {} // must have at least 1 key // TODO: possibly redundant, check the parsing cod
+		if (logic.operator === "NOT") {
+			if (logic.children.length !== 1) {
+				return {error: 1, msg: "NOT error"};
+			}
+		} else if (logic.operator === "AND" || logic.operator === "OR") {
+			if (logic.children.length === 0) {
+				return {error: 1, msg: "Logic must have at least 1 child"};
+			}
+		}
+		for (const c of logic.children) {
+			if (c instanceof LogicComparator) {
+				if (this.validateLogicComp(c).error === 1) {
+					return this.validateLogicComp(c);
+				}
+			} else {
+				let v = this.validateComp(c);
+				if (v.error === 1) {
+					return v;
 				}
 			}
-			// one of the keys has an invalid dataset
-			return 1;
-		} else {
-			// keys dont match, m
-			return 1;
 		}
+		return {error: 0, msg: ""};
 	}
 
-	public validateOrder(node: QueryNode): {error: number; msg: string} {
-		const key = node.getKey(); // ORDER
-
-		if (key !== "ORDER") {
-			return {error: 1, msg: "order missing"};
+	public validateComp(comp: Comparator) {
+		let op = comp.operator;
+		let key = Object.keys(comp.child)[0];
+		let val = Object.values(comp.child)[0];
+		if (this.validateKey(key, op).error === 1) {
+			return {error: 1, msg: "invalid key in comp"};
 		}
-		const children = node.getChilds(); // "sections_avg"
-
-		// order child cannot be type array
-		if (children.length !== 1) {
-			return {error: 1, msg: "Order cannot have multiple children"};
-		}
-
-		for (const s of colFields) {
-			if (children[0].getKey() === s) {
-				return {error: 0, msg: ""};
+		if (op === "GT" || op === "LT" || op === "EQ") {
+			if (typeof val !== "number") {
+				return {error: 1, msg: "value type is not a number"};
+			}
+		} else if (op === "IS") {
+			if (typeof val !== "string") {
+				return {error: 1, msg: "value type is not a string"};
+			}
+			if (this.validWildcard(val).error === 1) {
+				return {error: 1, msg: "wildcard error"};
 			}
 		}
-		return {error: 1, msg: "order is not in columns"};
+		return {error: 0, msg: ""};
 	}
 
-	public validateColumns(node: QueryNode): {error: number; msg: string} {
-		const key = node.getKey(); // COLUMNS
-
-		if (key !== "COLUMNS") {
-			return {error: 1, msg: "missing col"};
+	public validateOptionsRefactored(options: Options): {error: number; msg: string} {
+		if (options.columns === undefined) {
+			return {error: 1, msg: "columns is undefined"};
 		}
+		if (this.validateColumnsRefactored(options.columns).error === 1) {
+			return {error: 1, msg: this.validateColumnsRefactored(options.columns).msg};
+		}
+		if (options.order !== undefined) {
+			if (this.validateOrderRefactored(options.order).error === 1) {
+				return {error: 1, msg: this.validateOrderRefactored(options.order).msg};
+			}
+		}
+		return {error: 0, msg: ""};
+	}
 
-		const children = node.getChilds(); // ["sections_avg", "sections_dept", "sections_pass"]
-		// COLUMNS cannot be empty
-		if (children.length < 1) {
+	public validateTransformations(transformations: Transformations): {error: number; msg: string} {
+		this.hasTransformations = true;
+		if (transformations.groupBlock === undefined || !transformations.hasApply) {
+			return {error: 1, msg: "group or apply are missing from transformations"};
+		}
+		if (this.validateGroupBlock(transformations.groupBlock).error === 1) {
+			return {error: 1, msg: this.validateGroupBlock(transformations.groupBlock).msg};
+		}
+		if (this.validateApplyBlock(transformations.applyList).error === 1) {
+			return {error: 1, msg: this.validateApplyBlock(transformations.applyList).msg};
+		}
+		return {error: 0, msg: ""};
+	}
+
+	public validateGroupBlock(group: GroupBlock): {error: number; msg: string} {
+		if (group.keys.length === 0) {
+			return {error: 1, msg: "group cannot be empty"};
+		}
+		for (const key of group.keys) {
+			if (this.validateKey(key).error === 1) {
+				return {error: 1, msg: "invalid key in group block"};
+			}
+			this.transformationKeys.push(key);
+		}
+		return {error: 0, msg: ""};
+	}
+
+	public validateKey(key: string, operator?: string): {error: number; msg: string} {
+		if (key.includes("_")) {
+			let dsetID = key.split("_")[0];
+			let field = key.split("_")[1];
+			if (dsetID === "") {
+				return {error: 1, msg: "empty string instead of dataset"};
+			}
+			this.leafDatasets.push(dsetID);
+			for (const d of this.datasets) {
+				if (d.id === dsetID) {
+					if (d.kind === InsightDatasetKind.Rooms) {
+						if (operator !== undefined) {
+							if (operator === "GT" || operator === "LT" || operator === "EQ") {
+								if (!Object.values(RoomMField).includes(field as any)) {
+									return {error: 1, msg: "field should be a number field"};
+								}
+							} else if (operator === "IS") {
+								if (!Object.values(RoomSField).includes(field as any)) {
+									return {error: 1, msg: "field should be a string field"};
+								}
+							} else {
+								return {error: 1, msg: "operator is not GT/LT/EQ/IS"};
+							}
+						}
+						if (!Object.values(RoomField).includes(field as any)) {
+							return {error: 1, msg: "field is not a valid rooms field"};
+						}
+					} else if (d.kind === InsightDatasetKind.Sections) {
+						if (operator !== undefined) {
+							if (this.validateSectionField(operator, field).error === 1) {
+								return this.validateSectionField(operator, field);
+							}
+						}
+						if (!Object.values(SectionField).includes(field as any)) {
+							return {error: 1, msg: "field is not a valid sections field"};
+						}
+					}
+				}
+			}
+		} else {
+			return {error: 1, msg: "key is not in proper format (dataset_key)"};
+		}
+		return {error: 0, msg: ""};
+	}
+
+	public validateSectionField(operator: string, field: string): {error: number; msg: string} {
+		if (operator === "GT" || operator === "LT" || operator === "EQ") {
+			if (!Object.values(SectionMField).includes(field as any)) {
+				return {error: 1, msg: "field should be a number field"};
+			}
+		} else if (operator === "IS") {
+			if (!Object.values(SectionSField).includes(field as any)) {
+				return {error: 1, msg: "field should be a string field"};
+			}
+		} else {
+			return {error: 1, msg: "operator is not GT/LT/EQ/IS"};
+		}
+		return {error: 0, msg: ""};
+	}
+
+	public validateApplyBlock(rule: ApplyRule[]): {error: number; msg: string} {
+		let seenKeys: string[] = [];
+		for (const i of rule) {
+			if (i.applyKey.includes("_") || i.applyKey === "" || seenKeys.includes(i.applyKey)) {
+				return {error: 1, msg: "applyKey contains underscore/empty/not unique"};
+			}
+			if (i.applyToken === "MAX" || i.applyToken === "MIN" || i.applyToken === "AVG" || i.applyToken === "SUM") {
+				if (this.validateKey(i.key).error === 1) {
+					return {error: 1, msg: "applyRule has invalid KEY"};
+				}
+				let field = i.key.split("_")[1];
+				if (
+					!Object.values(SectionMField).includes(field as any) &&
+					!Object.values(RoomMField).includes(field as any)
+				) {
+					return {error: 1, msg: "token must be used on a numeric key"};
+				}
+			} else if (i.applyToken === "COUNT") {
+				if (this.validateKey(i.key).error === 1) {
+					return {error: 1, msg: "applyRule has invalid KEY"};
+				}
+			} else {
+				return {error: 1, msg: "applyToken is not MAX/MIN/AVG/SUM/COUNT"};
+			}
+			seenKeys.push(i.applyKey);
+			this.transformationKeys.push(i.applyKey);
+		}
+		return {error: 0, msg: ""};
+	}
+
+	public validateColumnsRefactored(columns: Columns): {error: number; msg: string} {
+		// 5. if GROUP not empty, all COL keys must be  in GROUP, or be an APPLY rule Keys in COLUMNS must be in GROUP
+		const cols = columns.cols; // ["sections_avg", "sections_dept", "sections_pass"]
+		if (cols.length < 1) {
 			return {error: 1, msg: "empty columns"};
 		}
-		for (const leaf of children) {
-			if (leaf.getChilds().length !== 0) {
-				return {error: 1, msg: "children arent leafs?"};
-			}
-			if (leaf.getKey().includes("_")) {
-				const splitArr = leaf.getKey().split("_");
-				let datasetID = splitArr[0]; // "sections"
-				if (datasetID === "") {
-					return {error: 1, msg: "empty string instead of dataset"};
-				}
-				this.leafDatasets.push(datasetID);
-				let field = splitArr[1]; // "avg"
-
-				if (!Object.values(Field).includes(field)) {
-					return {error: 1, msg: "field is not a valid sections field"};
+		for (const key of cols) {
+			// if (this.validateKey(key).error === 1) {return {error: 1, msg: "invalid key in columns"};
+			if (this.hasTransformations) {
+				if (!this.transformationKeys.includes(key)) {
+					return {error: 1, msg: "key not in group/applyRules"};
 				}
 			} else {
-				// improper formatting of dataset_mfield/sfield
-				return {error: 1, msg: "improper formatting of dataset_filed"};
+				if (this.validateKey(key).error === 1) {
+					return {error: 1, msg: "invalid key in columns"};
+				}
 			}
 		}
-		const tempCollector = new Collector(this.datasets);
-		colFields = tempCollector.extractCol(node);
+		colFields = cols;
 		return {error: 0, msg: ""};
 	}
 
-	public validateLeaf(node: QueryNode, parent: number): {error: number; msg: string} {
-		// needs to contain underscore
-		// parse string, first needs to be same as dataset.
-		// second needs to be a valid key
-		const key = node.getKey();
-		const children = node.getChilds();
-		if (children.length === 1) {
-			const leaf = children[0];
-			const leafKey = leaf.getKey();
-			if (key.includes("_")) {
-				const splitArr = key.split("_");
-				let dsetID = splitArr[0];
-				if (dsetID === "") {
-					return {error: 1, msg: "empty string instead of dataset"};
+	public validateOrderRefactored(order: Order): {error: number; msg: string} {
+		if (order.isSingleColumn()) {
+			for (const s of colFields) {
+				if (order.keys === s) {
+					return {error: 0, msg: ""};
 				}
-				this.leafDatasets.push(dsetID);
-				let field = splitArr[1];
-
-				// GT/LT/EQ case
-				if (parent === 0) {
-					// can combine these 2 cases.
-					if (Object.values(MField).includes(field)) {
-						if (isNaN(leafKey)) {
-							// should be a number (invalid type)
-							return {error: 1, msg: "value type is not a number"};
-						}
-					} else {
-						// wrong key type in GT/LT/EQ
-						return {error: 1, msg: "wrong key type in GT LT EQ"};
-					}
-				} else if (parent === 1) {
-					if (Object.values(SField).includes(field)) {
-						if (!(typeof leafKey === "string")) {
-							// invalid value type (should be string)
-							return {error: 1, msg: "value type is not a string"};
-						}
-						let temp = this.validWildcard(leafKey);
-						if (temp.error === 1) {
-							return {error: 1, msg: temp.msg};
-						}
-					} else {
-						// wrong key type in IS
-						return {error: 1, msg: "wrong key type in IS"};
-					}
-				}
-			} else {
-				return {error: 1, msg: "key is not in proper format (dataset_key)"};
 			}
+			return {error: 1, msg: "order is not in columns"};
 		} else {
-			return {error: 1, msg: "EQ/GT/LT is empty"};
+			if (order.dir !== "UP" && order.dir !== "DOWN") {
+				return {error: 1, msg: "dir is not UP or DOWN"};
+			}
+
+			if (order.keys.length < 1) {
+				return {error: 1, msg: "cannot be empty"};
+			}
+
+			for (const k of order.keys) {
+				if (!colFields.includes(k)) {
+					return {error: 1, msg: "order key not in columns/applyRules"};
+					// && !this.transformationKeys.includes(k)
+				}
+			}
 		}
 		return {error: 0, msg: ""};
+	}
+
+	public checkDatasetValidity(): number {
+		if (this.leafDatasets.every((element) => element === this.leafDatasets[0])) {
+			return this.datasets.some((d) => d.id === this.leafDatasets[0]) ? 0 : 1;
+		}
+		return 1;
 	}
 
 	public validWildcard(wildcard: string): {error: number; msg: string} {
@@ -286,7 +289,6 @@ export class Validator {
 		if (wildcard.length === 0) {
 			return {error: 0, msg: ""};
 		}
-
 		for (let i = 1; i < wildcard.length - 1; i++) {
 			const char = wildcard.charAt(i);
 			if (char === "*") {

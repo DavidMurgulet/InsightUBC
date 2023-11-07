@@ -6,17 +6,27 @@ import {
 	NotFoundError,
 	ResultTooLargeError,
 } from "../../src/controller/IInsightFacade";
-import {Dataset, Section} from "../../src/controller/Dataset";
+import {Dataset, Room, Section} from "../../src/controller/Dataset";
 import InsightFacade from "../../src/controller/InsightFacade";
 import {isBase64Zip, loadDatasetsFromDirectory, validateDataset} from "../../src/controller/datasetUtils";
 import {assert, expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives} from "../TestUtil";
 import {Query} from "../../src/controller/Query";
-import {checkParsing, parseOpts, parseWhere} from "../../src/controller/Parse";
+import {
+	checkParsing,
+	parseOptionsRefactored,
+	// parseOpts,
+	parseTransformations,
+	parseWhereRefactored,
+} from "../../src/controller/Parse";
 
 import {Collector} from "../../src/controller/Collector";
+import {Validator} from "../../src/controller/Validator";
+import exp from "constants";
+
 import {folderTest} from "@ubccpsc310/folder-test";
+import {emptydir} from "fs-extra";
 
 use(chaiAsPromised);
 
@@ -159,7 +169,6 @@ describe("InsightFacade", function () {
 			sections = getContentFromArchives("basic.zip");
 			sectionsInvalid = getContentFromArchives("invalid.zip");
 			pair = getContentFromArchives("pair.zip");
-
 			// invalid sections
 			noaudit = getContentFromArchives("noAUDIT.zip");
 			noavg = getContentFromArchives("noAVG.zip");
@@ -538,259 +547,159 @@ describe("InsightFacade", function () {
 	// });
 	//
 	//
-	// /*
-	//  * This test suite dynamically generates tests from the JSON files in test/resources/queries.
-	//  * You should not need to modify it; instead, add additional files to the queries directory.
-	//  * You can still make tests the normal way, this is just a convenient tool for a majority of queries.
-	//  */
-	// // describe("PerformQuery", () => {
-	// // 	let facade = InsightFacade;
-	// // 	let alt = string;
-	// // 	let sections = string;
-	// // 	before(function () {
-	// // 		console.info(`Before: ${this.test?.parent?.title}`);
-	// //
-	// // 		facade = new InsightFacade();
-	// //
-	// // 		// Load the datasets specified in datasetsToQuery and add them to InsightFacade.
-	// // 		// Will *fail* if there is a problem reading ANY dataset.
-	// // 		const loadDatasetPromises = [
-	// // 			facade.addDataset("sections", sections, InsightDatasetKind.Sections),
-	// // 		];
-	// //
-	// // 		return Promise.all(loadDatasetPromises);
-	// // 	});
-	// //
-	// // 	after(function () {
-	// // 		console.info(`After: ${this.test?.parent?.title}`);
-	// // 		clearDisk();
-	// // 	});
-	// //
-	// //
-	// // 	folderTest<unknown, Promise<InsightResult[]>, PQErrorKind>(
-	// // 		"Dynamic InsightFacade PerformQuery tests",
-	// // 		(input) => facade.performQuery(input),
-	// // 		"./test/resources/queries",
-	// // 		{
-	// // 			assertOnResult: (actual, expected) => {
-	// // 				// TODO add an assertion!
-	// // 			},
-	// // 			errorValidator: (error): error is PQErrorKind =>
-	// // 				error === "ResultTooLargeError" || error === "InsightError",
-	// // 			assertOnError: (actual, expected) => {
-	// // 				// TODO add an assertion!
-	// // 			},
-	// // 		}
-	// // 	);
-	// // });
+
+	// describe("parseWhere", function () {
+	// 	let root: Query;
+	// 	let qBasicWhere: object;
+	// 	let qComplexWhere: object;
+	// 	let facade: InsightFacade;
 	//
+	// 	before(function () {
+	// 		clearDisk();
+	// 		facade = new InsightFacade();
+	// 		qBasicWhere = {
+	// 			WHERE: {
+	// 				GT: {
+	// 					sections_avg: 97,
+	// 				},
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["sections_dept", "sections_avg"],
+	// 				ORDER: "sections_avg",
+	// 			},
+	// 		};
 	//
-	describe("parseWhere", function () {
-		let root: Query;
-		let qBasicWhere: object;
-		let qComplexWhere: object;
-		let facade: InsightFacade;
-
-		before(function () {
-			clearDisk();
-			facade = new InsightFacade();
-			qBasicWhere = {
-				WHERE: {
-					GT: [
-						{
-							sections_avg: 97,
-						},
-					],
-				},
-				OPTIONS: {
-					COLUMNS: ["sections_dept", "sections_avg"],
-					ORDER: "sections_avg",
-				},
-			};
-
-			qComplexWhere = {
-				WHERE: {
-					OR: [
-						{
-							AND: [
-								{
-									GT: {
-										ubc_year: 2015,
-									},
-								},
-								{
-									IS: {
-										ubc_dept: "adhe",
-									},
-								},
-							],
-						},
-						{
-							EQ: {
-								ubc_avg: 95,
-							},
-						},
-					],
-				},
-			};
-		});
-
-		it("should properly parse query WHERE (basic)", function () {
-			for (const k in qBasicWhere) {
-				if (Object.prototype.hasOwnProperty.call(qBasicWhere, k)) {
-					let subQuery: object = (qBasicWhere as any)[k];
-					if (k === "WHERE") {
-						const where = parseWhere(subQuery, k);
-						checkParsing(where, 0);
-					}
-				}
-			}
-		});
-
-		it("should properly parse query WHERE (complex)", function () {
-			// const where!: QueryNode;
-			for (const k in qComplexWhere) {
-				if (Object.prototype.hasOwnProperty.call(qBasicWhere, k)) {
-					let subQuery: object = (qComplexWhere as any)[k];
-					if (k === "WHERE") {
-						const where = parseWhere(subQuery, k);
-						checkParsing(where, 0);
-					}
-				}
-			}
-		});
-	});
-
-	describe("parseOpts", function () {
-		let root: Query;
-		let optsBasic = {
-			OPTIONS: {
-				COLUMNS: ["sections_avg", "sections_dept", "sections_id"],
-				ORDER: ["sections_avg"],
-			},
-		};
-		let optsNoOrder = {
-			OPTIONS: {
-				COLUMNS: ["sections_avg"],
-			},
-		};
-		let opts1Col = {
-			OPTIONS: {
-				COLUMNS: ["sections_uuid"],
-				ORDER: "sections_avg",
-			},
-		};
-		let facade: InsightFacade;
-
-		before(function () {
-			clearDisk();
-			facade = new InsightFacade();
-		});
-
-		it("should parse options", function () {
-			for (const k in optsBasic) {
-				if (Object.prototype.hasOwnProperty.call(optsBasic, k)) {
-					let subQuery: object = (optsBasic as any)[k];
-					if (k === "OPTIONS") {
-						const where = parseOpts(subQuery, k);
-						checkParsing(where, 0);
-					}
-				}
-			}
-		});
-
-		it("should parse options 1 col", function () {
-			// const where!: QueryNode;
-			for (const k in opts1Col) {
-				if (Object.prototype.hasOwnProperty.call(opts1Col, k)) {
-					let subQuery: object = (opts1Col as any)[k];
-					if (k === "OPTIONS") {
-						const where = parseOpts(subQuery, k);
-						checkParsing(where, 0);
-					}
-				}
-			}
-		});
-
-		it("should parse options (no order)", function () {
-			// const where!: QueryNode;
-			for (const k in optsNoOrder) {
-				if (Object.prototype.hasOwnProperty.call(optsNoOrder, k)) {
-					let subQuery: object = (optsNoOrder as any)[k];
-					if (k === "OPTIONS") {
-						const where = parseOpts(subQuery, k);
-						checkParsing(where, 0);
-					}
-				}
-			}
-		});
-	});
-
-	describe("parseOpts", function () {
-		let root: Query;
-		let optsBasic = {
-			OPTIONS: {
-				COLUMNS: ["sections_avg", "sections_dept", "sections_id"],
-				ORDER: "sections_avg",
-			},
-		};
-		let optsNoOrder = {
-			OPTIONS: {
-				COLUMNS: ["sections_avg"],
-			},
-		};
-		let opts1Col = {
-			OPTIONS: {
-				COLUMNS: ["sections_uuid"],
-				ORDER: "sections_avg",
-			},
-		};
-		let facade: InsightFacade;
-
-		before(function () {
-			clearDisk();
-			facade = new InsightFacade();
-		});
-
-		it("should parse options", function () {
-			// const where!: QueryNode;
-			for (const k in optsBasic) {
-				if (Object.prototype.hasOwnProperty.call(optsBasic, k)) {
-					let subQuery: object = (optsBasic as any)[k];
-					if (k === "OPTIONS") {
-						const where = parseOpts(subQuery, k);
-						checkParsing(where, 0);
-					}
-				}
-			}
-		});
-
-		it("should parse options 1 col", function () {
-			// const where!: QueryNode;
-			for (const k in opts1Col) {
-				if (Object.prototype.hasOwnProperty.call(opts1Col, k)) {
-					let subQuery: object = (opts1Col as any)[k];
-					if (k === "OPTIONS") {
-						const where = parseOpts(subQuery, k);
-						checkParsing(where, 0);
-					}
-				}
-			}
-		});
-
-		it("should parse options (no order)", function () {
-			// const where!: QueryNode;
-			for (const k in optsNoOrder) {
-				if (Object.prototype.hasOwnProperty.call(optsNoOrder, k)) {
-					let subQuery: object = (optsNoOrder as any)[k];
-					if (k === "OPTIONS") {
-						const where = parseOpts(subQuery, k);
-						checkParsing(where, 0);
-					}
-				}
-			}
-		});
-	});
+	// 		qComplexWhere = {
+	// 			WHERE: {
+	// 				OR: [
+	// 					{
+	// 						AND: [
+	// 							{
+	// 								EQ: {ubc_year: 2015},
+	// 							},
+	// 							{
+	// 								EQ: {
+	// 									ubc_average: 95,
+	// 								},
+	// 							},
+	// 						],
+	// 					},
+	// 					{
+	// 						IS: {
+	// 							ubc_year: "dept",
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 	});
+	//
+	// 	it("should properly parse query WHERE (basic)", function () {
+	// 		for (const k in qBasicWhere) {
+	// 			if (Object.prototype.hasOwnProperty.call(qBasicWhere, k)) {
+	// 				let subQuery: object = (qBasicWhere as any)[k];
+	// 				if (k === "WHERE") {
+	// 					const where = parseWhereRefactored(subQuery, k);
+	//
+	// 					console.log(where);
+	// 					// checkParsing(where, 0);
+	// 				}
+	// 			}
+	// 		}
+	// 	});
+	//
+	// 	it("should properly parse query WHERE (complex)", function () {
+	// 		// const where!: QueryNode;
+	// 		for (const k in qComplexWhere) {
+	// 			if (Object.prototype.hasOwnProperty.call(qBasicWhere, k)) {
+	// 				let subQuery: object = (qComplexWhere as any)[k];
+	// 				if (k === "WHERE") {
+	// 					const where = parseWhereRefactored(subQuery, k);
+	// 					console.log(where);
+	// 				}
+	// 			}
+	// 		}
+	// 	});
+	// });
+	//
+	// describe("parseOpts", function () {
+	// 	let root: Query;
+	// 	let optsBasic = {
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_avg", "sections_dept", "sections_id"],
+	// 			ORDER: {
+	// 				dir: "DOWN",
+	// 				keys: ["maxSeats"],
+	// 			},
+	// 		},
+	// 	};
+	// 	let optsNoOrder = {
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_avg"],
+	// 		},
+	// 	};
+	// 	let opts1Col = {
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_uuid"],
+	// 			ORDER: "sections_avg",
+	// 		},
+	// 	};
+	// 	let facade: InsightFacade;
+	//
+	// 	before(function () {
+	// 		clearDisk();
+	// 		facade = new InsightFacade();
+	// 	});
+	// });
+	//
+	// describe("parse (refactored)", function () {
+	// 	let queryNoWHEREnoORDERTrans = {
+	// 		WHERE: {},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_title", "overallAvg", "overallFail"],
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["sections_title"],
+	// 			APPLY: [
+	// 				{
+	// 					overallAvg: {
+	// 						AVG: "sections_avg",
+	// 					},
+	// 				},
+	// 				{
+	// 					overallFail: {
+	// 						AVG: "sections_fail",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	//
+	// 	let facade: InsightFacade;
+	//
+	// 	before(function () {
+	// 		clearDisk();
+	// 		facade = new InsightFacade();
+	// 	});
+	//
+	// 	it("properly parses", function () {
+	// 		for (const k in queryNoWHEREnoORDERTrans) {
+	// 			if (Object.prototype.hasOwnProperty.call(queryNoWHEREnoORDERTrans, k)) {
+	// 				let subQuery: object = (queryNoWHEREnoORDERTrans as any)[k];
+	// 				if (k === "OPTIONS") {
+	// 					const op = parseOptionsRefactored(subQuery, k);
+	// 					console.log(op);
+	// 				} else if (k === "WHERE") {
+	// 					const where = parseWhereRefactored(subQuery, k);
+	// 					console.log(where);
+	// 				} else if (k === "TRANSFORMATIONS") {
+	// 					const trans = parseTransformations(subQuery, k);
+	// 					console.log(trans);
+	// 				}
+	// 			}
+	// 		}
+	// 	});
+	// });
 
 	// describe("performQuery", function () {
 	// 	let facade: InsightFacade;
@@ -1033,80 +942,121 @@ describe("InsightFacade", function () {
 	// 	});
 	// });
 
-	describe("execWhere", function () {
-		let queryGT30 = {
-			WHERE: {
-				GT: {
-					test_avg: 30,
-				},
+	describe("validate Transformations", function () {
+		let transValid = {
+			WHERE: {},
+			OPTIONS: {
+				COLUMNS: ["sections_title", "overallAvg"],
 			},
-		};
-		let queryAND = {
-			WHERE: {
-				AND: [
+			TRANSFORMATIONS: {
+				GROUP: ["sections_title"],
+				APPLY: [
 					{
-						EQ: {
-							test_year: 2015,
-						},
-					},
-					{
-						GT: {
-							test_avg: 45,
+						overallAvg: {
+							AVG: "sections_avg",
 						},
 					},
 				],
 			},
 		};
-		let queryCOMPLEX = {
-			WHERE: {
-				OR: [
+		let invEmptyGroup = {
+			WHERE: {},
+			OPTIONS: {
+				COLUMNS: ["sections_title", "overallAvg"],
+			},
+			TRANSFORMATIONS: {
+				GROUP: [],
+				APPLY: [
 					{
-						AND: [
-							{
-								EQ: {
-									test_year: 2020,
-								},
-							},
-							{
-								LT: {
-									test_fail: 20,
-								},
-							},
-						],
-					},
-					{
-						IS: {
-							test_id: "300",
+						overallAvg: {
+							AVG: "sections_avg",
 						},
 					},
 				],
 			},
 		};
-		let queryOR = {
-			WHERE: {
-				OR: [
+		let EmptyApply = {
+			WHERE: {},
+			OPTIONS: {
+				COLUMNS: ["sections_title", "overallAvg"],
+			},
+			TRANSFORMATIONS: {
+				GROUP: ["sections_title"],
+				APPLY: [],
+			},
+		};
+		let invAVGnotNumeric = {
+			WHERE: {},
+			OPTIONS: {
+				COLUMNS: ["sections_title", "overallAvg"],
+			},
+			TRANSFORMATIONS: {
+				GROUP: ["sections_title"],
+				APPLY: [
 					{
-						GT: {
-							test_fail: 19,
-						},
-					},
-					{
-						EQ: {
-							test_dept: "biol",
+						overallDept: {
+							AVG: "sections_dept",
 						},
 					},
 				],
 			},
 		};
-		let facade: InsightFacade;
-		let dataset: Dataset;
+		let invEmptyApplyKey = {
+			WHERE: {},
+			OPTIONS: {
+				COLUMNS: ["sections_title", "overallAvg"],
+			},
+			TRANSFORMATIONS: {
+				GROUP: ["sections_title"],
+				APPLY: [
+					{
+						"": {
+							AVG: "sections_avg",
+						},
+					},
+				],
+			},
+		};
+		let invGroupnotArray = {
+			WHERE: {},
+			OPTIONS: {
+				COLUMNS: ["sections_title", "overallAvg"],
+			},
+			TRANSFORMATIONS: {
+				GROUP: "sections_title",
+				APPLY: [
+					{
+						overallAvg: {
+							AVG: "sections_avg",
+						},
+					},
+				],
+			},
+		};
+		// let transValid = {
+		// 	"WHERE": {},
+		// 	"OPTIONS": {
+		// 		"COLUMNS": ["sections_title", "overallAvg"]
+		// 	},
+		// 	"TRANSFORMATIONS": {
+		// 		"GROUP": ["sections_title"],
+		// 		"APPLY": [{
+		// 			"overallAvg": {
+		// 				"AVG": "sections_avg"
+		// 			}
+		// 		}]
+		// 	}
+		// };
+
 		let sections: Section[];
+		let dataset: Dataset;
 		let sec1: Section;
 		let sec2: Section;
 		let sec3: Section;
 		let sec4: Section;
 		let sec5: Section;
-		let collector: Collector;
+		let validator: Validator;
+		let facade: InsightFacade;
 
 		before(function () {
 			clearDisk();
@@ -1117,65 +1067,1316 @@ describe("InsightFacade", function () {
 			sec4 = new Section("04", "121", "comptn, progrmng", "andrew", "cpsc", 2021, 70, 30, 20, 1);
 			sec5 = new Section("05", "300", "biology", "andrew", "biol", 2000, 20, 3, 1, 1);
 			sections = [sec1, sec2, sec3, sec4, sec5];
-			dataset = new Dataset("test", 5, sections, InsightDatasetKind.Sections);
-			collector = new Collector([dataset]);
-			facade.aDataset(dataset);
+			dataset = new Dataset("sections", 5, sections, InsightDatasetKind.Sections);
+			validator = new Validator([dataset]);
 		});
 
-		it("executing WHERE branch (GT avg: 30)", function () {
-			const subWhere = queryGT30.WHERE;
-			const parsed = parseWhere(subWhere, "WHERE");
-			const parsedWhere = parsed.getChilds()[0];
-
-			const result: any[] = collector.execWhere(parsedWhere);
-			expect(result).to.includes(sec1);
-			expect(result).to.includes(sec2);
-			expect(result).to.includes(sec3);
-			expect(result).to.includes(sec4);
-			expect(result).to.not.includes(sec5);
-			console.log(result);
+		it("should properly validate Transformations", function () {
+			const trans = Object.keys(transValid)[2];
+			const sub = transValid.TRANSFORMATIONS;
+			const transObj = parseTransformations(sub, trans);
+			const result = validator.validateTransformations(transObj);
+			expect(result.error).to.equal(0);
 		});
 
-		it("executing WHERE branch (avg > 59 AND fail < 5", function () {
-			const subWhere = queryAND.WHERE;
-			const parsed = parseWhere(subWhere, "WHERE");
-			const parsedWhere = parsed.getChilds()[0];
-
-			const result: any[] = collector.execWhere(parsedWhere);
-			expect(result).to.includes(sec3);
-			expect(result).to.includes(sec2);
-			expect(result).to.not.includes(sec1);
-			expect(result).to.not.includes(sec4);
-			expect(result).to.not.includes(sec5);
+		it("EmptyGroup, Invalid", function () {
+			const trans = Object.keys(invEmptyGroup)[2];
+			const sub = invEmptyGroup.TRANSFORMATIONS;
+			const transObj = parseTransformations(sub, trans);
+			const result = validator.validateTransformations(transObj);
+			expect(result.error).to.equal(1);
 		});
 
-		it("executing WHERE branch (fail > 19 OR dept = biol)", function () {
-			const subWhere = queryOR.WHERE;
-			const parsed = parseWhere(subWhere, "WHERE");
-			const parsedWhere = parsed.getChilds()[0];
-
-			const result: any[] = collector.execWhere(parsedWhere);
-			expect(result).to.includes(sec3);
-			expect(result).to.includes(sec4);
-			expect(result).to.includes(sec5);
-			expect(result).to.not.includes(sec1);
-			expect(result).to.not.includes(sec2);
+		it("EmptyApply, ok", function () {
+			const trans = Object.keys(EmptyApply)[2];
+			const sub = EmptyApply.TRANSFORMATIONS;
+			const transObj = parseTransformations(sub, trans);
+			const result = validator.validateTransformations(transObj);
+			expect(result.error).to.equal(0);
 		});
 
-		it("executing WHERE branch (COMPLEX)", function () {
-			const subWhere = queryCOMPLEX.WHERE;
-			const parsed = parseWhere(subWhere, "WHERE");
-			const parsedWhere = parsed.getChilds()[0];
+		it("AVG w/ non-numeric, invalid", function () {
+			const trans = Object.keys(invAVGnotNumeric)[2];
+			const sub = invAVGnotNumeric.TRANSFORMATIONS;
+			const transObj = parseTransformations(sub, trans);
+			const result = validator.validateTransformations(transObj);
+			expect(result.error).to.equal(1);
+		});
 
-			const result: any[] = collector.execWhere(parsedWhere);
-			console.log(result);
-			expect(result).to.includes(sec1);
-			expect(result).to.includes(sec5);
-			expect(result).to.not.includes(sec2);
-			expect(result).to.not.includes(sec3);
-			expect(result).to.not.includes(sec4);
+		it("Group-non array, invalid ", function () {
+			const trans = Object.keys(invGroupnotArray)[2];
+			const sub = invGroupnotArray.TRANSFORMATIONS;
+			try {
+				const transObj = parseTransformations(sub, trans);
+				const result = validator.validateTransformations(transObj);
+				expect(result.error).to.equal(1);
+			} catch (e) {
+				expect(e).to.be.instanceOf(InsightError);
+			}
 		});
 	});
+
+	// describe("validateAll", function () {
+	// 	let validBasic = {
+	// 		WHERE: {},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_title", "overallAvg"],
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["sections_title"],
+	// 			APPLY: [
+	// 				{
+	// 					overallAvg: {
+	// 						AVG: "sections_avg",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let validComplex = {
+	// 		WHERE: {
+	// 			AND: [
+	// 				{
+	// 					GT: {
+	// 						sections_avg: 80,
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_dept", "maxAvg"],
+	// 			ORDER: {
+	// 				dir: "DOWN",
+	// 				keys: ["maxAvg"],
+	// 			},
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["sections_dept"],
+	// 			APPLY: [
+	// 				{
+	// 					maxAvg: {
+	// 						MAX: "sections_avg",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let invalidMissingDirSort = {
+	// 		WHERE: {
+	// 			AND: [
+	// 				{
+	// 					IS: {
+	// 						rooms_furniture: "*Tables*",
+	// 					},
+	// 				},
+	// 				{
+	// 					GT: {
+	// 						rooms_seats: 300,
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 			ORDER: {
+	// 				keys: ["maxSeats"],
+	// 			},
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["rooms_shortname"],
+	// 			APPLY: [
+	// 				{
+	// 					maxSeats: {
+	// 						MAX: "rooms_seats",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let invalidEmptyGroup = {
+	// 		WHERE: {
+	// 			AND: [
+	// 				{
+	// 					IS: {
+	// 						rooms_furniture: "*Tables*",
+	// 					},
+	// 				},
+	// 				{
+	// 					GT: {
+	// 						rooms_seats: 300,
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 			ORDER: {
+	// 				dir: "DOWN",
+	// 				keys: ["maxSeats"],
+	// 			},
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: [],
+	// 			APPLY: [
+	// 				{
+	// 					maxSeats: {
+	// 						MAX: "rooms_seats",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let invalidColNotInGroup = {
+	// 		WHERE: {
+	// 			AND: [
+	// 				{
+	// 					IS: {
+	// 						rooms_furniture: "*Tables*",
+	// 					},
+	// 				},
+	// 				{
+	// 					GT: {
+	// 						rooms_seats: 300,
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["rooms_fullname", "maxSeats"],
+	// 			ORDER: {
+	// 				dir: "DOWN",
+	// 				keys: ["maxSeats"],
+	// 			},
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["rooms_shortname"],
+	// 			APPLY: [
+	// 				{
+	// 					maxSeats: {
+	// 						MAX: "rooms_seats",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let validRooms = {
+	// 		WHERE: {
+	// 			AND: [
+	// 				{
+	// 					IS: {
+	// 						rooms_furniture: "*Tables*",
+	// 					},
+	// 				},
+	// 				{
+	// 					GT: {
+	// 						rooms_seats: 300,
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 			ORDER: {
+	// 				dir: "DOWN",
+	// 				keys: ["maxSeats"],
+	// 			},
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["rooms_shortname"],
+	// 			APPLY: [
+	// 				{
+	// 					maxSeats: {
+	// 						MAX: "rooms_seats",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let invalidWrongKeyIS = {
+	// 		WHERE: {
+	// 			AND: [
+	// 				{
+	// 					IS: {
+	// 						rooms_furniture: 90,
+	// 					},
+	// 				},
+	// 				{
+	// 					GT: {
+	// 						rooms_seats: 300,
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 			ORDER: {
+	// 				dir: "DOWN",
+	// 				keys: ["maxSeats"],
+	// 			},
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["rooms_shortname"],
+	// 			APPLY: [
+	// 				{
+	// 					maxSeats: {
+	// 						MAX: "rooms_seats",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let invalidKeyGT = {
+	// 		WHERE: {
+	// 			AND: [
+	// 				{
+	// 					IS: {
+	// 						rooms_furniture: "*Tables*",
+	// 					},
+	// 				},
+	// 				{
+	// 					GT: {
+	// 						rooms_fail: 90,
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 			ORDER: {
+	// 				dir: "DOWN",
+	// 				keys: ["maxSeats"],
+	// 			},
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["rooms_shortname"],
+	// 			APPLY: [
+	// 				{
+	// 					maxSeats: {
+	// 						MAX: "rooms_seats",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let valid2Keys = {
+	// 		WHERE: {
+	// 			AND: [
+	// 				{
+	// 					IS: {
+	// 						rooms_furniture: "*Tables*",
+	// 					},
+	// 				},
+	// 				{
+	// 					GT: {
+	// 						rooms_seats: 300,
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 			ORDER: {
+	// 				dir: "DOWN",
+	// 				keys: ["maxSeats", "rooms_shortname"],
+	// 			},
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["rooms_shortname"],
+	// 			APPLY: [
+	// 				{
+	// 					maxSeats: {
+	// 						MAX: "rooms_seats",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	//
+	// 	let sections: Section[];
+	// 	let dataset: Dataset;
+	// 	let dataset2: Dataset;
+	// 	let sec1: Section;
+	// 	let sec2: Section;
+	// 	let sec3: Section;
+	// 	let sec4: Section;
+	// 	let sec5: Section;
+	// 	let validator: Validator;
+	// 	let facade: InsightFacade;
+	// 	let collector: Collector;
+	//
+	// 	before(function () {
+	// 		clearDisk();
+	// 		facade = new InsightFacade();
+	// 		// generated by chatGPT
+	// 		const rooms: Room[] = [
+	// 			new Room(
+	// 				"DMP_110",
+	// 				"DMP",
+	// 				"110",
+	// 				"DMP 110",
+	// 				"123 Main St",
+	// 				49.123,
+	// 				-123.456,
+	// 				400,
+	// 				"Classroom",
+	// 				"Tables",
+	// 				"https://example.com/room/110"
+	// 			),
+	// 			new Room(
+	// 				"LSK_201",
+	// 				"LSK",
+	// 				"201",
+	// 				"LSK 201",
+	// 				"456 Elm St",
+	// 				49.789,
+	// 				-123.789,
+	// 				350,
+	// 				"Classroom",
+	// 				"Tables",
+	// 				"https://example.com/room/201"
+	// 			),
+	// 			new Room(
+	// 				"EOSB_101",
+	// 				"EOSB",
+	// 				"101",
+	// 				"EOSB 101",
+	// 				"789 Oak St",
+	// 				49.456,
+	// 				-123.123,
+	// 				360,
+	// 				"Lecture Hall",
+	// 				"Tables",
+	// 				"https://example.com/room/101"
+	// 			),
+	// 			new Room(
+	// 				"WOOD_301",
+	// 				"WOOD",
+	// 				"301",
+	// 				"WOOD 301",
+	// 				"321 Pine St",
+	// 				49.987,
+	// 				-123.987,
+	// 				120,
+	// 				"Classroom",
+	// 				"Chair",
+	// 				"https://example.com/room/301"
+	// 			),
+	// 			new Room(
+	// 				"ICICS_005",
+	// 				"ICICS",
+	// 				"005",
+	// 				"ICICS 005",
+	// 				"555 Cedar St",
+	// 				49.654,
+	// 				-123.654,
+	// 				30,
+	// 				"Laboratory",
+	// 				"Chair",
+	// 				"https://example.com/room/005"
+	// 			),
+	// 			new Room(
+	// 				"ANGU_202",
+	// 				"ANGU",
+	// 				"202",
+	// 				"ANGU 202",
+	// 				"222 Birch St",
+	// 				49.234,
+	// 				-123.234,
+	// 				90,
+	// 				"Classroom",
+	// 				"Chair",
+	// 				"https://example.com/room/202"
+	// 			),
+	// 			new Room(
+	// 				"CHEM_401",
+	// 				"CHEM",
+	// 				"401",
+	// 				"CHEM 401",
+	// 				"456 Redwood St",
+	// 				49.555,
+	// 				-123.555,
+	// 				60,
+	// 				"Laboratory",
+	// 				"Desk-Chair",
+	// 				"https://example.com/room/401"
+	// 			),
+	// 			new Room(
+	// 				"PHYS_301",
+	// 				"PHYS",
+	// 				"301",
+	// 				"PHYS 301",
+	// 				"123 Sequoia St",
+	// 				49.888,
+	// 				-123.888,
+	// 				80,
+	// 				"Classroom",
+	// 				"Desk-Chair",
+	// 				"https://example.com/room/301"
+	// 			),
+	// 			new Room(
+	// 				"MATH_110",
+	// 				"MATH",
+	// 				"110",
+	// 				"MATH 110",
+	// 				"987 Walnut St",
+	// 				49.345,
+	// 				-123.345,
+	// 				40,
+	// 				"Classroom",
+	// 				"Desk-Chair",
+	// 				"https://example.com/room/110"
+	// 			),
+	// 			new Room(
+	// 				"LSC_150",
+	// 				"LSC",
+	// 				"150",
+	// 				"LSC 150",
+	// 				"111 Maple St",
+	// 				49.111,
+	// 				-123.111,
+	// 				55,
+	// 				"Classroom",
+	// 				"Desk-Chair",
+	// 				"https://example.com/room/150"
+	// 			),
+	// 		];
+	// 		sec1 = new Section("01", "110", "comptn, progrmng", "david", "math", 2020, 80, 46, 4, 4);
+	// 		sec2 = new Section("02", "110", "comptn, progrmng", "david", "chem", 2015, 85, 49, 1, 2);
+	// 		sec3 = new Section("03", "121", "comptn, progrmng", "andrew", "cpsc", 2015, 60, 25, 25, 0);
+	// 		sec4 = new Section("04", "121", "comptn, progrmng", "andrew", "cpsc", 2021, 70, 30, 20, 1);
+	// 		sec5 = new Section("05", "300", "biology", "andrew", "biol", 2000, 20, 3, 1, 1);
+	// 		sections = [sec1, sec2, sec3, sec4, sec5];
+	// 		dataset = new Dataset("sections", 5, sections, InsightDatasetKind.Sections);
+	// 		dataset2 = new Dataset("rooms", 10, rooms, InsightDatasetKind.Rooms);
+	// 		validator = new Validator([dataset, dataset2]);
+	// 		collector = new Collector([dataset, dataset2]);
+	// 		facade.aDataset(dataset);
+	// 		facade.aDataset(dataset2);
+	// 	});
+	//
+	// 	it("should properly validate All", function () {
+	// 		const where = Object.keys(validBasic)[0];
+	// 		const opts = Object.keys(validBasic)[1];
+	// 		const trans = Object.keys(validBasic)[2];
+	// 		const subW = validBasic.WHERE;
+	// 		const subO = validBasic.OPTIONS;
+	// 		const subT = validBasic.TRANSFORMATIONS;
+	// 		const transObj = parseTransformations(subT, trans);
+	// 		const whereObj = parseWhereRefactored(subW, where);
+	// 		const optsObj = parseOptionsRefactored(subO, opts);
+	// 		const result3 = validator.validateTransformations(transObj);
+	// 		const result1 = validator.validateWhereRefactored(whereObj);
+	// 		const result2 = validator.validateOptionsRefactored(optsObj);
+	// 		expect(result1.error).to.equal(0);
+	// 		expect(result3.error).to.equal(0);
+	// 		expect(result2.error).to.equal(0);
+	// 	});
+	//
+	// 	it("validate ALL Complex", function () {
+	// 		const trans = Object.keys(validComplex)[2];
+	// 		const subT = validComplex.TRANSFORMATIONS;
+	// 		const where = Object.keys(validComplex)[0];
+	// 		const subW = validComplex.WHERE;
+	// 		const opts = Object.keys(validComplex)[1];
+	// 		const subO = validComplex.OPTIONS;
+	// 		const transObj = parseTransformations(subT, trans);
+	// 		const whereObj = parseWhereRefactored(subW, where);
+	// 		const optsObj = parseOptionsRefactored(subO, opts);
+	// 		const result3 = validator.validateTransformations(transObj);
+	// 		const result1 = validator.validateWhereRefactored(whereObj);
+	// 		const result2 = validator.validateOptionsRefactored(optsObj);
+	// 		expect(result1.error).to.equal(0);
+	// 		expect(result3.error).to.equal(0);
+	// 		expect(result2.error).to.equal(0);
+	// 	});
+	//
+	// 	it("invalid MissingDir", function () {
+	// 		const trans = Object.keys(invalidMissingDirSort)[2];
+	// 		const subT = invalidMissingDirSort.TRANSFORMATIONS;
+	// 		const where = Object.keys(invalidMissingDirSort)[0];
+	// 		const subW = invalidMissingDirSort.WHERE;
+	// 		const opts = Object.keys(invalidMissingDirSort)[1];
+	// 		const subO = invalidMissingDirSort.OPTIONS;
+	// 		const transObj = parseTransformations(subT, trans);
+	// 		const whereObj = parseWhereRefactored(subW, where);
+	// 		const optsObj = parseOptionsRefactored(subO, opts);
+	// 		const result3 = validator.validateTransformations(transObj);
+	// 		const result1 = validator.validateWhereRefactored(whereObj);
+	// 		const result2 = validator.validateOptionsRefactored(optsObj);
+	// 		expect(result1.error).to.equal(0);
+	// 		expect(result3.error).to.equal(0);
+	// 		expect(result2.error).to.equal(1);
+	// 		console.log(result2.msg);
+	// 	});
+	//
+	// 	it("valid", async function () {
+	// 		const results = await facade.performQuery(validRooms);
+	// 		expect(results).to.be.length(3);
+	// 	});
+	//
+	// 	it("invalid", async function () {
+	// 		const results = facade.performQuery(invalidWrongKeyIS);
+	// 		expect(results).to.be.eventually.rejectedWith(InsightError);
+	// 	});
+	//
+	// 	it("invalid2", async function () {
+	// 		const results = facade.performQuery(invalidKeyGT);
+	// 		expect(results).to.be.eventually.rejectedWith(InsightError);
+	// 	});
+	//
+	// 	it("valid2", async function () {
+	// 		let valid2Keys = {
+	// 			WHERE: {
+	// 				AND: [
+	// 					{
+	// 						IS: {
+	// 							rooms_furniture: "*Tables*",
+	// 						},
+	// 					},
+	// 					{
+	// 						GT: {
+	// 							rooms_seats: 300,
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 				ORDER: {
+	// 					dir: "DOWN",
+	// 					keys: ["maxSeats", "rooms_shortname"],
+	// 				},
+	// 			},
+	// 			TRANSFORMATIONS: {
+	// 				GROUP: ["rooms_shortname"],
+	// 				APPLY: [
+	// 					{
+	// 						maxSeats: {
+	// 							MAX: "rooms_seats",
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 		const results = await facade.performQuery(valid2Keys);
+	// 		console.log(results);
+	// 	});
+	//
+	// 	it("valid2", async function () {
+	// 		let valid2Keys = {
+	// 			WHERE: {
+	// 				AND: [
+	// 					{
+	// 						IS: {
+	// 							rooms_furniture: "*Tables*",
+	// 						},
+	// 					},
+	// 					{
+	// 						GT: {
+	// 							rooms_seats: 300,
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 				ORDER: {
+	// 					dir: "DOWN",
+	// 					keys: ["maxSeats", "rooms_shortname"],
+	// 				},
+	// 			},
+	// 			TRANSFORMATIONS: {
+	// 				GROUP: ["rooms_shortname"],
+	// 				APPLY: [
+	// 					{
+	// 						maxSeats: {
+	// 							MAX: "rooms_seats",
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 		const results = await facade.performQuery(valid2Keys);
+	// 		console.log(results);
+	// 	});
+	//
+	// 	it("valid2", async function () {
+	// 		let valid2Keys = {
+	// 			WHERE: {
+	// 				AND: [
+	// 					{
+	// 						IS: {
+	// 							rooms_furniture: "*Tables*",
+	// 						},
+	// 					},
+	// 					{
+	// 						GT: {
+	// 							rooms_seats: 300,
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 				ORDER: {
+	// 					dir: "DOWN",
+	// 					keys: ["maxSeats", "rooms_shortname"],
+	// 				},
+	// 			},
+	// 			TRANSFORMATIONS: {
+	// 				GROUP: ["rooms_shortname"],
+	// 				APPLY: [
+	// 					{
+	// 						maxSeats: {
+	// 							MAX: "rooms_seats",
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 		const results = await facade.performQuery(valid2Keys);
+	// 		console.log(results);
+	// 	});
+	//
+	// 	it("valid2", async function () {
+	// 		let valid2Keys = {
+	// 			WHERE: {
+	// 				AND: [
+	// 					{
+	// 						IS: {
+	// 							rooms_furniture: "*Tables*",
+	// 						},
+	// 					},
+	// 					{
+	// 						GT: {
+	// 							rooms_seats: 300,
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 				ORDER: {
+	// 					dir: "DOWN",
+	// 					keys: ["maxSeats", "rooms_shortname"],
+	// 				},
+	// 			},
+	// 			TRANSFORMATIONS: {
+	// 				GROUP: ["rooms_shortname"],
+	// 				APPLY: [
+	// 					{
+	// 						maxSeats: {
+	// 							MAX: "rooms_seats",
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 		const results = await facade.performQuery(valid2Keys);
+	// 		console.log(results);
+	// 	});
+	//
+	// 	it("valid2", async function () {
+	// 		let valid2Keys = {
+	// 			WHERE: {
+	// 				AND: [
+	// 					{
+	// 						IS: {
+	// 							rooms_furniture: "*Tables*",
+	// 						},
+	// 					},
+	// 					{
+	// 						GT: {
+	// 							rooms_seats: 300,
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 				ORDER: {
+	// 					dir: "DOWN",
+	// 					keys: ["maxSeats", "rooms_shortname"],
+	// 				},
+	// 			},
+	// 			TRANSFORMATIONS: {
+	// 				GROUP: ["rooms_shortname"],
+	// 				APPLY: [
+	// 					{
+	// 						maxSeats: {
+	// 							MAX: "rooms_seats",
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 		const results = await facade.performQuery(valid2Keys);
+	// 		console.log(results);
+	// 	});
+	//
+	// 	it("valid2", async function () {
+	// 		let valid2Keys = {
+	// 			WHERE: {
+	// 				AND: [
+	// 					{
+	// 						IS: {
+	// 							rooms_furniture: "*Tables*",
+	// 						},
+	// 					},
+	// 					{
+	// 						GT: {
+	// 							rooms_seats: 300,
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 				ORDER: {
+	// 					dir: "DOWN",
+	// 					keys: ["maxSeats", "rooms_shortname"],
+	// 				},
+	// 			},
+	// 			TRANSFORMATIONS: {
+	// 				GROUP: ["rooms_shortname"],
+	// 				APPLY: [
+	// 					{
+	// 						maxSeats: {
+	// 							MAX: "rooms_seats",
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 		const results = await facade.performQuery(valid2Keys);
+	// 		console.log(results);
+	// 	});
+	//
+	// 	it("valid2", async function () {
+	// 		let valid2Keys = {
+	// 			WHERE: {
+	// 				AND: [
+	// 					{
+	// 						IS: {
+	// 							rooms_furniture: "Tables",
+	// 						},
+	// 					},
+	// 					{
+	// 						GT: {
+	// 							rooms_seats: 300,
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 				ORDER: {
+	// 					keys: ["maxSeats"],
+	// 					dir: "DOWN",
+	// 				},
+	// 			},
+	// 			TRANSFORMATIONS: {
+	// 				GROUP: ["rooms_shortname"],
+	// 				APPLY: [
+	// 					{
+	// 						maxSeats: {
+	// 							MAX: "rooms_seats",
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 		const results = await facade.performQuery(valid2Keys);
+	// 		console.log(results);
+	// 		return expect(results).to.be.length(3);
+	// 	});
+	//
+	// 	it("invalidAllorderKeys must be in COL", async function () {
+	// 		let query = {
+	// 			WHERE: {
+	// 				AND: [
+	// 					{
+	// 						IS: {
+	// 							rooms_furniture: "*Tables*",
+	// 						},
+	// 					},
+	// 					{
+	// 						GT: {
+	// 							rooms_seats: 300,
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 				ORDER: {
+	// 					dir: "DOWN",
+	// 					keys: ["maxSeats", "maxS"],
+	// 				},
+	// 			},
+	// 			TRANSFORMATIONS: {
+	// 				GROUP: ["rooms_shortname"],
+	// 				APPLY: [
+	// 					{
+	// 						maxSeats: {
+	// 							MAX: "rooms_seats",
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 		const results = facade.performQuery(query);
+	// 		return expect(results).to.be.eventually.rejectedWith(InsightError);
+	// 	});
+	//
+	// 	it("Order Keys empty", async function () {
+	// 		let query = {
+	// 			WHERE: {
+	// 				AND: [
+	// 					{
+	// 						IS: {
+	// 							rooms_furniture: "*Tables*",
+	// 						},
+	// 					},
+	// 					{
+	// 						GT: {
+	// 							rooms_seats: 300,
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 				ORDER: {
+	// 					dir: "DOWN",
+	// 					keys: [],
+	// 				},
+	// 			},
+	// 			TRANSFORMATIONS: {
+	// 				GROUP: ["rooms_shortname"],
+	// 				APPLY: [
+	// 					{
+	// 						maxSeats: {
+	// 							MAX: "rooms_seats",
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 		const results = facade.performQuery(query);
+	// 		return expect(results).to.be.eventually.rejectedWith(InsightError);
+	// 	});
+	//
+	// 	it("Invalid key rooms_avg in AVG", async function () {
+	// 		let query = {
+	// 			WHERE: {
+	// 				AND: [
+	// 					{
+	// 						IS: {
+	// 							rooms_furniture: "*Tables*",
+	// 						},
+	// 					},
+	// 					{
+	// 						GT: {
+	// 							rooms_seats: 300,
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
+	// 				ORDER: {
+	// 					dir: "DOWN",
+	// 					keys: ["maxSeats"],
+	// 				},
+	// 			},
+	// 			TRANSFORMATIONS: {
+	// 				GROUP: ["rooms_shortname"],
+	// 				APPLY: [
+	// 					{
+	// 						maxSeats: {
+	// 							MAX: "rooms_seats",
+	// 						},
+	// 					},
+	// 					{
+	// 						avgFail: {AVG: "rooms_avg"},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 		const results = facade.performQuery(query);
+	// 		return expect(results).to.be.eventually.rejectedWith(InsightError);
+	// 	});
+	//
+	// 	it("only apply keys used", async function () {
+	// 		let query = {
+	// 			WHERE: {
+	// 				AND: [
+	// 					{
+	// 						IS: {
+	// 							rooms_furniture: "*Tables*",
+	// 						},
+	// 					},
+	// 					{
+	// 						GT: {
+	// 							rooms_seats: 300,
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 			OPTIONS: {
+	// 				COLUMNS: ["maxSeats", "count"],
+	// 				ORDER: {
+	// 					dir: "DOWN",
+	// 					keys: ["maxSeats", "count"],
+	// 				},
+	// 			},
+	// 			TRANSFORMATIONS: {
+	// 				GROUP: [
+	// 					"rooms_shortname",
+	// 					"rooms_shortname",
+	// 					"rooms_fullname",
+	// 					"rooms_lat",
+	// 					"rooms_lon",
+	// 					"rooms_seats",
+	// 				],
+	// 				APPLY: [
+	// 					{
+	// 						maxSeats: {
+	// 							MAX: "rooms_seats",
+	// 						},
+	// 					},
+	// 					{
+	// 						count: {
+	// 							COUNT: "rooms_fullname",
+	// 						},
+	// 					},
+	// 				],
+	// 			},
+	// 		};
+	// 		const results = await facade.performQuery(query);
+	// 		console.log(results);
+	// 		return expect(results).to.be.length(3);
+	// 	});
+	// });
+
+	// describe("validateWhere (refactored)", function () {
+	// 	let transValid = {
+	// 		WHERE: {},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_title", "overallAvg"],
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["sections_title"],
+	// 			APPLY: [
+	// 				{
+	// 					overallAvg: {
+	// 						AVG: "sections_avg",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let invEmptyGroup = {
+	// 		WHERE: {},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_title", "overallAvg"],
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: [],
+	// 			APPLY: [
+	// 				{
+	// 					overallAvg: {
+	// 						AVG: "sections_avg",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let EmptyApply = {
+	// 		WHERE: {},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_title", "overallAvg"],
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["sections_title"],
+	// 			APPLY: [],
+	// 		},
+	// 	};
+	// 	let invAVGnotNumeric = {
+	// 		WHERE: {},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_title", "overallAvg"],
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["sections_title"],
+	// 			APPLY: [
+	// 				{
+	// 					overallDept: {
+	// 						AVG: "sections_dept",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let invEmptyApplyKey = {
+	// 		WHERE: {},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_title", "overallAvg"],
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: ["sections_title"],
+	// 			APPLY: [
+	// 				{
+	// 					"": {
+	// 						AVG: "sections_avg",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let invGroupnotArray = {
+	// 		WHERE: {},
+	// 		OPTIONS: {
+	// 			COLUMNS: ["sections_title", "overallAvg"],
+	// 		},
+	// 		TRANSFORMATIONS: {
+	// 			GROUP: "sections_title",
+	// 			APPLY: [
+	// 				{
+	// 					overallAvg: {
+	// 						AVG: "sections_avg",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	// let transValid = {
+	// 	// 	"WHERE": {},
+	// 	// 	"OPTIONS": {
+	// 	// 		"COLUMNS": ["sections_title", "overallAvg"]
+	// 	// 	},
+	// 	// 	"TRANSFORMATIONS": {
+	// 	// 		"GROUP": ["sections_title"],
+	// 	// 		"APPLY": [{
+	// 	// 			"overallAvg": {
+	// 	// 				"AVG": "sections_avg"
+	// 	// 			}
+	// 	// 		}]
+	// 	// 	}
+	// 	// };
+	//
+	// 	let sections: Section[];
+	// 	let dataset: Dataset;
+	// 	let sec1: Section;
+	// 	let sec2: Section;
+	// 	let sec3: Section;
+	// 	let sec4: Section;
+	// 	let sec5: Section;
+	// 	let validator: Validator;
+	// 	let facade: InsightFacade;
+	//
+	// 	before(function () {
+	// 		clearDisk();
+	// 		facade = new InsightFacade();
+	// 		sec1 = new Section("01", "110", "comptn, progrmng", "david", "math", 2020, 80, 46, 4, 4);
+	// 		sec2 = new Section("02", "110", "comptn, progrmng", "david", "chem", 2015, 85, 49, 1, 2);
+	// 		sec3 = new Section("03", "121", "comptn, progrmng", "andrew", "cpsc", 2015, 60, 25, 25, 0);
+	// 		sec4 = new Section("04", "121", "comptn, progrmng", "andrew", "cpsc", 2021, 70, 30, 20, 1);
+	// 		sec5 = new Section("05", "300", "biology", "andrew", "biol", 2000, 20, 3, 1, 1);
+	// 		sections = [sec1, sec2, sec3, sec4, sec5];
+	// 		dataset = new Dataset("sections", 5, sections, InsightDatasetKind.Sections);
+	// 		validator = new Validator([dataset]);
+	// 	});
+	//
+	// 	it("should properly validate Transformations", function () {
+	// 		const trans = Object.keys(transValid)[2];
+	// 		const sub = transValid.TRANSFORMATIONS;
+	// 		const transObj = parseTransformations(sub, trans);
+	// 		const result = validator.validateTransformations(transObj);
+	// 		expect(result.error).to.equal(0);
+	// 	});
+	//
+	// 	it("EmptyGroup, Invalid", function () {
+	// 		const trans = Object.keys(invEmptyGroup)[2];
+	// 		const sub = invEmptyGroup.TRANSFORMATIONS;
+	// 		const transObj = parseTransformations(sub, trans);
+	// 		const result = validator.validateTransformations(transObj);
+	// 		expect(result.error).to.equal(1);
+	// 	});
+	//
+	// 	it("EmptyApply, ok", function () {
+	// 		const trans = Object.keys(EmptyApply)[2];
+	// 		const sub = EmptyApply.TRANSFORMATIONS;
+	// 		const transObj = parseTransformations(sub, trans);
+	// 		const result = validator.validateTransformations(transObj);
+	// 		expect(result.error).to.equal(0);
+	// 	});
+	//
+	// 	it("AVG w/ non-numeric, invalid", function () {
+	// 		const trans = Object.keys(invAVGnotNumeric)[2];
+	// 		const sub = invAVGnotNumeric.TRANSFORMATIONS;
+	// 		const transObj = parseTransformations(sub, trans);
+	// 		const result = validator.validateTransformations(transObj);
+	// 		expect(result.error).to.equal(1);
+	// 	});
+	//
+	// 	it("Group-non array, invalid ", function () {
+	// 		const trans = Object.keys(invGroupnotArray)[2];
+	// 		const sub = invGroupnotArray.TRANSFORMATIONS;
+	// 		try {
+	// 			const transObj = parseTransformations(sub, trans);
+	// 			const result = validator.validateTransformations(transObj);
+	// 			expect(result.error).to.equal(1);
+	// 		} catch (e) {
+	// 			expect(e).to.be.instanceOf(InsightError);
+	// 		}
+	// 	});
+	// });
+
+	// describe("execWhere", function () {
+	// 	let queryGT30 = {
+	// 		WHERE: {
+	// 			GT: {
+	// 				test_avg: 30,
+	// 			},
+	// 		},
+	// 	};
+	// 	let queryAND = {
+	// 		WHERE: {
+	// 			AND: [
+	// 				{
+	// 					EQ: {
+	// 						test_year: 2015,
+	// 					},
+	// 				},
+	// 				{
+	// 					GT: {
+	// 						test_avg: 45,
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let queryCOMPLEX = {
+	// 		WHERE: {
+	// 			OR: [
+	// 				{
+	// 					AND: [
+	// 						{
+	// 							EQ: {
+	// 								test_year: 2020,
+	// 							},
+	// 						},
+	// 						{
+	// 							LT: {
+	// 								test_fail: 20,
+	// 							},
+	// 						},
+	// 					],
+	// 				},
+	// 				{
+	// 					IS: {
+	// 						test_id: "300",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let queryOR = {
+	// 		WHERE: {
+	// 			OR: [
+	// 				{
+	// 					GT: {
+	// 						test_fail: 19,
+	// 					},
+	// 				},
+	// 				{
+	// 					EQ: {
+	// 						test_dept: "biol",
+	// 					},
+	// 				},
+	// 			],
+	// 		},
+	// 	};
+	// 	let facade: InsightFacade;
+	// 	let dataset: Dataset;
+	// 	let sections: Section[];
+	// 	let sec1: Section;
+	// 	let sec2: Section;
+	// 	let sec3: Section;
+	// 	let sec4: Section;
+	// 	let sec5: Section;
+	// 	let collector: Collector;
+	//
+	// 	before(function () {
+	// 		clearDisk();
+	// 		facade = new InsightFacade();
+	// 		sec1 = new Section("01", "110", "comptn, progrmng", "david", "math", 2020, 80, 46, 4, 4);
+	// 		sec2 = new Section("02", "110", "comptn, progrmng", "david", "chem", 2015, 85, 49, 1, 2);
+	// 		sec3 = new Section("03", "121", "comptn, progrmng", "andrew", "cpsc", 2015, 60, 25, 25, 0);
+	// 		sec4 = new Section("04", "121", "comptn, progrmng", "andrew", "cpsc", 2021, 70, 30, 20, 1);
+	// 		sec5 = new Section("05", "300", "biology", "andrew", "biol", 2000, 20, 3, 1, 1);
+	// 		sections = [sec1, sec2, sec3, sec4, sec5];
+	// 		dataset = new Dataset("test", 5, sections, InsightDatasetKind.Sections);
+	// 		collector = new Collector([dataset]);
+	// 		facade.aDataset(dataset);
+	// 	});
+	//
+	// 	it("executing WHERE branch (GT avg: 30)", function () {
+	// 		const subWhere = queryGT30.WHERE;
+	// 		const parsed = parseWhere(subWhere, "WHERE");
+	// 		const parsedWhere = parsed.getChilds()[0];
+	//
+	// 		// const result: any[] = collector.execWhere(parsedWhere);
+	// 		// expect(result).to.includes(sec1);
+	// 		// expect(result).to.includes(sec2);
+	// 		// expect(result).to.includes(sec3);
+	// 		// expect(result).to.includes(sec4);
+	// 		// expect(result).to.not.includes(sec5);
+	// 		// console.log(result);
+	// 	});
+	//
+	// 	it("executing WHERE branch (avg > 59 AND fail < 5", function () {
+	// 		const subWhere = queryAND.WHERE;
+	// 		const parsed = parseWhere(subWhere, "WHERE");
+	// 		const parsedWhere = parsed.getChilds()[0];
+	//
+	// 		// const result: any[] = collector.execWhere(parsedWhere);
+	// 		// expect(result).to.includes(sec3);
+	// 		// expect(result).to.includes(sec2);
+	// 		// expect(result).to.not.includes(sec1);
+	// 		// expect(result).to.not.includes(sec4);
+	// 		// expect(result).to.not.includes(sec5);
+	// 	});
+	//
+	// 	it("executing WHERE branch (fail > 19 OR dept = biol)", function () {
+	// 		const subWhere = queryOR.WHERE;
+	// 		const parsed = parseWhere(subWhere, "WHERE");
+	// 		const parsedWhere = parsed.getChilds()[0];
+	//
+	// 		// const result: any[] = collector.execWhere(parsedWhere);
+	// 		// expect(result).to.includes(sec3);
+	// 		// expect(result).to.includes(sec4);
+	// 		// expect(result).to.includes(sec5);
+	// 		// expect(result).to.not.includes(sec1);
+	// 		// expect(result).to.not.includes(sec2);
+	// 	});
+	//
+	// 	it("executing WHERE branch (COMPLEX)", function () {
+	// 		const subWhere = queryCOMPLEX.WHERE;
+	// 		const parsed = parseWhere(subWhere, "WHERE");
+	// 		const parsedWhere = parsed.getChilds()[0];
+	//
+	// 		// const result: any[] = collector.execWhere(parsedWhere);
+	// 		// console.log(result);
+	// 		// expect(result).to.includes(sec1);
+	// 		// expect(result).to.includes(sec5);
+	// 		// expect(result).to.not.includes(sec2);
+	// 		// expect(result).to.not.includes(sec3);
+	// 		// expect(result).to.not.includes(sec4);
+	// 	});
+	// });
 
 	describe("performQueryFINAL", function () {
 		let facade: InsightFacade;
@@ -1466,6 +2667,19 @@ describe("InsightFacade", function () {
 		let sections: string;
 		let alt: string;
 		let facade: InsightFacade;
+		let roomSet: Dataset;
+		// let sections: Section[];
+		let rooms: Room[];
+		let dataset: Dataset;
+		let dataset2: Dataset;
+		let sec1: Section;
+		let sec2: Section;
+		let sec3: Section;
+		let sec4: Section;
+		let sec5: Section;
+		let validator: Validator;
+		// let facade: InsightFacade;
+		let collector: Collector;
 
 		before(async function () {
 			clearDisk();
@@ -1475,15 +2689,33 @@ describe("InsightFacade", function () {
 
 			await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
 			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
+			// clearDisk();
+			// facade = new InsightFacade();
+			// const rooms: Room[] = [
+			// 	new Room("DMP_110", "DMP", "110", "DMP 110", "123 Main St", 49.123, -123.456, 400, "Classroom", "Tables", "https://example.com/room/110"),
+			// 	new Room("LSK_201", "LSK", "201", "LSK 201", "456 Elm St", 49.789, -123.789, 350, "Classroom", "Tables", "https://example.com/room/201"),
+			// 	new Room("EOSB_101", "EOSB", "101", "EOSB 101", "789 Oak St", 49.456, -123.123, 360, "Lecture Hall", "Tables", "https://example.com/room/101"),
+			// 	new Room("WOOD_301", "WOOD", "301", "WOOD 301", "321 Pine St", 49.987, -123.987, 120, "Classroom", "Chair", "https://example.com/room/301"),
+			// 	new Room("ICICS_005", "ICICS", "005", "ICICS 005", "555 Cedar St", 49.654, -123.654, 30, "Laboratory", "Chair", "https://example.com/room/005"),
+			// 	new Room("ANGU_202", "ANGU", "202", "ANGU 202", "222 Birch St", 49.234, -123.234, 90, "Classroom", "Chair", "https://example.com/room/202"),
+			// 	new Room("CHEM_401", "CHEM", "401", "CHEM 401", "456 Redwood St", 49.555, -123.555, 60, "Laboratory", "Desk-Chair", "https://example.com/room/401"),
+			// 	new Room("PHYS_301", "PHYS", "301", "PHYS 301", "123 Sequoia St", 49.888, -123.888, 80, "Classroom", "Desk-Chair", "https://example.com/room/301"),
+			// 	new Room("MATH_110", "MATH", "110", "MATH 110", "987 Walnut St", 49.345, -123.345, 40, "Classroom", "Desk-Chair", "https://example.com/room/110"),
+			// 	new Room("LSC_150", "LSC", "150", "LSC 150", "111 Maple St", 49.111, -123.111, 55, "Classroom", "Desk-Chair", "https://example.com/room/150"),
+			// ];
+			// sec1 = new Section("01", "110", "comptn, progrmng", "david", "math", 2020, 80, 46, 4, 4);
+			// sec2 = new Section("02", "110", "comptn, progrmng", "david", "chem", 2015, 85, 49, 1, 2);
+			// sec3 = new Section("03", "121", "comptn, progrmng", "andrew", "cpsc", 2015, 60, 25, 25, 0);
+			// sec4 = new Section("04", "121", "comptn, progrmng", "andrew", "cpsc", 2021, 70, 30, 20, 1);
+			// sec5 = new Section("05", "300", "biology", "andrew", "biol", 2000, 20, 3, 1, 1);
+			// sections = [sec1, sec2, sec3, sec4, sec5];
+			// dataset = new Dataset("sections", 5, sections, InsightDatasetKind.Sections);
+			// dataset2 = new Dataset("rooms", 10, rooms, InsightDatasetKind.Rooms);
+			// validator = new Validator([dataset, dataset2]);
+			// collector = new Collector([dataset, dataset2]);
+			// facade.aDataset(dataset);
+			// facade.aDataset(dataset2);
 		});
-
-		// beforeEach(async function () {
-		// 	clearDisk();
-		// 	facade = new InsightFacade();
-		//
-		// 	await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
-		// 	await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
-		// });
 
 		function errorValidator(error: any): error is Error {
 			return error === "InsightError" || error === "ResultTooLargeError";
@@ -1496,7 +2728,7 @@ describe("InsightFacade", function () {
 			async (input) => await facade.performQuery(input),
 			"./test/resources/queries",
 			{
-				assertOnResult: async (actual, expected) => {
+				assertOnResult: (actual, expected) => {
 					assert.deepEqual(actual, expected);
 				},
 				errorValidator: (error): error is PQErrorKind =>

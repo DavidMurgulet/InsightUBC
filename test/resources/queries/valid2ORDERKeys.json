@@ -1,0 +1,108 @@
+{
+	"title": "valid2ORDERKeys",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"sections_dept": "*sc*"
+					}
+				},
+				{
+					"GT": {
+						"sections_pass": 10
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"maxAvg",
+				"avgPass"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"maxAvg",
+					"avgPass"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_dept"
+			],
+			"APPLY": [
+				{
+					"maxAvg": {
+						"MAX": "sections_avg"
+					}
+				},
+				{
+					"avgPass": {
+						"AVG": "sections_pass"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "apsc",
+			"maxAvg": 96,
+			"avgPass": 88.52
+		},
+		{
+			"sections_dept": "eosc",
+			"maxAvg": 93.47,
+			"avgPass": 96.77
+		},
+		{
+			"sections_dept": "musc",
+			"maxAvg": 93.45,
+			"avgPass": 34.68
+		},
+		{
+			"sections_dept": "cpsc",
+			"maxAvg": 92.4,
+			"avgPass": 84.99
+		},
+		{
+			"sections_dept": "rhsc",
+			"maxAvg": 91.92,
+			"avgPass": 29.38
+		},
+		{
+			"sections_dept": "isci",
+			"maxAvg": 90.44,
+			"avgPass": 28.23
+		},
+		{
+			"sections_dept": "scie",
+			"maxAvg": 86.81,
+			"avgPass": 41.38
+		},
+		{
+			"sections_dept": "scan",
+			"maxAvg": 86.35,
+			"avgPass": 44.56
+		},
+		{
+			"sections_dept": "nrsc",
+			"maxAvg": 86.26,
+			"avgPass": 25.67
+		},
+		{
+			"sections_dept": "basc",
+			"maxAvg": 86.04,
+			"avgPass": 49.31
+		},
+		{
+			"sections_dept": "atsc",
+			"maxAvg": 85.75,
+			"avgPass": 44.3
+		}
+	]
+}

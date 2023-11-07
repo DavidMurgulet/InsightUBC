@@ -1,0 +1,73 @@
+{
+	"title": "invalidKeyTypeAPPLY",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"sections_dept": "*sc*"
+					}
+				},
+				{
+					"GT": {
+						"sections_pass": 10
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"maxAvg",
+				"minFail",
+				"avgAud",
+				"countTotal",
+				"sumFail"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"maxAvg",
+					"minFail",
+					"avgAud",
+					"countTotal",
+					"sumFail"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_dept"
+			],
+			"APPLY": [
+				{
+					"maxAvg": {
+						"MAX": "sections_avg"
+					}
+				},
+				{
+					"minFail": {
+						"MIN": "sections_dept"
+					}
+				},
+				{
+					"avgAud": {
+						"AVG": "sections_audit"
+					}
+				},
+				{
+					"countTotal": {
+						"COUNT": "sections_dept"
+					}
+				},
+				{
+					"sumFail": {
+						"SUM": "sections_fail"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}
