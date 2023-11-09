@@ -46,6 +46,34 @@ describe("Rooms Kind", function () {
 		facade = new InsightFacade();
 	});
 
+	it("should successfully add room dataset (first)", function () {
+		this.timeout(100000);
+		let result = facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
+
+		return expect(result).to.eventually.have.members(["campus"]);
+	});
+
+	it("should successfully remove room dataset", async function () {
+		await facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
+		const result = facade.removeDataset("campus");
+		return expect(result).to.eventually.be.rejectedWith(NotFoundError);
+	});
+
+	it("should reject with an empty dataset id", function () {
+		const result = facade.addDataset("", campus, InsightDatasetKind.Rooms);
+		return expect(result).to.eventually.be.rejectedWith(InsightError);
+	});
+
+	it("should reject with a whitespace id", function () {
+		const result = facade.addDataset(" ", campus, InsightDatasetKind.Rooms);
+		return expect(result).to.eventually.be.rejectedWith(InsightError);
+	});
+
+	it("should reject with a invalid Sections kind", function () {
+		const result = facade.addDataset("campus", campus, InsightDatasetKind.Sections);
+		return expect(result).to.eventually.be.rejectedWith(InsightError);
+	});
+
 	it("should successfully remove room dataset", async function () {
 		this.timeout(10000);
 		await facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
