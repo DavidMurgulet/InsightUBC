@@ -46,7 +46,7 @@ export async function validateRoomDataset(
 
 async function extractValidRoomsFromZip(zip: JSZip): Promise<Room[]> {
 	const indexFile = zip.file("index.htm");
-	//console.log(zip.files);
+	//	console.log(zip.files);
 	if (!indexFile) {
 		throw new Error("index.htm not found in zip");
 	}
@@ -66,7 +66,7 @@ async function createDatasetFromSections(id: string, sections: Section[]): Promi
 	return null;
 }
 
-async function createDatasetFromRooms(id: string, rooms: Room[]): Promise<Dataset | null> {
+async function createDatasetFromRooms(id: string, rooms: Room[]): Promise<Promise<Dataset> | null> {
 	if (rooms.length === 0) {
 		return null;
 	} else {
