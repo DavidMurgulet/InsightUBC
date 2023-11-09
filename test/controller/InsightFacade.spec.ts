@@ -12,20 +12,12 @@ import {isBase64Zip, loadDatasetsFromDirectory, validateDataset} from "../../src
 import {assert, expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives} from "../TestUtil";
-import {
-	checkParsing,
-	parseOptionsRefactored,
-	// parseOpts,
-	parseTransformations,
-	parseWhereRefactored,
-} from "../../src/controller/Parse";
+import {parseOptionsRefactored, parseTransformations, parseWhereRefactored,} from "../../src/controller/Parse";
 
 import {Collector} from "../../src/controller/Collector";
 import {Validator} from "../../src/controller/Validator";
-import exp from "constants";
 
 import {folderTest} from "@ubccpsc310/folder-test";
-import {emptydir} from "fs-extra";
 
 use(chaiAsPromised);
 
@@ -2665,7 +2657,7 @@ describe("InsightFacade", function () {
 		let facade: InsightFacade;
 		let roomSet: Dataset;
 		// let sections: Section[];
-		let rooms: Room[];
+		let rooms: string;
 		let dataset: Dataset;
 		let dataset2: Dataset;
 		let sec1: Section;
@@ -2681,36 +2673,13 @@ describe("InsightFacade", function () {
 			clearDisk();
 			sections = getContentFromArchives("pair.zip");
 			alt = getContentFromArchives("basic.zip");
+			rooms = getContentFromArchives("campus.zip");
 			facade = new InsightFacade();
 
 			await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
 			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
-			// clearDisk();
-			// facade = new InsightFacade();
-			// const rooms: Room[] = [
-			// 	new Room("DMP_110", "DMP", "110", "DMP 110", "123 Main St", 49.123, -123.456, 400, "Classroom", "Tables", "https://example.com/room/110"),
-			// 	new Room("LSK_201", "LSK", "201", "LSK 201", "456 Elm St", 49.789, -123.789, 350, "Classroom", "Tables", "https://example.com/room/201"),
-			// 	new Room("EOSB_101", "EOSB", "101", "EOSB 101", "789 Oak St", 49.456, -123.123, 360, "Lecture Hall", "Tables", "https://example.com/room/101"),
-			// 	new Room("WOOD_301", "WOOD", "301", "WOOD 301", "321 Pine St", 49.987, -123.987, 120, "Classroom", "Chair", "https://example.com/room/301"),
-			// 	new Room("ICICS_005", "ICICS", "005", "ICICS 005", "555 Cedar St", 49.654, -123.654, 30, "Laboratory", "Chair", "https://example.com/room/005"),
-			// 	new Room("ANGU_202", "ANGU", "202", "ANGU 202", "222 Birch St", 49.234, -123.234, 90, "Classroom", "Chair", "https://example.com/room/202"),
-			// 	new Room("CHEM_401", "CHEM", "401", "CHEM 401", "456 Redwood St", 49.555, -123.555, 60, "Laboratory", "Desk-Chair", "https://example.com/room/401"),
-			// 	new Room("PHYS_301", "PHYS", "301", "PHYS 301", "123 Sequoia St", 49.888, -123.888, 80, "Classroom", "Desk-Chair", "https://example.com/room/301"),
-			// 	new Room("MATH_110", "MATH", "110", "MATH 110", "987 Walnut St", 49.345, -123.345, 40, "Classroom", "Desk-Chair", "https://example.com/room/110"),
-			// 	new Room("LSC_150", "LSC", "150", "LSC 150", "111 Maple St", 49.111, -123.111, 55, "Classroom", "Desk-Chair", "https://example.com/room/150"),
-			// ];
-			// sec1 = new Section("01", "110", "comptn, progrmng", "david", "math", 2020, 80, 46, 4, 4);
-			// sec2 = new Section("02", "110", "comptn, progrmng", "david", "chem", 2015, 85, 49, 1, 2);
-			// sec3 = new Section("03", "121", "comptn, progrmng", "andrew", "cpsc", 2015, 60, 25, 25, 0);
-			// sec4 = new Section("04", "121", "comptn, progrmng", "andrew", "cpsc", 2021, 70, 30, 20, 1);
-			// sec5 = new Section("05", "300", "biology", "andrew", "biol", 2000, 20, 3, 1, 1);
-			// sections = [sec1, sec2, sec3, sec4, sec5];
-			// dataset = new Dataset("sections", 5, sections, InsightDatasetKind.Sections);
-			// dataset2 = new Dataset("rooms", 10, rooms, InsightDatasetKind.Rooms);
-			// validator = new Validator([dataset, dataset2]);
-			// collector = new Collector([dataset, dataset2]);
-			// facade.aDataset(dataset);
-			// facade.aDataset(dataset2);
+			await facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms);
+
 		});
 
 		function errorValidator(error: any): error is Error {
