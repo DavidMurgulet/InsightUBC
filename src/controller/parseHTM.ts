@@ -120,8 +120,7 @@ async function htmlParseRoom(
 	lon: number,
 	zip: JSZip
 ): Promise<Room[]> {
-
-	if (zip.hasOwnProperty(href)) {
+	if (Object.prototype.hasOwnProperty.call(zip, href)) {
 		// File exists
 		const roomFile = zip.file(href);
 		if (roomFile) {
@@ -160,7 +159,6 @@ async function htmlParseRoom(
 		}
 		console.warn(`${href} room file not found in zip. Skipping.`);
 		return [];
-
 	} else {
 		// File does not exist, handle the skipping
 		console.log(`File not found: ${href}`);
