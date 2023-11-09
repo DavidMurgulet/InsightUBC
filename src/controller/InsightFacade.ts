@@ -7,19 +7,33 @@ import {
 	NotFoundError,
 	ResultTooLargeError,
 } from "./IInsightFacade";
-import {persistDir, isBase64Zip, validateDataset, loadDatasetsFromDirectory} from "./datasetUtils";
-import {constants} from "http2";
-import fs, {remove} from "fs-extra";
+// import "" from "./datasetUtils";
+import {persistDir, loadDatasetsFromDirectory, saveDatasetToDirectory} from "./directoryPersistance";
+import fs from "fs-extra";
 import {Validator} from "./Validator";
 import {Dataset, Section} from "./Dataset";
-import {Filter, Comp, SectionMField, SectionSField, SectionField, Where, Options, QueryRefactored} from "./Query";
+// import {Filter, Comp, SectionMField, SectionSField, SectionField, Where, Options, QueryRefactored} from "./Query";
+// import {Dataset} from "./Dataset";
+import {
+	Filter,
+	Comp,
+	QueryNode,
+	SectionMField,
+	SectionSField,
+	SectionField,
+	Where,
+	Options,
+	QueryRefactored,
+} from "./Query";
 import {Suite} from "mocha";
 import {subtle} from "crypto";
 import {isKeyObject} from "util/types";
 import {makeLeaf, parseOptionsRefactored, parseTransformations, parseWhereRefactored} from "./Parse";
 import {Collector} from "./Collector";
 import {Transformations} from "./Transformations";
-
+import {transformAsserterArgs} from "chai-as-promised";
+import {isBase64Zip} from "./datasetAdditionalUtils";
+import {validateCourseDataset, validateRoomDataset} from "./datasetUtils";
 export default class InsightFacade implements IInsightFacade {
 	public listOfDatasets: Dataset[] | null;
 	// //	access listOfDatasets for debugging
@@ -74,26 +88,61 @@ export default class InsightFacade implements IInsightFacade {
 			}
 
 			//	check if kind is valid
+			let result: string[];
 			if (kind === InsightDatasetKind.Rooms) {
-				//	reject if Rooms
-				throw new InsightError("Invalid dataset kind.");
+				result = await this.tryAddRoomKind(content, id);
+			} else {
+				result = await this.tryAddCourseKind(content, id);
 			}
 
-			// check if dataset is valid, if valid add to this.listOfDatasets and write to dir
-			const isValidDataset = await validateDataset(content, id);
-			if (!isValidDataset.success) {
-				throw new InsightError("Invalid dataset content.");
-			}
-
-			//	add dataset to disk (./data)
-			if (isValidDataset.dataset instanceof Dataset) {
-				this.listOfDatasets.push(isValidDataset.dataset);
-			}
-
-			//	return string array of ids of all currently added dataset (upon success)
-			const datasets = this.listOfDatasets;
-			return datasets.map((dataset) => dataset.id);
+			return result;
 		}
+	}
+
+	private async tryAddCourseKind(content: string, id: string) {
+		if (!this.listOfDatasets) {
+			throw new InsightError("no list of Datasets");
+		}
+		// check if dataset is valid, if valid add to this.listOfDatasets and write to dir
+		const isValidCourseDataset = await validateCourseDataset(content, id);
+		if (!isValidCourseDataset.success) {
+			throw new InsightError("Invalid dataset content.");
+		}
+
+		//	add dataset to disk (./data)
+		if (isValidCourseDataset.dataset instanceof Dataset) {
+			// save to disk
+			await saveDatasetToDirectory(isValidCourseDataset.dataset);
+			// save to memory
+			this.listOfDatasets.push(isValidCourseDataset.dataset);
+		}
+
+		//	return string array of ids of all currently added dataset (upon success)
+		const datasets = this.listOfDatasets;
+		return datasets.map((dataset) => dataset.id);
+	}
+
+	private async tryAddRoomKind(content: string, id: string) {
+		if (!this.listOfDatasets) {
+			throw new InsightError("no list of Datasets");
+		}
+		// check if dataset is valid, if valid add to this.listOfDatasets and write to dir
+		const isValidRoomDataset = await validateRoomDataset(content, id);
+		if (!isValidRoomDataset.success) {
+			throw new InsightError("Invalid dataset content.");
+		}
+
+		//	add dataset to disk (./data)
+		if (isValidRoomDataset.dataset instanceof Dataset) {
+			// save to disk
+			await saveDatasetToDirectory(isValidRoomDataset.dataset);
+			// save to memory
+			this.listOfDatasets.push(isValidRoomDataset.dataset);
+		}
+
+		//	return string array of ids of all currently added dataset (upon success)
+		const datasets = this.listOfDatasets;
+		return datasets.map((dataset) => dataset.id);
 	}
 
 	public async getDatasets() {
@@ -103,10 +152,10 @@ export default class InsightFacade implements IInsightFacade {
 
 	public async aDataset(dataset: Dataset) {
 		let datasets = await this.getDatasets();
-		if (!datasets) {
-			throw new InsightError();
+		if (datasets) {
+			datasets.push(dataset);
 		}
-		datasets.push(dataset);
+		throw new InsightError();
 	}
 
 	public async removeDataset(id: string): Promise<string> {
