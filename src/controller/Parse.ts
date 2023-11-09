@@ -78,13 +78,15 @@ export function parseTransformations(query: any, key: string): Transformations {
 					if (!Array.isArray((query as any)[k])) {
 						throw new InsightError();
 					}
+					if ((query as any)[k].length < 1) {
+						throw new InsightError();
+					}
 					trans.setGroup(parseGroup((query as any)[k], k));
 				} else if (k === "APPLY") {
 					trans.hasApply = true;
 					if (!Array.isArray((query as any)[k])) {
 						throw new InsightError();
 					}
-					// loop through subquery, calling parseapply for each one.
 					for (const rule of (query as any)[k]) {
 						if (Object.keys(rule).length !== 1) {
 							throw new InsightError();

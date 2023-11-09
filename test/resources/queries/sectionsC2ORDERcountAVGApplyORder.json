@@ -1,0 +1,241 @@
+{
+	"title": "sectionsC2ORDERcountAVGApplyORder",
+	"input": {
+		"WHERE": {
+			"GT": {
+				"sections_avg": 94
+			}
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"maxSeats"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"maxSeats"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_dept"
+			],
+			"APPLY": [
+				{
+					"maxSeats": {
+						"COUNT": "sections_avg"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "epse",
+			"maxSeats": 77
+		},
+		{
+			"sections_dept": "nurs",
+			"maxSeats": 18
+		},
+		{
+			"sections_dept": "cnps",
+			"maxSeats": 17
+		},
+		{
+			"sections_dept": "math",
+			"maxSeats": 14
+		},
+		{
+			"sections_dept": "crwr",
+			"maxSeats": 13
+		},
+		{
+			"sections_dept": "etec",
+			"maxSeats": 13
+		},
+		{
+			"sections_dept": "spph",
+			"maxSeats": 12
+		},
+		{
+			"sections_dept": "kin",
+			"maxSeats": 10
+		},
+		{
+			"sections_dept": "apsc",
+			"maxSeats": 7
+		},
+		{
+			"sections_dept": "mine",
+			"maxSeats": 7
+		},
+		{
+			"sections_dept": "psyc",
+			"maxSeats": 7
+		},
+		{
+			"sections_dept": "musc",
+			"maxSeats": 6
+		},
+		{
+			"sections_dept": "sowk",
+			"maxSeats": 6
+		},
+		{
+			"sections_dept": "edst",
+			"maxSeats": 5
+		},
+		{
+			"sections_dept": "edcp",
+			"maxSeats": 4
+		},
+		{
+			"sections_dept": "educ",
+			"maxSeats": 4
+		},
+		{
+			"sections_dept": "chbe",
+			"maxSeats": 3
+		},
+		{
+			"sections_dept": "comm",
+			"maxSeats": 3
+		},
+		{
+			"sections_dept": "hgse",
+			"maxSeats": 3
+		},
+		{
+			"sections_dept": "midw",
+			"maxSeats": 3
+		},
+		{
+			"sections_dept": "phar",
+			"maxSeats": 3
+		},
+		{
+			"sections_dept": "phys",
+			"maxSeats": 3
+		},
+		{
+			"sections_dept": "audi",
+			"maxSeats": 2
+		},
+		{
+			"sections_dept": "bmeg",
+			"maxSeats": 2
+		},
+		{
+			"sections_dept": "cpsc",
+			"maxSeats": 2
+		},
+		{
+			"sections_dept": "eece",
+			"maxSeats": 2
+		},
+		{
+			"sections_dept": "mtrl",
+			"maxSeats": 2
+		},
+		{
+			"sections_dept": "phth",
+			"maxSeats": 2
+		},
+		{
+			"sections_dept": "plan",
+			"maxSeats": 2
+		},
+		{
+			"sections_dept": "aanb",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "adhe",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "arst",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "biol",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "ceen",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "cell",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "civl",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "dent",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "econ",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "fipr",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "frst",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "libr",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "medg",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "micb",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "obst",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "pcth",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "phil",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "phrm",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "rhsc",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "stat",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "surg",
+			"maxSeats": 1
+		},
+		{
+			"sections_dept": "thtr",
+			"maxSeats": 1
+		}
+	]
+}

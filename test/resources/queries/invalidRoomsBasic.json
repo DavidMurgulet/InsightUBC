@@ -1,0 +1,30 @@
+{
+	"title": "invalidRoomsBasic",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"rooms_furniture": "*Tables*"
+					}
+				},
+				{
+					"GT": {
+						"rooms_seats": 250
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_shortname"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": []
+			}
+		}
+	},
+	"errorExpected": true,
+	"expected": "InsightError"
+}

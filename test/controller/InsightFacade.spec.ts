@@ -12,7 +12,6 @@ import {isBase64Zip, loadDatasetsFromDirectory, validateDataset} from "../../src
 import {assert, expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives} from "../TestUtil";
-import {Query} from "../../src/controller/Query";
 import {
 	checkParsing,
 	parseOptionsRefactored,
@@ -1116,949 +1115,946 @@ describe("InsightFacade", function () {
 		});
 	});
 
-	// describe("validateAll", function () {
-	// 	let validBasic = {
-	// 		WHERE: {},
-	// 		OPTIONS: {
-	// 			COLUMNS: ["sections_title", "overallAvg"],
-	// 		},
-	// 		TRANSFORMATIONS: {
-	// 			GROUP: ["sections_title"],
-	// 			APPLY: [
-	// 				{
-	// 					overallAvg: {
-	// 						AVG: "sections_avg",
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 	};
-	// 	let validComplex = {
-	// 		WHERE: {
-	// 			AND: [
-	// 				{
-	// 					GT: {
-	// 						sections_avg: 80,
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 		OPTIONS: {
-	// 			COLUMNS: ["sections_dept", "maxAvg"],
-	// 			ORDER: {
-	// 				dir: "DOWN",
-	// 				keys: ["maxAvg"],
-	// 			},
-	// 		},
-	// 		TRANSFORMATIONS: {
-	// 			GROUP: ["sections_dept"],
-	// 			APPLY: [
-	// 				{
-	// 					maxAvg: {
-	// 						MAX: "sections_avg",
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 	};
-	// 	let invalidMissingDirSort = {
-	// 		WHERE: {
-	// 			AND: [
-	// 				{
-	// 					IS: {
-	// 						rooms_furniture: "*Tables*",
-	// 					},
-	// 				},
-	// 				{
-	// 					GT: {
-	// 						rooms_seats: 300,
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 		OPTIONS: {
-	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 			ORDER: {
-	// 				keys: ["maxSeats"],
-	// 			},
-	// 		},
-	// 		TRANSFORMATIONS: {
-	// 			GROUP: ["rooms_shortname"],
-	// 			APPLY: [
-	// 				{
-	// 					maxSeats: {
-	// 						MAX: "rooms_seats",
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 	};
-	// 	let invalidEmptyGroup = {
-	// 		WHERE: {
-	// 			AND: [
-	// 				{
-	// 					IS: {
-	// 						rooms_furniture: "*Tables*",
-	// 					},
-	// 				},
-	// 				{
-	// 					GT: {
-	// 						rooms_seats: 300,
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 		OPTIONS: {
-	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 			ORDER: {
-	// 				dir: "DOWN",
-	// 				keys: ["maxSeats"],
-	// 			},
-	// 		},
-	// 		TRANSFORMATIONS: {
-	// 			GROUP: [],
-	// 			APPLY: [
-	// 				{
-	// 					maxSeats: {
-	// 						MAX: "rooms_seats",
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 	};
-	// 	let invalidColNotInGroup = {
-	// 		WHERE: {
-	// 			AND: [
-	// 				{
-	// 					IS: {
-	// 						rooms_furniture: "*Tables*",
-	// 					},
-	// 				},
-	// 				{
-	// 					GT: {
-	// 						rooms_seats: 300,
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 		OPTIONS: {
-	// 			COLUMNS: ["rooms_fullname", "maxSeats"],
-	// 			ORDER: {
-	// 				dir: "DOWN",
-	// 				keys: ["maxSeats"],
-	// 			},
-	// 		},
-	// 		TRANSFORMATIONS: {
-	// 			GROUP: ["rooms_shortname"],
-	// 			APPLY: [
-	// 				{
-	// 					maxSeats: {
-	// 						MAX: "rooms_seats",
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 	};
-	// 	let validRooms = {
-	// 		WHERE: {
-	// 			AND: [
-	// 				{
-	// 					IS: {
-	// 						rooms_furniture: "*Tables*",
-	// 					},
-	// 				},
-	// 				{
-	// 					GT: {
-	// 						rooms_seats: 300,
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 		OPTIONS: {
-	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 			ORDER: {
-	// 				dir: "DOWN",
-	// 				keys: ["maxSeats"],
-	// 			},
-	// 		},
-	// 		TRANSFORMATIONS: {
-	// 			GROUP: ["rooms_shortname"],
-	// 			APPLY: [
-	// 				{
-	// 					maxSeats: {
-	// 						MAX: "rooms_seats",
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 	};
-	// 	let invalidWrongKeyIS = {
-	// 		WHERE: {
-	// 			AND: [
-	// 				{
-	// 					IS: {
-	// 						rooms_furniture: 90,
-	// 					},
-	// 				},
-	// 				{
-	// 					GT: {
-	// 						rooms_seats: 300,
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 		OPTIONS: {
-	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 			ORDER: {
-	// 				dir: "DOWN",
-	// 				keys: ["maxSeats"],
-	// 			},
-	// 		},
-	// 		TRANSFORMATIONS: {
-	// 			GROUP: ["rooms_shortname"],
-	// 			APPLY: [
-	// 				{
-	// 					maxSeats: {
-	// 						MAX: "rooms_seats",
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 	};
-	// 	let invalidKeyGT = {
-	// 		WHERE: {
-	// 			AND: [
-	// 				{
-	// 					IS: {
-	// 						rooms_furniture: "*Tables*",
-	// 					},
-	// 				},
-	// 				{
-	// 					GT: {
-	// 						rooms_fail: 90,
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 		OPTIONS: {
-	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 			ORDER: {
-	// 				dir: "DOWN",
-	// 				keys: ["maxSeats"],
-	// 			},
-	// 		},
-	// 		TRANSFORMATIONS: {
-	// 			GROUP: ["rooms_shortname"],
-	// 			APPLY: [
-	// 				{
-	// 					maxSeats: {
-	// 						MAX: "rooms_seats",
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 	};
-	// 	let valid2Keys = {
-	// 		WHERE: {
-	// 			AND: [
-	// 				{
-	// 					IS: {
-	// 						rooms_furniture: "*Tables*",
-	// 					},
-	// 				},
-	// 				{
-	// 					GT: {
-	// 						rooms_seats: 300,
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 		OPTIONS: {
-	// 			COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 			ORDER: {
-	// 				dir: "DOWN",
-	// 				keys: ["maxSeats", "rooms_shortname"],
-	// 			},
-	// 		},
-	// 		TRANSFORMATIONS: {
-	// 			GROUP: ["rooms_shortname"],
-	// 			APPLY: [
-	// 				{
-	// 					maxSeats: {
-	// 						MAX: "rooms_seats",
-	// 					},
-	// 				},
-	// 			],
-	// 		},
-	// 	};
-	//
-	// 	let sections: Section[];
-	// 	let dataset: Dataset;
-	// 	let dataset2: Dataset;
-	// 	let sec1: Section;
-	// 	let sec2: Section;
-	// 	let sec3: Section;
-	// 	let sec4: Section;
-	// 	let sec5: Section;
-	// 	let validator: Validator;
-	// 	let facade: InsightFacade;
-	// 	let collector: Collector;
-	//
-	// 	before(function () {
-	// 		clearDisk();
-	// 		facade = new InsightFacade();
-	// 		// generated by chatGPT
-	// 		const rooms: Room[] = [
-	// 			new Room(
-	// 				"DMP_110",
-	// 				"DMP",
-	// 				"110",
-	// 				"DMP 110",
-	// 				"123 Main St",
-	// 				49.123,
-	// 				-123.456,
-	// 				400,
-	// 				"Classroom",
-	// 				"Tables",
-	// 				"https://example.com/room/110"
-	// 			),
-	// 			new Room(
-	// 				"LSK_201",
-	// 				"LSK",
-	// 				"201",
-	// 				"LSK 201",
-	// 				"456 Elm St",
-	// 				49.789,
-	// 				-123.789,
-	// 				350,
-	// 				"Classroom",
-	// 				"Tables",
-	// 				"https://example.com/room/201"
-	// 			),
-	// 			new Room(
-	// 				"EOSB_101",
-	// 				"EOSB",
-	// 				"101",
-	// 				"EOSB 101",
-	// 				"789 Oak St",
-	// 				49.456,
-	// 				-123.123,
-	// 				360,
-	// 				"Lecture Hall",
-	// 				"Tables",
-	// 				"https://example.com/room/101"
-	// 			),
-	// 			new Room(
-	// 				"WOOD_301",
-	// 				"WOOD",
-	// 				"301",
-	// 				"WOOD 301",
-	// 				"321 Pine St",
-	// 				49.987,
-	// 				-123.987,
-	// 				120,
-	// 				"Classroom",
-	// 				"Chair",
-	// 				"https://example.com/room/301"
-	// 			),
-	// 			new Room(
-	// 				"ICICS_005",
-	// 				"ICICS",
-	// 				"005",
-	// 				"ICICS 005",
-	// 				"555 Cedar St",
-	// 				49.654,
-	// 				-123.654,
-	// 				30,
-	// 				"Laboratory",
-	// 				"Chair",
-	// 				"https://example.com/room/005"
-	// 			),
-	// 			new Room(
-	// 				"ANGU_202",
-	// 				"ANGU",
-	// 				"202",
-	// 				"ANGU 202",
-	// 				"222 Birch St",
-	// 				49.234,
-	// 				-123.234,
-	// 				90,
-	// 				"Classroom",
-	// 				"Chair",
-	// 				"https://example.com/room/202"
-	// 			),
-	// 			new Room(
-	// 				"CHEM_401",
-	// 				"CHEM",
-	// 				"401",
-	// 				"CHEM 401",
-	// 				"456 Redwood St",
-	// 				49.555,
-	// 				-123.555,
-	// 				60,
-	// 				"Laboratory",
-	// 				"Desk-Chair",
-	// 				"https://example.com/room/401"
-	// 			),
-	// 			new Room(
-	// 				"PHYS_301",
-	// 				"PHYS",
-	// 				"301",
-	// 				"PHYS 301",
-	// 				"123 Sequoia St",
-	// 				49.888,
-	// 				-123.888,
-	// 				80,
-	// 				"Classroom",
-	// 				"Desk-Chair",
-	// 				"https://example.com/room/301"
-	// 			),
-	// 			new Room(
-	// 				"MATH_110",
-	// 				"MATH",
-	// 				"110",
-	// 				"MATH 110",
-	// 				"987 Walnut St",
-	// 				49.345,
-	// 				-123.345,
-	// 				40,
-	// 				"Classroom",
-	// 				"Desk-Chair",
-	// 				"https://example.com/room/110"
-	// 			),
-	// 			new Room(
-	// 				"LSC_150",
-	// 				"LSC",
-	// 				"150",
-	// 				"LSC 150",
-	// 				"111 Maple St",
-	// 				49.111,
-	// 				-123.111,
-	// 				55,
-	// 				"Classroom",
-	// 				"Desk-Chair",
-	// 				"https://example.com/room/150"
-	// 			),
-	// 		];
-	// 		sec1 = new Section("01", "110", "comptn, progrmng", "david", "math", 2020, 80, 46, 4, 4);
-	// 		sec2 = new Section("02", "110", "comptn, progrmng", "david", "chem", 2015, 85, 49, 1, 2);
-	// 		sec3 = new Section("03", "121", "comptn, progrmng", "andrew", "cpsc", 2015, 60, 25, 25, 0);
-	// 		sec4 = new Section("04", "121", "comptn, progrmng", "andrew", "cpsc", 2021, 70, 30, 20, 1);
-	// 		sec5 = new Section("05", "300", "biology", "andrew", "biol", 2000, 20, 3, 1, 1);
-	// 		sections = [sec1, sec2, sec3, sec4, sec5];
-	// 		dataset = new Dataset("sections", 5, sections, InsightDatasetKind.Sections);
-	// 		dataset2 = new Dataset("rooms", 10, rooms, InsightDatasetKind.Rooms);
-	// 		validator = new Validator([dataset, dataset2]);
-	// 		collector = new Collector([dataset, dataset2]);
-	// 		facade.aDataset(dataset);
-	// 		facade.aDataset(dataset2);
-	// 	});
-	//
-	// 	it("should properly validate All", function () {
-	// 		const where = Object.keys(validBasic)[0];
-	// 		const opts = Object.keys(validBasic)[1];
-	// 		const trans = Object.keys(validBasic)[2];
-	// 		const subW = validBasic.WHERE;
-	// 		const subO = validBasic.OPTIONS;
-	// 		const subT = validBasic.TRANSFORMATIONS;
-	// 		const transObj = parseTransformations(subT, trans);
-	// 		const whereObj = parseWhereRefactored(subW, where);
-	// 		const optsObj = parseOptionsRefactored(subO, opts);
-	// 		const result3 = validator.validateTransformations(transObj);
-	// 		const result1 = validator.validateWhereRefactored(whereObj);
-	// 		const result2 = validator.validateOptionsRefactored(optsObj);
-	// 		expect(result1.error).to.equal(0);
-	// 		expect(result3.error).to.equal(0);
-	// 		expect(result2.error).to.equal(0);
-	// 	});
-	//
-	// 	it("validate ALL Complex", function () {
-	// 		const trans = Object.keys(validComplex)[2];
-	// 		const subT = validComplex.TRANSFORMATIONS;
-	// 		const where = Object.keys(validComplex)[0];
-	// 		const subW = validComplex.WHERE;
-	// 		const opts = Object.keys(validComplex)[1];
-	// 		const subO = validComplex.OPTIONS;
-	// 		const transObj = parseTransformations(subT, trans);
-	// 		const whereObj = parseWhereRefactored(subW, where);
-	// 		const optsObj = parseOptionsRefactored(subO, opts);
-	// 		const result3 = validator.validateTransformations(transObj);
-	// 		const result1 = validator.validateWhereRefactored(whereObj);
-	// 		const result2 = validator.validateOptionsRefactored(optsObj);
-	// 		expect(result1.error).to.equal(0);
-	// 		expect(result3.error).to.equal(0);
-	// 		expect(result2.error).to.equal(0);
-	// 	});
-	//
-	// 	it("invalid MissingDir", function () {
-	// 		const trans = Object.keys(invalidMissingDirSort)[2];
-	// 		const subT = invalidMissingDirSort.TRANSFORMATIONS;
-	// 		const where = Object.keys(invalidMissingDirSort)[0];
-	// 		const subW = invalidMissingDirSort.WHERE;
-	// 		const opts = Object.keys(invalidMissingDirSort)[1];
-	// 		const subO = invalidMissingDirSort.OPTIONS;
-	// 		const transObj = parseTransformations(subT, trans);
-	// 		const whereObj = parseWhereRefactored(subW, where);
-	// 		const optsObj = parseOptionsRefactored(subO, opts);
-	// 		const result3 = validator.validateTransformations(transObj);
-	// 		const result1 = validator.validateWhereRefactored(whereObj);
-	// 		const result2 = validator.validateOptionsRefactored(optsObj);
-	// 		expect(result1.error).to.equal(0);
-	// 		expect(result3.error).to.equal(0);
-	// 		expect(result2.error).to.equal(1);
-	// 		console.log(result2.msg);
-	// 	});
-	//
-	// 	it("valid", async function () {
-	// 		const results = await facade.performQuery(validRooms);
-	// 		expect(results).to.be.length(3);
-	// 	});
-	//
-	// 	it("invalid", async function () {
-	// 		const results = facade.performQuery(invalidWrongKeyIS);
-	// 		expect(results).to.be.eventually.rejectedWith(InsightError);
-	// 	});
-	//
-	// 	it("invalid2", async function () {
-	// 		const results = facade.performQuery(invalidKeyGT);
-	// 		expect(results).to.be.eventually.rejectedWith(InsightError);
-	// 	});
-	//
-	// 	it("valid2", async function () {
-	// 		let valid2Keys = {
-	// 			WHERE: {
-	// 				AND: [
-	// 					{
-	// 						IS: {
-	// 							rooms_furniture: "*Tables*",
-	// 						},
-	// 					},
-	// 					{
-	// 						GT: {
-	// 							rooms_seats: 300,
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 			OPTIONS: {
-	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 				ORDER: {
-	// 					dir: "DOWN",
-	// 					keys: ["maxSeats", "rooms_shortname"],
-	// 				},
-	// 			},
-	// 			TRANSFORMATIONS: {
-	// 				GROUP: ["rooms_shortname"],
-	// 				APPLY: [
-	// 					{
-	// 						maxSeats: {
-	// 							MAX: "rooms_seats",
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 		};
-	// 		const results = await facade.performQuery(valid2Keys);
-	// 		console.log(results);
-	// 	});
-	//
-	// 	it("valid2", async function () {
-	// 		let valid2Keys = {
-	// 			WHERE: {
-	// 				AND: [
-	// 					{
-	// 						IS: {
-	// 							rooms_furniture: "*Tables*",
-	// 						},
-	// 					},
-	// 					{
-	// 						GT: {
-	// 							rooms_seats: 300,
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 			OPTIONS: {
-	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 				ORDER: {
-	// 					dir: "DOWN",
-	// 					keys: ["maxSeats", "rooms_shortname"],
-	// 				},
-	// 			},
-	// 			TRANSFORMATIONS: {
-	// 				GROUP: ["rooms_shortname"],
-	// 				APPLY: [
-	// 					{
-	// 						maxSeats: {
-	// 							MAX: "rooms_seats",
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 		};
-	// 		const results = await facade.performQuery(valid2Keys);
-	// 		console.log(results);
-	// 	});
-	//
-	// 	it("valid2", async function () {
-	// 		let valid2Keys = {
-	// 			WHERE: {
-	// 				AND: [
-	// 					{
-	// 						IS: {
-	// 							rooms_furniture: "*Tables*",
-	// 						},
-	// 					},
-	// 					{
-	// 						GT: {
-	// 							rooms_seats: 300,
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 			OPTIONS: {
-	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 				ORDER: {
-	// 					dir: "DOWN",
-	// 					keys: ["maxSeats", "rooms_shortname"],
-	// 				},
-	// 			},
-	// 			TRANSFORMATIONS: {
-	// 				GROUP: ["rooms_shortname"],
-	// 				APPLY: [
-	// 					{
-	// 						maxSeats: {
-	// 							MAX: "rooms_seats",
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 		};
-	// 		const results = await facade.performQuery(valid2Keys);
-	// 		console.log(results);
-	// 	});
-	//
-	// 	it("valid2", async function () {
-	// 		let valid2Keys = {
-	// 			WHERE: {
-	// 				AND: [
-	// 					{
-	// 						IS: {
-	// 							rooms_furniture: "*Tables*",
-	// 						},
-	// 					},
-	// 					{
-	// 						GT: {
-	// 							rooms_seats: 300,
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 			OPTIONS: {
-	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 				ORDER: {
-	// 					dir: "DOWN",
-	// 					keys: ["maxSeats", "rooms_shortname"],
-	// 				},
-	// 			},
-	// 			TRANSFORMATIONS: {
-	// 				GROUP: ["rooms_shortname"],
-	// 				APPLY: [
-	// 					{
-	// 						maxSeats: {
-	// 							MAX: "rooms_seats",
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 		};
-	// 		const results = await facade.performQuery(valid2Keys);
-	// 		console.log(results);
-	// 	});
-	//
-	// 	it("valid2", async function () {
-	// 		let valid2Keys = {
-	// 			WHERE: {
-	// 				AND: [
-	// 					{
-	// 						IS: {
-	// 							rooms_furniture: "*Tables*",
-	// 						},
-	// 					},
-	// 					{
-	// 						GT: {
-	// 							rooms_seats: 300,
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 			OPTIONS: {
-	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 				ORDER: {
-	// 					dir: "DOWN",
-	// 					keys: ["maxSeats", "rooms_shortname"],
-	// 				},
-	// 			},
-	// 			TRANSFORMATIONS: {
-	// 				GROUP: ["rooms_shortname"],
-	// 				APPLY: [
-	// 					{
-	// 						maxSeats: {
-	// 							MAX: "rooms_seats",
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 		};
-	// 		const results = await facade.performQuery(valid2Keys);
-	// 		console.log(results);
-	// 	});
-	//
-	// 	it("valid2", async function () {
-	// 		let valid2Keys = {
-	// 			WHERE: {
-	// 				AND: [
-	// 					{
-	// 						IS: {
-	// 							rooms_furniture: "*Tables*",
-	// 						},
-	// 					},
-	// 					{
-	// 						GT: {
-	// 							rooms_seats: 300,
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 			OPTIONS: {
-	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 				ORDER: {
-	// 					dir: "DOWN",
-	// 					keys: ["maxSeats", "rooms_shortname"],
-	// 				},
-	// 			},
-	// 			TRANSFORMATIONS: {
-	// 				GROUP: ["rooms_shortname"],
-	// 				APPLY: [
-	// 					{
-	// 						maxSeats: {
-	// 							MAX: "rooms_seats",
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 		};
-	// 		const results = await facade.performQuery(valid2Keys);
-	// 		console.log(results);
-	// 	});
-	//
-	// 	it("valid2", async function () {
-	// 		let valid2Keys = {
-	// 			WHERE: {
-	// 				AND: [
-	// 					{
-	// 						IS: {
-	// 							rooms_furniture: "Tables",
-	// 						},
-	// 					},
-	// 					{
-	// 						GT: {
-	// 							rooms_seats: 300,
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 			OPTIONS: {
-	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 				ORDER: {
-	// 					keys: ["maxSeats"],
-	// 					dir: "DOWN",
-	// 				},
-	// 			},
-	// 			TRANSFORMATIONS: {
-	// 				GROUP: ["rooms_shortname"],
-	// 				APPLY: [
-	// 					{
-	// 						maxSeats: {
-	// 							MAX: "rooms_seats",
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 		};
-	// 		const results = await facade.performQuery(valid2Keys);
-	// 		console.log(results);
-	// 		return expect(results).to.be.length(3);
-	// 	});
-	//
-	// 	it("invalidAllorderKeys must be in COL", async function () {
-	// 		let query = {
-	// 			WHERE: {
-	// 				AND: [
-	// 					{
-	// 						IS: {
-	// 							rooms_furniture: "*Tables*",
-	// 						},
-	// 					},
-	// 					{
-	// 						GT: {
-	// 							rooms_seats: 300,
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 			OPTIONS: {
-	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 				ORDER: {
-	// 					dir: "DOWN",
-	// 					keys: ["maxSeats", "maxS"],
-	// 				},
-	// 			},
-	// 			TRANSFORMATIONS: {
-	// 				GROUP: ["rooms_shortname"],
-	// 				APPLY: [
-	// 					{
-	// 						maxSeats: {
-	// 							MAX: "rooms_seats",
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 		};
-	// 		const results = facade.performQuery(query);
-	// 		return expect(results).to.be.eventually.rejectedWith(InsightError);
-	// 	});
-	//
-	// 	it("Order Keys empty", async function () {
-	// 		let query = {
-	// 			WHERE: {
-	// 				AND: [
-	// 					{
-	// 						IS: {
-	// 							rooms_furniture: "*Tables*",
-	// 						},
-	// 					},
-	// 					{
-	// 						GT: {
-	// 							rooms_seats: 300,
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 			OPTIONS: {
-	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 				ORDER: {
-	// 					dir: "DOWN",
-	// 					keys: [],
-	// 				},
-	// 			},
-	// 			TRANSFORMATIONS: {
-	// 				GROUP: ["rooms_shortname"],
-	// 				APPLY: [
-	// 					{
-	// 						maxSeats: {
-	// 							MAX: "rooms_seats",
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 		};
-	// 		const results = facade.performQuery(query);
-	// 		return expect(results).to.be.eventually.rejectedWith(InsightError);
-	// 	});
-	//
-	// 	it("Invalid key rooms_avg in AVG", async function () {
-	// 		let query = {
-	// 			WHERE: {
-	// 				AND: [
-	// 					{
-	// 						IS: {
-	// 							rooms_furniture: "*Tables*",
-	// 						},
-	// 					},
-	// 					{
-	// 						GT: {
-	// 							rooms_seats: 300,
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 			OPTIONS: {
-	// 				COLUMNS: ["rooms_shortname", "maxSeats"],
-	// 				ORDER: {
-	// 					dir: "DOWN",
-	// 					keys: ["maxSeats"],
-	// 				},
-	// 			},
-	// 			TRANSFORMATIONS: {
-	// 				GROUP: ["rooms_shortname"],
-	// 				APPLY: [
-	// 					{
-	// 						maxSeats: {
-	// 							MAX: "rooms_seats",
-	// 						},
-	// 					},
-	// 					{
-	// 						avgFail: {AVG: "rooms_avg"},
-	// 					},
-	// 				],
-	// 			},
-	// 		};
-	// 		const results = facade.performQuery(query);
-	// 		return expect(results).to.be.eventually.rejectedWith(InsightError);
-	// 	});
-	//
-	// 	it("only apply keys used", async function () {
-	// 		let query = {
-	// 			WHERE: {
-	// 				AND: [
-	// 					{
-	// 						IS: {
-	// 							rooms_furniture: "*Tables*",
-	// 						},
-	// 					},
-	// 					{
-	// 						GT: {
-	// 							rooms_seats: 300,
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 			OPTIONS: {
-	// 				COLUMNS: ["maxSeats", "count"],
-	// 				ORDER: {
-	// 					dir: "DOWN",
-	// 					keys: ["maxSeats", "count"],
-	// 				},
-	// 			},
-	// 			TRANSFORMATIONS: {
-	// 				GROUP: [
-	// 					"rooms_shortname",
-	// 					"rooms_shortname",
-	// 					"rooms_fullname",
-	// 					"rooms_lat",
-	// 					"rooms_lon",
-	// 					"rooms_seats",
-	// 				],
-	// 				APPLY: [
-	// 					{
-	// 						maxSeats: {
-	// 							MAX: "rooms_seats",
-	// 						},
-	// 					},
-	// 					{
-	// 						count: {
-	// 							COUNT: "rooms_fullname",
-	// 						},
-	// 					},
-	// 				],
-	// 			},
-	// 		};
-	// 		const results = await facade.performQuery(query);
-	// 		console.log(results);
-	// 		return expect(results).to.be.length(3);
-	// 	});
-	// });
+	describe("validateAll", function () {
+		let validBasic = {
+			WHERE: {},
+			OPTIONS: {
+				COLUMNS: ["sections_title", "overallAvg"],
+			},
+			TRANSFORMATIONS: {
+				GROUP: ["sections_title"],
+				APPLY: [
+					{
+						overallAvg: {
+							AVG: "sections_avg",
+						},
+					},
+				],
+			},
+		};
+		let validComplex = {
+			WHERE: {
+				AND: [
+					{
+						GT: {
+							sections_avg: 80,
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["sections_dept", "maxAvg"],
+				ORDER: {
+					dir: "DOWN",
+					keys: ["maxAvg"],
+				},
+			},
+			TRANSFORMATIONS: {
+				GROUP: ["sections_dept"],
+				APPLY: [
+					{
+						maxAvg: {
+							MAX: "sections_avg",
+						},
+					},
+				],
+			},
+		};
+		let invalidMissingDirSort = {
+			WHERE: {
+				AND: [
+					{
+						IS: {
+							rooms_furniture: "*Tables*",
+						},
+					},
+					{
+						GT: {
+							rooms_seats: 300,
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["rooms_shortname", "maxSeats"],
+				ORDER: {
+					keys: ["maxSeats"],
+				},
+			},
+			TRANSFORMATIONS: {
+				GROUP: ["rooms_shortname"],
+				APPLY: [
+					{
+						maxSeats: {
+							MAX: "rooms_seats",
+						},
+					},
+				],
+			},
+		};
+		let invalidEmptyGroup = {
+			WHERE: {
+				AND: [
+					{
+						IS: {
+							rooms_furniture: "*Tables*",
+						},
+					},
+					{
+						GT: {
+							rooms_seats: 300,
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["rooms_shortname", "maxSeats"],
+				ORDER: {
+					dir: "DOWN",
+					keys: ["maxSeats"],
+				},
+			},
+			TRANSFORMATIONS: {
+				GROUP: [],
+				APPLY: [
+					{
+						maxSeats: {
+							MAX: "rooms_seats",
+						},
+					},
+				],
+			},
+		};
+		let invalidColNotInGroup = {
+			WHERE: {
+				AND: [
+					{
+						IS: {
+							rooms_furniture: "*Tables*",
+						},
+					},
+					{
+						GT: {
+							rooms_seats: 300,
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["rooms_fullname", "maxSeats"],
+				ORDER: {
+					dir: "DOWN",
+					keys: ["maxSeats"],
+				},
+			},
+			TRANSFORMATIONS: {
+				GROUP: ["rooms_shortname"],
+				APPLY: [
+					{
+						maxSeats: {
+							MAX: "rooms_seats",
+						},
+					},
+				],
+			},
+		};
+		let validRooms = {
+			WHERE: {
+				AND: [
+					{
+						IS: {
+							rooms_furniture: "*Tables*",
+						},
+					},
+					{
+						GT: {
+							rooms_seats: 300,
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["rooms_shortname", "maxSeats"],
+				ORDER: {
+					dir: "DOWN",
+					keys: ["maxSeats"],
+				},
+			},
+			TRANSFORMATIONS: {
+				GROUP: ["rooms_shortname"],
+				APPLY: [
+					{
+						maxSeats: {
+							MAX: "rooms_seats",
+						},
+					},
+				],
+			},
+		};
+		let invalidWrongKeyIS = {
+			WHERE: {
+				AND: [
+					{
+						IS: {
+							rooms_furniture: 90,
+						},
+					},
+					{
+						GT: {
+							rooms_seats: 300,
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["rooms_shortname", "maxSeats"],
+				ORDER: {
+					dir: "DOWN",
+					keys: ["maxSeats"],
+				},
+			},
+			TRANSFORMATIONS: {
+				GROUP: ["rooms_shortname"],
+				APPLY: [
+					{
+						maxSeats: {
+							MAX: "rooms_seats",
+						},
+					},
+				],
+			},
+		};
+		let invalidKeyGT = {
+			WHERE: {
+				AND: [
+					{
+						IS: {
+							rooms_furniture: "*Tables*",
+						},
+					},
+					{
+						GT: {
+							rooms_fail: 90,
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["rooms_shortname", "maxSeats"],
+				ORDER: {
+					dir: "DOWN",
+					keys: ["maxSeats"],
+				},
+			},
+			TRANSFORMATIONS: {
+				GROUP: ["rooms_shortname"],
+				APPLY: [
+					{
+						maxSeats: {
+							MAX: "rooms_seats",
+						},
+					},
+				],
+			},
+		};
+		let valid2Keys = {
+			WHERE: {
+				AND: [
+					{
+						IS: {
+							rooms_furniture: "*Tables*",
+						},
+					},
+					{
+						GT: {
+							rooms_seats: 300,
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["rooms_shortname", "maxSeats"],
+				ORDER: {
+					dir: "DOWN",
+					keys: ["maxSeats", "rooms_shortname"],
+				},
+			},
+			TRANSFORMATIONS: {
+				GROUP: ["rooms_shortname"],
+				APPLY: [
+					{
+						maxSeats: {
+							MAX: "rooms_seats",
+						},
+					},
+				],
+			},
+		};
+
+		let sections: Section[];
+		let dataset: Dataset;
+		let dataset2: Dataset;
+		let sec1: Section;
+		let sec2: Section;
+		let sec3: Section;
+		let sec4: Section;
+		let sec5: Section;
+		let validator: Validator;
+		let facade: InsightFacade;
+		let collector: Collector;
+
+		before(function () {
+			clearDisk();
+			facade = new InsightFacade();
+			// generated by chatGPT
+			const rooms: Room[] = [
+				new Room(
+					"DMP_110",
+					"DMP",
+					"110",
+					"DMP 110",
+					"123 Main St",
+					49.123,
+					-123.456,
+					400,
+					"Lecture Hall",
+					"Tables",
+					"https://example.com/room/110"
+				),
+				new Room(
+					"LSK_201",
+					"LSK",
+					"201",
+					"LSK 201",
+					"456 Elm St",
+					49.789,
+					-123.789,
+					350,
+					"Lecture Hall",
+					"Tables",
+					"https://example.com/room/201"
+				),
+				new Room(
+					"EOSB_101",
+					"EOSB",
+					"101",
+					"EOSB 101",
+					"789 Oak St",
+					49.456,
+					-123.123,
+					360,
+					"Lecture Hall",
+					"Tables",
+					"https://example.com/room/101"
+				),
+				new Room(
+					"WOOD_301",
+					"WOOD",
+					"301",
+					"WOOD 301",
+					"321 Pine St",
+					49.987,
+					-123.987,
+					120,
+					"Classroom",
+					"Chair",
+					"https://example.com/room/301"
+				),
+				new Room(
+					"ICICS_005",
+					"ICICS",
+					"005",
+					"ICICS 005",
+					"555 Cedar St",
+					49.654,
+					-123.654,
+					30,
+					"Laboratory",
+					"Chair",
+					"https://example.com/room/005"
+				),
+				new Room(
+					"ANGU_202",
+					"ANGU",
+					"202",
+					"ANGU 202",
+					"222 Birch St",
+					49.234,
+					-123.234,
+					90,
+					"Classroom",
+					"Chair",
+					"https://example.com/room/202"
+				),
+				new Room(
+					"CHEM_401",
+					"CHEM",
+					"401",
+					"CHEM 401",
+					"456 Redwood St",
+					49.555,
+					-123.555,
+					55,
+					"Laboratory",
+					"Desk-Chair",
+					"https://example.com/room/401"
+				),
+				new Room(
+					"PHYS_301",
+					"PHYS",
+					"301",
+					"PHYS 301",
+					"123 Sequoia St",
+					49.888,
+					-123.888,
+					55,
+					"Classroom",
+					"Desk-Chair",
+					"https://example.com/room/301"
+				),
+				new Room(
+					"MATH_110",
+					"MATH",
+					"110",
+					"MATH 110",
+					"987 Walnut St",
+					49.345,
+					-123.345,
+					55,
+					"Classroom",
+					"Desk-Chair",
+					"https://example.com/room/110"
+				),
+				new Room(
+					"LSC_150",
+					"LSC",
+					"150",
+					"LSC 150",
+					"111 Maple St",
+					49.111,
+					-123.111,
+					55,
+					"Classroom",
+					"Desk-Chair",
+					"https://example.com/room/150"
+				),
+			];
+			sec1 = new Section("01", "110", "comptn, progrmng", "david", "math", 2020, 80, 46, 4, 4);
+			sec2 = new Section("02", "110", "comptn, progrmng", "david", "chem", 2015, 85, 49, 1, 2);
+			sec3 = new Section("03", "121", "comptn, progrmng", "andrew", "cpsc", 2015, 60, 25, 25, 0);
+			sec4 = new Section("04", "121", "comptn, progrmng", "andrew", "cpsc", 2021, 70, 30, 20, 1);
+			sec5 = new Section("05", "300", "biology", "andrew", "biol", 2000, 20, 3, 1, 1);
+			sections = [sec1, sec2, sec3, sec4, sec5];
+			dataset = new Dataset("sections", 5, sections, InsightDatasetKind.Sections);
+			dataset2 = new Dataset("rooms", 10, rooms, InsightDatasetKind.Rooms);
+			validator = new Validator([dataset, dataset2]);
+			collector = new Collector([dataset, dataset2]);
+			facade.aDataset(dataset);
+			facade.aDataset(dataset2);
+		});
+
+		it("should properly validate All", function () {
+			const where = Object.keys(validBasic)[0];
+			const opts = Object.keys(validBasic)[1];
+			const trans = Object.keys(validBasic)[2];
+			const subW = validBasic.WHERE;
+			const subO = validBasic.OPTIONS;
+			const subT = validBasic.TRANSFORMATIONS;
+			const transObj = parseTransformations(subT, trans);
+			const whereObj = parseWhereRefactored(subW, where);
+			const optsObj = parseOptionsRefactored(subO, opts);
+			const result3 = validator.validateTransformations(transObj);
+			const result1 = validator.validateWhereRefactored(whereObj);
+			const result2 = validator.validateOptionsRefactored(optsObj);
+			expect(result1.error).to.equal(0);
+			expect(result3.error).to.equal(0);
+			expect(result2.error).to.equal(0);
+		});
+
+		it("validate ALL Complex", function () {
+			const trans = Object.keys(validComplex)[2];
+			const subT = validComplex.TRANSFORMATIONS;
+			const where = Object.keys(validComplex)[0];
+			const subW = validComplex.WHERE;
+			const opts = Object.keys(validComplex)[1];
+			const subO = validComplex.OPTIONS;
+			const transObj = parseTransformations(subT, trans);
+			const whereObj = parseWhereRefactored(subW, where);
+			const optsObj = parseOptionsRefactored(subO, opts);
+			const result3 = validator.validateTransformations(transObj);
+			const result1 = validator.validateWhereRefactored(whereObj);
+			const result2 = validator.validateOptionsRefactored(optsObj);
+			expect(result1.error).to.equal(0);
+			expect(result3.error).to.equal(0);
+			expect(result2.error).to.equal(0);
+		});
+
+		it("invalid MissingDir", function () {
+			const trans = Object.keys(invalidMissingDirSort)[2];
+			const subT = invalidMissingDirSort.TRANSFORMATIONS;
+			const where = Object.keys(invalidMissingDirSort)[0];
+			const subW = invalidMissingDirSort.WHERE;
+			const opts = Object.keys(invalidMissingDirSort)[1];
+			const subO = invalidMissingDirSort.OPTIONS;
+			const transObj = parseTransformations(subT, trans);
+			const whereObj = parseWhereRefactored(subW, where);
+			const optsObj = parseOptionsRefactored(subO, opts);
+			const result3 = validator.validateTransformations(transObj);
+			const result1 = validator.validateWhereRefactored(whereObj);
+			const result2 = validator.validateOptionsRefactored(optsObj);
+			expect(result1.error).to.equal(0);
+			expect(result3.error).to.equal(0);
+			expect(result2.error).to.equal(1);
+			console.log(result2.msg);
+		});
+
+		it("valid", async function () {
+			const results = await facade.performQuery(validRooms);
+			expect(results).to.be.length(3);
+		});
+
+		it("invalid", async function () {
+			const results = facade.performQuery(invalidWrongKeyIS);
+			expect(results).to.be.eventually.rejectedWith(InsightError);
+		});
+
+		it("invalid2", async function () {
+			const results = facade.performQuery(invalidKeyGT);
+			expect(results).to.be.eventually.rejectedWith(InsightError);
+		});
+
+		// it("valid2", async function () {
+		// 	let valid2Keys = {
+		// 		WHERE: {
+		// 			AND: [
+		// 				{
+		// 					IS: {
+		// 						rooms_furniture: "*Tables*",
+		// 					},
+		// 				},
+		// 				{
+		// 					GT: {
+		// 						rooms_seats: 300,
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 		OPTIONS: {
+		// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+		// 			ORDER: {
+		// 				dir: "DOWN",
+		// 				keys: ["maxSeats", "rooms_shortname"],
+		// 			},
+		// 		},
+		// 		TRANSFORMATIONS: {
+		// 			GROUP: ["rooms_shortname"],
+		// 			APPLY: [
+		// 				{
+		// 					maxSeats: {
+		// 						MAX: "rooms_seats",
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 	};
+		// 	const results = await facade.performQuery(valid2Keys);
+		// 	console.log(results);
+		// });
+		//
+		// it("valid2", async function () {
+		// 	let valid2Keys = {
+		// 		WHERE: {
+		// 			AND: [
+		// 				{
+		// 					IS: {
+		// 						rooms_furniture: "*Tables*",
+		// 					},
+		// 				},
+		// 				{
+		// 					GT: {
+		// 						rooms_seats: 300,
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 		OPTIONS: {
+		// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+		// 			ORDER: {
+		// 				dir: "DOWN",
+		// 				keys: ["maxSeats", "rooms_shortname"],
+		// 			},
+		// 		},
+		// 		TRANSFORMATIONS: {
+		// 			GROUP: ["rooms_shortname"],
+		// 			APPLY: [
+		// 				{
+		// 					maxSeats: {
+		// 						MAX: "rooms_seats",
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 	};
+		// 	const results = await facade.performQuery(valid2Keys);
+		// 	console.log(results);
+		// });
+
+		// it("valid2", async function () {
+		// 	let valid2Keys = {
+		// 		WHERE: {
+		// 			AND: [
+		// 				{
+		// 					IS: {
+		// 						rooms_furniture: "*Tables*",
+		// 					},
+		// 				},
+		// 				{
+		// 					GT: {
+		// 						rooms_seats: 300,
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 		OPTIONS: {
+		// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+		// 			ORDER: {
+		// 				dir: "DOWN",
+		// 				keys: ["maxSeats", "rooms_shortname"],
+		// 			},
+		// 		},
+		// 		TRANSFORMATIONS: {
+		// 			GROUP: ["rooms_shortname"],
+		// 			APPLY: [
+		// 				{
+		// 					maxSeats: {
+		// 						MAX: "rooms_seats",
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 	};
+		// 	const results = await facade.performQuery(valid2Keys);
+		// 	console.log(results);
+		// });
+
+		// it("validRoomsbasic", async function () {
+		// 	let valid2Keys = {
+		// 		WHERE: {
+		// 			AND: [
+		// 				{
+		// 					IS: {
+		// 						rooms_shortname: "*S*",
+		// 					},
+		// 				},
+		// 				{
+		// 					GT: {
+		// 						rooms_seats: 50,
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 		OPTIONS: {
+		// 			COLUMNS: [
+		// 				"rooms_shortname",
+		// 				"rooms_fullname",
+		// 				"rooms_seats",
+		// 				"rooms_number",
+		// 				"rooms_lon",
+		// 				"rooms_lat",
+		// 				"rooms_furniture",
+		// 			],
+		// 		},
+		// 	};
+		// 	const results = await facade.performQuery(valid2Keys);
+		// 	console.log(results);
+		// 	return expect(results).to.be.length(3);
+		// });
+
+		// it("valid2", async function () {
+		// 	let valid2Keys = {
+		// 		WHERE: {
+		// 			AND: [
+		// 				{
+		// 					IS: {
+		// 						rooms_furniture: "*Tables*",
+		// 					},
+		// 				},
+		// 				{
+		// 					GT: {
+		// 						rooms_seats: 300,
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 		OPTIONS: {
+		// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+		// 			ORDER: {
+		// 				dir: "DOWN",
+		// 				keys: ["maxSeats", "rooms_shortname"],
+		// 			},
+		// 		},
+		// 		TRANSFORMATIONS: {
+		// 			GROUP: ["rooms_shortname"],
+		// 			APPLY: [
+		// 				{
+		// 					maxSeats: {
+		// 						MAX: "rooms_seats",
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 	};
+		// 	const results = await facade.performQuery(valid2Keys);
+		// 	console.log(results);
+		// });
+		//
+		// it("discTest", async function () {
+		// 	let valid2Keys = {
+		// 		WHERE: {
+		// 			AND: [
+		// 				{
+		// 					IS: {
+		// 						rooms_furniture: "*Tables*",
+		// 					},
+		// 				},
+		// 				{
+		// 					GT: {
+		// 						rooms_seats: 300,
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 		OPTIONS: {
+		// 			COLUMNS: ["rooms_shortname", "rooms_fullname", "rooms_seats"],
+		// 			ORDER: "rooms_shortname",
+		// 		},
+		// 	};
+		// 	const results = await facade.performQuery(valid2Keys);
+		// 	console.log(results);
+		// });
+		//
+		// it("latlon testing", async function () {
+		// 	let valid2Keys = {
+		// 		WHERE: {
+		// 			AND: [
+		// 				{
+		// 					IS: {
+		// 						rooms_furniture: "*Tables*",
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 		OPTIONS: {
+		// 			COLUMNS: ["rooms_type", "maxSeats", "minLon", "maxLon", "minLat", "maxLat"],
+		// 			ORDER: {
+		// 				keys: ["maxSeats"],
+		// 				dir: "DOWN",
+		// 			},
+		// 		},
+		// 		TRANSFORMATIONS: {
+		// 			GROUP: ["rooms_type"],
+		// 			APPLY: [
+		// 				{
+		// 					maxSeats: {
+		// 						MAX: "rooms_seats",
+		// 					},
+		// 				},
+		// 				{
+		// 					minLon: {
+		// 						MIN: "rooms_lon",
+		// 					},
+		// 				},
+		// 				{
+		// 					maxLat: {
+		// 						MAX: "rooms_lat",
+		// 					},
+		// 				},
+		// 				{
+		// 					maxLon: {
+		// 						MAX: "rooms_lon",
+		// 					},
+		// 				},
+		// 				{
+		// 					minLat: {
+		// 						MIN: "rooms_lat",
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 	};
+		// 	const results = await facade.performQuery(valid2Keys);
+		// 	console.log(results);
+		// 	return expect(results).to.be.length(3);
+		// });
+		//
+		// it("invalidAllorderKeys must be in COL", async function () {
+		// 	let query = {
+		// 		WHERE: {
+		// 			AND: [
+		// 				{
+		// 					IS: {
+		// 						rooms_furniture: "*Tables*",
+		// 					},
+		// 				},
+		// 				{
+		// 					GT: {
+		// 						rooms_seats: 300,
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 		OPTIONS: {
+		// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+		// 			ORDER: {
+		// 				dir: "DOWN",
+		// 				keys: ["maxSeats", "maxS"],
+		// 			},
+		// 		},
+		// 		TRANSFORMATIONS: {
+		// 			GROUP: ["rooms_shortname"],
+		// 			APPLY: [
+		// 				{
+		// 					maxSeats: {
+		// 						MAX: "rooms_seats",
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 	};
+		// 	const results = facade.performQuery(query);
+		// 	return expect(results).to.be.eventually.rejectedWith(InsightError);
+		// });
+		//
+		// it("Order Keys empty", async function () {
+		// 	let query = {
+		// 		WHERE: {
+		// 			AND: [
+		// 				{
+		// 					IS: {
+		// 						rooms_furniture: "*Tables*",
+		// 					},
+		// 				},
+		// 				{
+		// 					GT: {
+		// 						rooms_seats: 300,
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 		OPTIONS: {
+		// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+		// 			ORDER: {
+		// 				dir: "DOWN",
+		// 				keys: [],
+		// 			},
+		// 		},
+		// 		TRANSFORMATIONS: {
+		// 			GROUP: ["rooms_shortname"],
+		// 			APPLY: [
+		// 				{
+		// 					maxSeats: {
+		// 						MAX: "rooms_seats",
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 	};
+		// 	const results = facade.performQuery(query);
+		// 	return expect(results).to.be.eventually.rejectedWith(InsightError);
+		// });
+		//
+		// it("Invalid key rooms_avg in AVG", async function () {
+		// 	let query = {
+		// 		WHERE: {
+		// 			AND: [
+		// 				{
+		// 					IS: {
+		// 						rooms_furniture: "*Tables*",
+		// 					},
+		// 				},
+		// 				{
+		// 					GT: {
+		// 						rooms_seats: 300,
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 		OPTIONS: {
+		// 			COLUMNS: ["rooms_shortname", "maxSeats"],
+		// 			ORDER: {
+		// 				dir: "DOWN",
+		// 				keys: ["maxSeats"],
+		// 			},
+		// 		},
+		// 		TRANSFORMATIONS: {
+		// 			GROUP: ["rooms_shortname"],
+		// 			APPLY: [
+		// 				{
+		// 					maxSeats: {
+		// 						MAX: "rooms_seats",
+		// 					},
+		// 				},
+		// 				{
+		// 					avgFail: {AVG: "rooms_avg"},
+		// 				},
+		// 			],
+		// 		},
+		// 	};
+		// 	const results = facade.performQuery(query);
+		// 	return expect(results).to.be.eventually.rejectedWith(InsightError);
+		// });
+		//
+		// it("only apply keys used", async function () {
+		// 	let query = {
+		// 		WHERE: {
+		// 			AND: [
+		// 				{
+		// 					IS: {
+		// 						rooms_furniture: "*Tables*",
+		// 					},
+		// 				},
+		// 				{
+		// 					GT: {
+		// 						rooms_seats: 300,
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 		OPTIONS: {
+		// 			COLUMNS: ["maxSeats", "count"],
+		// 			ORDER: {
+		// 				dir: "DOWN",
+		// 				keys: ["maxSeats", "count"],
+		// 			},
+		// 		},
+		// 		TRANSFORMATIONS: {
+		// 			GROUP: [
+		// 				"rooms_shortname",
+		// 				"rooms_shortname",
+		// 				"rooms_fullname",
+		// 				"rooms_lat",
+		// 				"rooms_lon",
+		// 				"rooms_seats",
+		// 			],
+		// 			APPLY: [
+		// 				{
+		// 					maxSeats: {
+		// 						MAX: "rooms_seats",
+		// 					},
+		// 				},
+		// 				{
+		// 					count: {
+		// 						COUNT: "rooms_fullname",
+		// 					},
+		// 				},
+		// 			],
+		// 		},
+		// 	};
+		// 	const results = await facade.performQuery(query);
+		// 	console.log(results);
+		// 	return expect(results).to.be.length(3);
+		// });
+	});
 
 	// describe("validateWhere (refactored)", function () {
 	// 	let transValid = {
@@ -3037,654 +3033,756 @@ describe("Test Suite", function () {
 		});
 	});
 
-	describe("performQuery Tests", function () {
+	describe("Rooms Kind", function () {
+		let campus: string;
 		let facade: InsightFacade;
-		let sections: string;
 
 		before(function () {
-			sections = getContentFromArchives("pair.zip");
-		});
-
-		beforeEach(function () {
-			clearDisk();
-			facade = new InsightFacade();
-		});
-
-		it("should reject query that is string", async function () {
-			const query: string =
-				'{"WHERE": {"GT": {"sections_avg": 97 }},' +
-				'"OPTIONS": { "COLUMNS": ["sections_dept", "sections_avg"],"ORDER": "sections_avg"}}';
-			let errorWasThrown = false;
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw error but, but it did not :(");
-			}
-		});
-
-		// it("should reject query with empty WHERE", async function () {
-		// 	const query = {
-		// 		"": {GT: {sections_avg: 97}},
-		// 		OPTIONS: {COLUMNS: ["sections_dept", "sections_avg"], ORDER: "sections_avg"},
-		// 	};
-		// 	let errorWasThrown = false;
-		// 	try {
-		// 		await facade.performQuery(query);
-		// 	} catch (error) {
-		// 		errorWasThrown = true;
-		// 		expect(error).to.be.instanceOf(InsightError);
-		// 	}
-		// 	if (!errorWasThrown) {
-		// 		throw new Error("Expected performQuery to throw error but, but it did not :(");
-		// 	}
-		// });
-
-		it("should reject query with no WHERE", async function () {
-			const query = {
-				A: {GT: {sections_avg: 97}},
-				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg"], ORDER: "sections_avg"},
-			};
-
-			let errorWasThrown = false;
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw an error, but it did not :(");
-			}
-		});
-
-		it("should reject query with no OPTIONS", async function () {
-			const query = {WHERE: {GT: {sections_avg: 97}}};
-
-			let errorWasThrown = false;
-
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw an error, but it did not :(");
-			}
-		});
-
-		it("should reject query typo COLUMN", async function () {
-			const query = {
-				WHERE: {GT: {sections_avg: 97}},
-				OPTIONS: {COLUMS: ["sections_dept", "sections_avg"], ORDER: "sections_avg"},
-			};
-
-			let errorWasThrown = false;
-
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw an error, but it did not.");
-			}
-		});
-
-		it("should reject query idstring not datasetID", async function () {
-			const query = {
-				WHERE: {GT: {xxx_avg: 97}},
-				OPTIONS: {
-					COLUMNS: ["sections_dept", "sections_avg", "sections_pass"],
-					ORDER: "sections_pass",
-				},
-			};
-
-			let errorWasThrown = false;
-
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw error but, but it did not :(");
-			}
-		});
-
-		it("should reject query empty FILTER list", async function () {
-			const query = {
-				WHERE: {OR: {}},
-				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
-			};
-
-			let errorWasThrown = false;
-
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw error but, but it did not :(");
-			}
-		});
-
-		it("should reject query empty KEY list", async function () {
-			const query = {WHERE: {OR: {}}, OPTIONS: {COLUMNS: []}};
-
-			let errorWasThrown = false;
-
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw error, but it did not :(");
-			}
-		});
-
-		it("should reject query idsting with _", async function () {
-			const query = {
-				WHERE: {GT: {section_s_avg: 97}},
-				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
-			};
-
-			let errorWasThrown = false;
-
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw error, but it did not :(");
-			}
-		});
-
-		it("should reject query ORDER key must be in COLUMNS", async function () {
-			const query = {
-				WHERE: {GT: {sections_avg: 97}},
-				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg"], ORDER: "sections_pass"},
-			};
-
-			let errorWasThrown = false;
-
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw error, but it did not :(");
-			}
-		});
-
-		it("should reject query input string with *", async function () {
-			const query = {
-				WHERE: {GT: {"sections*_avg": 97}},
-				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
-			};
-
-			let errorWasThrown = false;
-
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw error, but it did not :(");
-			}
-		});
-
-		it("should resolve *input string*", async function () {
-			const query = {
-				WHERE: {IS: {sections_dept: "*hin*"}},
-				OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
-			};
-
-			try {
-				const result = await facade.performQuery(query);
-				expect(result).to.have.lengthOf(990);
-			} catch (error) {
-				console.log(error);
-				throw new Error("Expected performQuery to resolve successfully, but it did not :(");
-			}
-		});
-
-		it("should resolve with 2 FILTERS", async function () {
-			const query = {
-				WHERE: {
-					AND: [
-						{
-							IS: {
-								sections_dept: "*japn*",
-							},
-						},
-						{
-							IS: {
-								sections_dept: "*japn*",
-							},
-						},
-					],
-				},
-				OPTIONS: {
-					COLUMNS: ["sections_dept", "sections_avg", "sections_pass"],
-					ORDER: "sections_pass",
-				},
-			};
-
-			try {
-				const result = await facade.performQuery(query);
-				expect(result).to.have.lengthOf(966);
-			} catch (error) {
-				throw new Error("Expected performQuery to resolve successfully, but it did not :(");
-			}
-		});
-
-		it("should reject as >5000 results", async function () {
-			const query = {
-				WHERE: {},
-				OPTIONS: {
-					COLUMNS: ["sections_dept"],
-				},
-			};
-
-			let errorWasThrown = false;
-
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				console.log(error);
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(ResultTooLargeError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw ResultTooLargeError, but it did not :(");
-			}
-		});
-
-		it("should return correct results for a simple query", async function () {
-			const query = {
-				WHERE: {
-					GT: {
-						sections_avg: 97,
-					},
-				},
-				OPTIONS: {
-					COLUMNS: ["sections_dept", "sections_avg"],
-					ORDER: "sections_avg",
-				},
-			};
-			const expected: InsightResult[] = [
-				{sections_dept: "math", sections_avg: 97.09},
-
-				{sections_dept: "math", sections_avg: 97.09},
-
-				{sections_dept: "epse", sections_avg: 97.09},
-
-				{sections_dept: "epse", sections_avg: 97.09},
-
-				{sections_dept: "math", sections_avg: 97.25},
-
-				{sections_dept: "math", sections_avg: 97.25},
-
-				{sections_dept: "epse", sections_avg: 97.29},
-
-				{sections_dept: "epse", sections_avg: 97.29},
-
-				{sections_dept: "nurs", sections_avg: 97.33},
-
-				{sections_dept: "nurs", sections_avg: 97.33},
-
-				{sections_dept: "epse", sections_avg: 97.41},
-
-				{sections_dept: "epse", sections_avg: 97.41},
-
-				{sections_dept: "cnps", sections_avg: 97.47},
-
-				{sections_dept: "cnps", sections_avg: 97.47},
-
-				{sections_dept: "math", sections_avg: 97.48},
-
-				{sections_dept: "math", sections_avg: 97.48},
-
-				{sections_dept: "educ", sections_avg: 97.5},
-
-				{sections_dept: "nurs", sections_avg: 97.53},
-
-				{sections_dept: "nurs", sections_avg: 97.53},
-
-				{sections_dept: "epse", sections_avg: 97.67},
-
-				{sections_dept: "epse", sections_avg: 97.69},
-
-				{sections_dept: "epse", sections_avg: 97.78},
-
-				{sections_dept: "crwr", sections_avg: 98},
-
-				{sections_dept: "crwr", sections_avg: 98},
-
-				{sections_dept: "epse", sections_avg: 98.08},
-
-				{sections_dept: "nurs", sections_avg: 98.21},
-
-				{sections_dept: "nurs", sections_avg: 98.21},
-
-				{sections_dept: "epse", sections_avg: 98.36},
-
-				{sections_dept: "epse", sections_avg: 98.45},
-
-				{sections_dept: "epse", sections_avg: 98.45},
-
-				{sections_dept: "nurs", sections_avg: 98.5},
-
-				{sections_dept: "nurs", sections_avg: 98.5},
-
-				{sections_dept: "nurs", sections_avg: 98.58},
-
-				{sections_dept: "nurs", sections_avg: 98.58},
-
-				{sections_dept: "epse", sections_avg: 98.58},
-
-				{sections_dept: "epse", sections_avg: 98.58},
-
-				{sections_dept: "epse", sections_avg: 98.7},
-
-				{sections_dept: "nurs", sections_avg: 98.71},
-
-				{sections_dept: "nurs", sections_avg: 98.71},
-
-				{sections_dept: "eece", sections_avg: 98.75},
-
-				{sections_dept: "eece", sections_avg: 98.75},
-
-				{sections_dept: "epse", sections_avg: 98.76},
-
-				{sections_dept: "epse", sections_avg: 98.76},
-
-				{sections_dept: "epse", sections_avg: 98.8},
-
-				{sections_dept: "spph", sections_avg: 98.98},
-
-				{sections_dept: "spph", sections_avg: 98.98},
-
-				{sections_dept: "cnps", sections_avg: 99.19},
-
-				{sections_dept: "math", sections_avg: 99.78},
-
-				{sections_dept: "math", sections_avg: 99.78},
-			];
-			const result = await facade.performQuery(query);
-			expect(result).to.deep.equal(expected);
-		});
-
-		it("should return correct results for a complex query", async function () {
-			//	timeout if it takes too long so other tests can perform
-			this.timeout(5000);
-			const query = {
-				WHERE: {
-					OR: [
-						{
-							AND: [
-								{
-									GT: {
-										ubc_avg: 90,
-									},
-								},
-								{
-									IS: {
-										ubc_dept: "adhe",
-									},
-								},
-							],
-						},
-						{
-							EQ: {
-								ubc_avg: 95,
-							},
-						},
-					],
-				},
-				OPTIONS: {
-					COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
-					ORDER: "ubc_avg",
-				},
-			};
-			const expected: InsightResult[] = [
-				{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 90.02},
-
-				{ubc_dept: "adhe", ubc_id: "412", ubc_avg: 90.16},
-
-				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.17},
-
-				{ubc_dept: "adhe", ubc_id: "412", ubc_avg: 90.18},
-
-				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.5},
-
-				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.72},
-
-				{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 90.82},
-
-				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.85},
-
-				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.29},
-
-				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.33},
-
-				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.33},
-
-				{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.48},
-
-				{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 92.54},
-
-				{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 93.33},
-
-				{ubc_dept: "sowk", ubc_id: "570", ubc_avg: 95},
-
-				{ubc_dept: "rhsc", ubc_id: "501", ubc_avg: 95},
-
-				{ubc_dept: "psyc", ubc_id: "501", ubc_avg: 95},
-
-				{ubc_dept: "psyc", ubc_id: "501", ubc_avg: 95},
-
-				{ubc_dept: "obst", ubc_id: "549", ubc_avg: 95},
-
-				{ubc_dept: "nurs", ubc_id: "424", ubc_avg: 95},
-
-				{ubc_dept: "nurs", ubc_id: "424", ubc_avg: 95},
-
-				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
-
-				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
-
-				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
-
-				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
-
-				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
-
-				{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
-
-				{ubc_dept: "mtrl", ubc_id: "599", ubc_avg: 95},
-
-				{ubc_dept: "mtrl", ubc_id: "564", ubc_avg: 95},
-
-				{ubc_dept: "mtrl", ubc_id: "564", ubc_avg: 95},
-
-				{ubc_dept: "math", ubc_id: "532", ubc_avg: 95},
-
-				{ubc_dept: "math", ubc_id: "532", ubc_avg: 95},
-
-				{ubc_dept: "kin", ubc_id: "500", ubc_avg: 95},
-
-				{ubc_dept: "kin", ubc_id: "500", ubc_avg: 95},
-
-				{ubc_dept: "kin", ubc_id: "499", ubc_avg: 95},
-
-				{ubc_dept: "epse", ubc_id: "682", ubc_avg: 95},
-
-				{ubc_dept: "epse", ubc_id: "682", ubc_avg: 95},
-
-				{ubc_dept: "epse", ubc_id: "606", ubc_avg: 95},
-
-				{ubc_dept: "edcp", ubc_id: "473", ubc_avg: 95},
-
-				{ubc_dept: "edcp", ubc_id: "473", ubc_avg: 95},
-
-				{ubc_dept: "econ", ubc_id: "516", ubc_avg: 95},
-
-				{ubc_dept: "econ", ubc_id: "516", ubc_avg: 95},
-
-				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
-
-				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
-
-				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
-
-				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
-
-				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
-
-				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
-
-				{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
-
-				{ubc_dept: "cpsc", ubc_id: "589", ubc_avg: 95},
-
-				{ubc_dept: "cpsc", ubc_id: "589", ubc_avg: 95},
-
-				{ubc_dept: "cnps", ubc_id: "535", ubc_avg: 95},
-
-				{ubc_dept: "cnps", ubc_id: "535", ubc_avg: 95},
-
-				{ubc_dept: "bmeg", ubc_id: "597", ubc_avg: 95},
-
-				{ubc_dept: "bmeg", ubc_id: "597", ubc_avg: 95},
-
-				{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 96.11},
-			];
-			const actualResult = await facade.performQuery(query);
-			expect(actualResult).to.deep.equal(expected);
-		});
-
-		it("should reject for incorrect format for a simple query - invalid key in column", async function () {
-			const query = {
-				WHERE: {
-					GT: {
-						sections_avg: 97,
-					},
-				},
-				OPTIONS: {
-					COLUMNS: ["sections_dept", "_avg"],
-					ORDER: "sections_avg",
-				},
-			};
-
-			let errorWasThrown = false;
-
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw an InsightError, but it did not. :(");
-			}
-		});
-
-		it("should reject references dataset not added", async function () {
-			const query = {
-				WHERE: {
-					IS: {
-						ubc_dept: "*a",
-					},
-				},
-				OPTIONS: {
-					COLUMNS: ["sections_dept", "sections_avg"],
-					ORDER: "sections_avg",
-				},
-			};
-
-			let errorWasThrown = false;
-
-			try {
-				await facade.performQuery(query);
-			} catch (error) {
-				errorWasThrown = true;
-				expect(error).to.be.instanceOf(InsightError);
-			}
-
-			if (!errorWasThrown) {
-				throw new Error("Expected performQuery to throw an InsightError, but it did not. :(");
-			}
-		});
-	});
-
-	describe("listDatasets Tests", async function () {
-		let facade: InsightFacade;
-		let sections: string;
-		let initialDatasetCount: number;
-
-		before(async function () {
-			sections = getContentFromArchives("pair.zip");
+			campus = getContentFromArchives("basic.zip");
 		});
 
 		beforeEach(async function () {
 			clearDisk();
 			facade = new InsightFacade();
-
-			// Get the initial dataset count
-			const initialDatasets = await facade.listDatasets();
-			initialDatasetCount = initialDatasets.length;
-
-			// Add two datasets
-			await Promise.all([
-				facade.addDataset("ubc", sections, InsightDatasetKind.Sections),
-				facade.addDataset("ubc2", sections, InsightDatasetKind.Rooms),
-			]);
 		});
 
-		it("should return all datasets that were added", async function () {
-			const datasets: InsightDataset[] = await facade.listDatasets();
+		it("should successfully add room dataset (first)", function () {
+			const result = facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
+			return expect(result).to.eventually.have.members(["campus"]);
+		});
 
-			// Check if the length increased by 2
-			expect(datasets)
-				.to.be.an("array")
-				.that.has.lengthOf(initialDatasetCount + 2);
+		it("should successfully add a dataset (second)", function () {
+			facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
+			const result = facade.removeDataset("campus");
+			return expect(result).to.eventually.be.rejectedWith(NotFoundError);
+		});
 
-			datasets.forEach(function (dataset) {
-				expect(dataset).to.be.an("object");
-				expect(dataset).to.have.property("id").that.is.a("string");
-				expect(dataset.kind).to.be.oneOf([InsightDatasetKind.Sections, InsightDatasetKind.Rooms]);
-				expect(dataset).to.have.property("numRows").that.is.a("number");
-			});
+		// it("should successfully add 2 datasets", async function () {
+		// 	await facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
+		// 	const result = facade.addDataset("pair", pair, InsightDatasetKind.Sections);
+		// 	return expect(result).to.eventually.have.members(["ubc", "pair"]);
+		// });
+
+		it("should reject with an empty dataset id", function () {
+			const result = facade.addDataset("", campus, InsightDatasetKind.Rooms);
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should reject with a whitespace id", function () {
+			const result = facade.addDataset(" ", campus, InsightDatasetKind.Rooms);
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		it("should reject with a invalid Sections kind", function () {
+			const result = facade.addDataset("campus", campus, InsightDatasetKind.Sections);
+			return expect(result).to.eventually.be.rejectedWith(InsightError);
+		});
+
+		// INVALID SECTION TESTS
+		// it("should reject with an invalid dataset (no valid rooms)", function () {
+		// 	const result = facade.addDataset("campus", sectionsInvalid, InsightDatasetKind.Rooms);
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		//
+		// it("should reject with an invalid section (missing avg)", function () {
+		// 	const result = facade.addDataset("test", noavg, InsightDatasetKind.Sections);
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		//
+		// it("should reject with an invalid section (missing pass)", function () {
+		// 	const result = facade.addDataset("test", nopass, InsightDatasetKind.Sections);
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		//
+		// it("should reject with an invalid section (missing fail)", function () {
+		// 	const result = facade.addDataset("test", nofail, InsightDatasetKind.Sections);
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		//
+		// it("should reject with an invalid section (missing audit)", function () {
+		// 	const result = facade.addDataset("test", noaudit, InsightDatasetKind.Sections);
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		//
+		// it("should reject with an invalid section (missing year)", function () {
+		// 	const result = facade.addDataset("test", noyear, InsightDatasetKind.Sections);
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		//
+		// it("should reject with an invalid section (missing dept)", function () {
+		// 	const result = facade.addDataset("test", nodept, InsightDatasetKind.Sections);
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		//
+		// it("should reject with an invalid section (missing id)", function () {
+		// 	const result = facade.addDataset("test", noid, InsightDatasetKind.Sections);
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		//
+		// it("should reject with an invalid section (missing instructor)", function () {
+		// 	const result = facade.addDataset("test", noinst, InsightDatasetKind.Sections);
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		//
+		// it("should reject with an invalid section (missing title)", function () {
+		// 	const result = facade.addDataset("ubc", notitle, InsightDatasetKind.Sections);
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+		//
+		// it("should reject with an invalid section (missing uuid)", function () {
+		// 	const result = facade.addDataset("test", nouuid, InsightDatasetKind.Sections);
+		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+		// });
+	});
+});
+
+describe("performQuery Tests", function () {
+	let facade: InsightFacade;
+	let sections: string;
+
+	before(function () {
+		sections = getContentFromArchives("pair.zip");
+	});
+
+	beforeEach(function () {
+		clearDisk();
+		facade = new InsightFacade();
+	});
+
+	it("should reject query that is string", async function () {
+		const query: string =
+			'{"WHERE": {"GT": {"sections_avg": 97 }},' +
+			'"OPTIONS": { "COLUMNS": ["sections_dept", "sections_avg"],"ORDER": "sections_avg"}}';
+		let errorWasThrown = false;
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw error but, but it did not :(");
+		}
+	});
+
+	// it("should reject query with empty WHERE", async function () {
+	// 	const query = {
+	// 		"": {GT: {sections_avg: 97}},
+	// 		OPTIONS: {COLUMNS: ["sections_dept", "sections_avg"], ORDER: "sections_avg"},
+	// 	};
+	// 	let errorWasThrown = false;
+	// 	try {
+	// 		await facade.performQuery(query);
+	// 	} catch (error) {
+	// 		errorWasThrown = true;
+	// 		expect(error).to.be.instanceOf(InsightError);
+	// 	}
+	// 	if (!errorWasThrown) {
+	// 		throw new Error("Expected performQuery to throw error but, but it did not :(");
+	// 	}
+	// });
+
+	it("should reject query with no WHERE", async function () {
+		const query = {
+			A: {GT: {sections_avg: 97}},
+			OPTIONS: {COLUMNS: ["sections_dept", "sections_avg"], ORDER: "sections_avg"},
+		};
+
+		let errorWasThrown = false;
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw an error, but it did not :(");
+		}
+	});
+
+	it("should reject query with no OPTIONS", async function () {
+		const query = {WHERE: {GT: {sections_avg: 97}}};
+
+		let errorWasThrown = false;
+
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw an error, but it did not :(");
+		}
+	});
+
+	it("should reject query typo COLUMN", async function () {
+		const query = {
+			WHERE: {GT: {sections_avg: 97}},
+			OPTIONS: {COLUMS: ["sections_dept", "sections_avg"], ORDER: "sections_avg"},
+		};
+
+		let errorWasThrown = false;
+
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw an error, but it did not.");
+		}
+	});
+
+	it("should reject query idstring not datasetID", async function () {
+		const query = {
+			WHERE: {GT: {xxx_avg: 97}},
+			OPTIONS: {
+				COLUMNS: ["sections_dept", "sections_avg", "sections_pass"],
+				ORDER: "sections_pass",
+			},
+		};
+
+		let errorWasThrown = false;
+
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw error but, but it did not :(");
+		}
+	});
+
+	it("should reject query empty FILTER list", async function () {
+		const query = {
+			WHERE: {OR: {}},
+			OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
+		};
+
+		let errorWasThrown = false;
+
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw error but, but it did not :(");
+		}
+	});
+
+	it("should reject query empty KEY list", async function () {
+		const query = {WHERE: {OR: {}}, OPTIONS: {COLUMNS: []}};
+
+		let errorWasThrown = false;
+
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw error, but it did not :(");
+		}
+	});
+
+	it("should reject query idsting with _", async function () {
+		const query = {
+			WHERE: {GT: {section_s_avg: 97}},
+			OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
+		};
+
+		let errorWasThrown = false;
+
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw error, but it did not :(");
+		}
+	});
+
+	it("should reject query ORDER key must be in COLUMNS", async function () {
+		const query = {
+			WHERE: {GT: {sections_avg: 97}},
+			OPTIONS: {COLUMNS: ["sections_dept", "sections_avg"], ORDER: "sections_pass"},
+		};
+
+		let errorWasThrown = false;
+
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw error, but it did not :(");
+		}
+	});
+
+	it("should reject query input string with *", async function () {
+		const query = {
+			WHERE: {GT: {"sections*_avg": 97}},
+			OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
+		};
+
+		let errorWasThrown = false;
+
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw error, but it did not :(");
+		}
+	});
+
+	it("should resolve *input string*", async function () {
+		const query = {
+			WHERE: {IS: {sections_dept: "*hin*"}},
+			OPTIONS: {COLUMNS: ["sections_dept", "sections_avg", "sections_pass"], ORDER: "sections_pass"},
+		};
+
+		try {
+			const result = await facade.performQuery(query);
+			expect(result).to.have.lengthOf(990);
+		} catch (error) {
+			console.log(error);
+			throw new Error("Expected performQuery to resolve successfully, but it did not :(");
+		}
+	});
+
+	it("should resolve with 2 FILTERS", async function () {
+		const query = {
+			WHERE: {
+				AND: [
+					{
+						IS: {
+							sections_dept: "*japn*",
+						},
+					},
+					{
+						IS: {
+							sections_dept: "*japn*",
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["sections_dept", "sections_avg", "sections_pass"],
+				ORDER: "sections_pass",
+			},
+		};
+
+		try {
+			const result = await facade.performQuery(query);
+			expect(result).to.have.lengthOf(966);
+		} catch (error) {
+			throw new Error("Expected performQuery to resolve successfully, but it did not :(");
+		}
+	});
+
+	it("should reject as >5000 results", async function () {
+		const query = {
+			WHERE: {},
+			OPTIONS: {
+				COLUMNS: ["sections_dept"],
+			},
+		};
+
+		let errorWasThrown = false;
+
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			console.log(error);
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(ResultTooLargeError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw ResultTooLargeError, but it did not :(");
+		}
+	});
+
+	it("should return correct results for a simple query", async function () {
+		const query = {
+			WHERE: {
+				GT: {
+					sections_avg: 97,
+				},
+			},
+			OPTIONS: {
+				COLUMNS: ["sections_dept", "sections_avg"],
+				ORDER: "sections_avg",
+			},
+		};
+		const expected: InsightResult[] = [
+			{sections_dept: "math", sections_avg: 97.09},
+
+			{sections_dept: "math", sections_avg: 97.09},
+
+			{sections_dept: "epse", sections_avg: 97.09},
+
+			{sections_dept: "epse", sections_avg: 97.09},
+
+			{sections_dept: "math", sections_avg: 97.25},
+
+			{sections_dept: "math", sections_avg: 97.25},
+
+			{sections_dept: "epse", sections_avg: 97.29},
+
+			{sections_dept: "epse", sections_avg: 97.29},
+
+			{sections_dept: "nurs", sections_avg: 97.33},
+
+			{sections_dept: "nurs", sections_avg: 97.33},
+
+			{sections_dept: "epse", sections_avg: 97.41},
+
+			{sections_dept: "epse", sections_avg: 97.41},
+
+			{sections_dept: "cnps", sections_avg: 97.47},
+
+			{sections_dept: "cnps", sections_avg: 97.47},
+
+			{sections_dept: "math", sections_avg: 97.48},
+
+			{sections_dept: "math", sections_avg: 97.48},
+
+			{sections_dept: "educ", sections_avg: 97.5},
+
+			{sections_dept: "nurs", sections_avg: 97.53},
+
+			{sections_dept: "nurs", sections_avg: 97.53},
+
+			{sections_dept: "epse", sections_avg: 97.67},
+
+			{sections_dept: "epse", sections_avg: 97.69},
+
+			{sections_dept: "epse", sections_avg: 97.78},
+
+			{sections_dept: "crwr", sections_avg: 98},
+
+			{sections_dept: "crwr", sections_avg: 98},
+
+			{sections_dept: "epse", sections_avg: 98.08},
+
+			{sections_dept: "nurs", sections_avg: 98.21},
+
+			{sections_dept: "nurs", sections_avg: 98.21},
+
+			{sections_dept: "epse", sections_avg: 98.36},
+
+			{sections_dept: "epse", sections_avg: 98.45},
+
+			{sections_dept: "epse", sections_avg: 98.45},
+
+			{sections_dept: "nurs", sections_avg: 98.5},
+
+			{sections_dept: "nurs", sections_avg: 98.5},
+
+			{sections_dept: "nurs", sections_avg: 98.58},
+
+			{sections_dept: "nurs", sections_avg: 98.58},
+
+			{sections_dept: "epse", sections_avg: 98.58},
+
+			{sections_dept: "epse", sections_avg: 98.58},
+
+			{sections_dept: "epse", sections_avg: 98.7},
+
+			{sections_dept: "nurs", sections_avg: 98.71},
+
+			{sections_dept: "nurs", sections_avg: 98.71},
+
+			{sections_dept: "eece", sections_avg: 98.75},
+
+			{sections_dept: "eece", sections_avg: 98.75},
+
+			{sections_dept: "epse", sections_avg: 98.76},
+
+			{sections_dept: "epse", sections_avg: 98.76},
+
+			{sections_dept: "epse", sections_avg: 98.8},
+
+			{sections_dept: "spph", sections_avg: 98.98},
+
+			{sections_dept: "spph", sections_avg: 98.98},
+
+			{sections_dept: "cnps", sections_avg: 99.19},
+
+			{sections_dept: "math", sections_avg: 99.78},
+
+			{sections_dept: "math", sections_avg: 99.78},
+		];
+		const result = await facade.performQuery(query);
+		expect(result).to.deep.equal(expected);
+	});
+
+	it("should return correct results for a complex query", async function () {
+		//	timeout if it takes too long so other tests can perform
+		this.timeout(5000);
+		const query = {
+			WHERE: {
+				OR: [
+					{
+						AND: [
+							{
+								GT: {
+									ubc_avg: 90,
+								},
+							},
+							{
+								IS: {
+									ubc_dept: "adhe",
+								},
+							},
+						],
+					},
+					{
+						EQ: {
+							ubc_avg: 95,
+						},
+					},
+				],
+			},
+			OPTIONS: {
+				COLUMNS: ["ubc_dept", "ubc_id", "ubc_avg"],
+				ORDER: "ubc_avg",
+			},
+		};
+		const expected: InsightResult[] = [
+			{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 90.02},
+
+			{ubc_dept: "adhe", ubc_id: "412", ubc_avg: 90.16},
+
+			{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.17},
+
+			{ubc_dept: "adhe", ubc_id: "412", ubc_avg: 90.18},
+
+			{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.5},
+
+			{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.72},
+
+			{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 90.82},
+
+			{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 90.85},
+
+			{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.29},
+
+			{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.33},
+
+			{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.33},
+
+			{ubc_dept: "adhe", ubc_id: "330", ubc_avg: 91.48},
+
+			{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 92.54},
+
+			{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 93.33},
+
+			{ubc_dept: "sowk", ubc_id: "570", ubc_avg: 95},
+
+			{ubc_dept: "rhsc", ubc_id: "501", ubc_avg: 95},
+
+			{ubc_dept: "psyc", ubc_id: "501", ubc_avg: 95},
+
+			{ubc_dept: "psyc", ubc_id: "501", ubc_avg: 95},
+
+			{ubc_dept: "obst", ubc_id: "549", ubc_avg: 95},
+
+			{ubc_dept: "nurs", ubc_id: "424", ubc_avg: 95},
+
+			{ubc_dept: "nurs", ubc_id: "424", ubc_avg: 95},
+
+			{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+			{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+			{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+			{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+			{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+			{ubc_dept: "musc", ubc_id: "553", ubc_avg: 95},
+
+			{ubc_dept: "mtrl", ubc_id: "599", ubc_avg: 95},
+
+			{ubc_dept: "mtrl", ubc_id: "564", ubc_avg: 95},
+
+			{ubc_dept: "mtrl", ubc_id: "564", ubc_avg: 95},
+
+			{ubc_dept: "math", ubc_id: "532", ubc_avg: 95},
+
+			{ubc_dept: "math", ubc_id: "532", ubc_avg: 95},
+
+			{ubc_dept: "kin", ubc_id: "500", ubc_avg: 95},
+
+			{ubc_dept: "kin", ubc_id: "500", ubc_avg: 95},
+
+			{ubc_dept: "kin", ubc_id: "499", ubc_avg: 95},
+
+			{ubc_dept: "epse", ubc_id: "682", ubc_avg: 95},
+
+			{ubc_dept: "epse", ubc_id: "682", ubc_avg: 95},
+
+			{ubc_dept: "epse", ubc_id: "606", ubc_avg: 95},
+
+			{ubc_dept: "edcp", ubc_id: "473", ubc_avg: 95},
+
+			{ubc_dept: "edcp", ubc_id: "473", ubc_avg: 95},
+
+			{ubc_dept: "econ", ubc_id: "516", ubc_avg: 95},
+
+			{ubc_dept: "econ", ubc_id: "516", ubc_avg: 95},
+
+			{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+			{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+			{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+			{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+			{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+			{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+			{ubc_dept: "crwr", ubc_id: "599", ubc_avg: 95},
+
+			{ubc_dept: "cpsc", ubc_id: "589", ubc_avg: 95},
+
+			{ubc_dept: "cpsc", ubc_id: "589", ubc_avg: 95},
+
+			{ubc_dept: "cnps", ubc_id: "535", ubc_avg: 95},
+
+			{ubc_dept: "cnps", ubc_id: "535", ubc_avg: 95},
+
+			{ubc_dept: "bmeg", ubc_id: "597", ubc_avg: 95},
+
+			{ubc_dept: "bmeg", ubc_id: "597", ubc_avg: 95},
+
+			{ubc_dept: "adhe", ubc_id: "329", ubc_avg: 96.11},
+		];
+		const actualResult = await facade.performQuery(query);
+		expect(actualResult).to.deep.equal(expected);
+	});
+
+	it("should reject for incorrect format for a simple query - invalid key in column", async function () {
+		const query = {
+			WHERE: {
+				GT: {
+					sections_avg: 97,
+				},
+			},
+			OPTIONS: {
+				COLUMNS: ["sections_dept", "_avg"],
+				ORDER: "sections_avg",
+			},
+		};
+
+		let errorWasThrown = false;
+
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw an InsightError, but it did not. :(");
+		}
+	});
+
+	it("should reject references dataset not added", async function () {
+		const query = {
+			WHERE: {
+				IS: {
+					ubc_dept: "*a",
+				},
+			},
+			OPTIONS: {
+				COLUMNS: ["sections_dept", "sections_avg"],
+				ORDER: "sections_avg",
+			},
+		};
+
+		let errorWasThrown = false;
+
+		try {
+			await facade.performQuery(query);
+		} catch (error) {
+			errorWasThrown = true;
+			expect(error).to.be.instanceOf(InsightError);
+		}
+
+		if (!errorWasThrown) {
+			throw new Error("Expected performQuery to throw an InsightError, but it did not. :(");
+		}
+	});
+});
+
+describe("listDatasets Tests", async function () {
+	let facade: InsightFacade;
+	let sections: string;
+	let initialDatasetCount: number;
+
+	before(async function () {
+		sections = getContentFromArchives("pair.zip");
+	});
+
+	beforeEach(async function () {
+		clearDisk();
+		facade = new InsightFacade();
+
+		// Get the initial dataset count
+		const initialDatasets = await facade.listDatasets();
+		initialDatasetCount = initialDatasets.length;
+
+		// Add two datasets
+		await Promise.all([
+			facade.addDataset("ubc", sections, InsightDatasetKind.Sections),
+			facade.addDataset("ubc2", sections, InsightDatasetKind.Rooms),
+		]);
+	});
+
+	it("should return all datasets that were added", async function () {
+		const datasets: InsightDataset[] = await facade.listDatasets();
+
+		// Check if the length increased by 2
+		expect(datasets)
+			.to.be.an("array")
+			.that.has.lengthOf(initialDatasetCount + 2);
+
+		datasets.forEach(function (dataset) {
+			expect(dataset).to.be.an("object");
+			expect(dataset).to.have.property("id").that.is.a("string");
+			expect(dataset.kind).to.be.oneOf([InsightDatasetKind.Sections, InsightDatasetKind.Rooms]);
+			expect(dataset).to.have.property("numRows").that.is.a("number");
 		});
 	});
 });

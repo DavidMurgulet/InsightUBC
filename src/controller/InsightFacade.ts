@@ -12,25 +12,13 @@ import {constants} from "http2";
 import fs, {remove} from "fs-extra";
 import {Validator} from "./Validator";
 import {Dataset, Section} from "./Dataset";
-import {
-	Query,
-	Filter,
-	Comp,
-	QueryNode,
-	SectionMField,
-	SectionSField,
-	SectionField,
-	Where,
-	Options,
-	QueryRefactored,
-} from "./Query";
+import {Filter, Comp, SectionMField, SectionSField, SectionField, Where, Options, QueryRefactored} from "./Query";
 import {Suite} from "mocha";
 import {subtle} from "crypto";
 import {isKeyObject} from "util/types";
 import {makeLeaf, parseOptionsRefactored, parseTransformations, parseWhereRefactored} from "./Parse";
 import {Collector} from "./Collector";
 import {Transformations} from "./Transformations";
-import {transformAsserterArgs} from "chai-as-promised";
 
 export default class InsightFacade implements IInsightFacade {
 	public listOfDatasets: Dataset[] | null;
