@@ -3710,30 +3710,18 @@ describe("performQueryORDER", function () {
 	let sections: string;
 	let alt: string;
 	let facade: InsightFacade;
-	let roomSet: Dataset;
-	// let sections: Section[];
 	let rooms: string;
-	let dataset: Dataset;
-	let dataset2: Dataset;
-	let sec1: Section;
-	let sec2: Section;
-	let sec3: Section;
-	let sec4: Section;
-	let sec5: Section;
-	let validator: Validator;
-	// let facade: InsightFacade;
-	let collector: Collector;
 
 	before(async function () {
 		clearDisk();
 		sections = getContentFromArchives("pair.zip");
 		alt = getContentFromArchives("basic.zip");
-		// rooms = getContentFromArchives("campus.zip");
+		rooms = getContentFromArchives("campus.zip");
 		facade = new InsightFacade();
-
+		await facade.initialize();
 		await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
 		await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
-		// await facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms);
+		await facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms);
 	});
 
 	function errorValidator(error: any): error is Error {
