@@ -13,7 +13,6 @@ import fs from "fs-extra";
 import {Validator} from "./Validator";
 import {Dataset} from "./Dataset";
 import {
-	Query,
 	Filter,
 	Comp,
 	QueryNode,
