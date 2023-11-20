@@ -279,7 +279,9 @@ export class Collector {
 		for (const set of this.getDatasets()) {
 			if (set.id === datasetID) {
 				for (const d of set.data) {
-					if ((condition === "GT" && d[field] > leafKey) || (condition === "LT" && d[field] < leafKey) ||
+					if (
+						(condition === "GT" && d[field] > leafKey) ||
+						(condition === "LT" && d[field] < leafKey) ||
 						(condition === "EQ" && d[field] === leafKey)
 					) {
 						filteredSections.push(d);
