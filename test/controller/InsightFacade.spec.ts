@@ -3710,18 +3710,18 @@ describe("performQueryORDER", function () {
 	let sections: string;
 	let alt: string;
 	let facade: InsightFacade;
-	let rooms: string;
+	// let rooms: string;
 
 	before(async function () {
 		clearDisk();
 		sections = getContentFromArchives("pair.zip");
 		alt = getContentFromArchives("basic.zip");
-		rooms = getContentFromArchives("campus.zip");
+		// rooms = getContentFromArchives("campus.zip");
 		facade = new InsightFacade();
 		await facade.initialize();
 		await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
 		await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
-		await facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms);
+		// await facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms);
 	});
 
 	function errorValidator(error: any): error is Error {
