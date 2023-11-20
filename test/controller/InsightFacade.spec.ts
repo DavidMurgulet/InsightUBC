@@ -11,20 +11,12 @@ import InsightFacade from "../../src/controller/InsightFacade";
 import {assert, expect, use} from "chai";
 import chaiAsPromised from "chai-as-promised";
 import {clearDisk, getContentFromArchives} from "../TestUtil";
-import {
-	checkParsing,
-	parseOptionsRefactored,
-	// parseOpts,
-	parseTransformations,
-	parseWhereRefactored,
-} from "../../src/controller/Parse";
+import {parseTransformations,} from "../../src/controller/Parse";
 
 import {Collector} from "../../src/controller/Collector";
 import {Validator} from "../../src/controller/Validator";
-import exp from "constants";
 
 import {folderTest} from "@ubccpsc310/folder-test";
-import {emptydir} from "fs-extra";
 import {isBase64Zip, loadZipContent} from "../../src/controller/datasetAdditionalUtils";
 import {validateCourseDataset} from "../../src/controller/datasetUtils";
 import {getLatLong} from "../../src/controller/geoLocation";
@@ -4460,16 +4452,19 @@ describe("InsightFacade", function () {
 	describe("performQueryORDER", function () {
 		let sections: string;
 		let alt: string;
+		let rooms: string;
 		let facade: InsightFacade;
 
 		before(async function () {
 			clearDisk();
 			sections = getContentFromArchives("pair.zip");
 			alt = getContentFromArchives("basic.zip");
+			rooms = getContentFromArchives("campus.zip");
 			facade = new InsightFacade();
 			await facade.initialize();
 			await facade.addDataset("alt", alt, InsightDatasetKind.Sections);
 			await facade.addDataset("sections", sections, InsightDatasetKind.Sections);
+			await facade.addDataset("rooms", rooms, InsightDatasetKind.Rooms);
 		});
 
 		function errorValidator(error: any): error is Error {
