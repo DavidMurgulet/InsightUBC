@@ -69,8 +69,7 @@ export class Grouping {
 		}
 
 		const obj: {[key: string]: number} = {};
-		let res = Number(sum.toFixed(2));
-		obj[applyKey] = res;
+		obj[applyKey] = Number(sum.toFixed(2));
 		this.applyKeys.push(obj);
 	}
 

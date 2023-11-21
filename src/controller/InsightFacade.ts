@@ -11,9 +11,10 @@ import {
 import {persistDir, loadDatasetsFromDirectory, saveDatasetToDirectory} from "./directoryPersistance";
 import fs from "fs-extra";
 import {Validator} from "./Validator";
-import {Dataset} from "./Dataset";
+import {Dataset, Section} from "./Dataset";
+// import {Filter, Comp, SectionMField, SectionSField, SectionField, Where, Options, QueryRefactored} from "./Query";
+// import {Dataset} from "./Dataset";
 import {
-	Query,
 	Filter,
 	Comp,
 	QueryNode,
@@ -33,7 +34,6 @@ import {Transformations} from "./Transformations";
 import {transformAsserterArgs} from "chai-as-promised";
 import {isBase64Zip} from "./datasetAdditionalUtils";
 import {validateCourseDataset, validateRoomDataset} from "./datasetUtils";
-
 export default class InsightFacade implements IInsightFacade {
 	public listOfDatasets: Dataset[] | null;
 	// //	access listOfDatasets for debugging

@@ -49,13 +49,13 @@ export class Validator {
 	}
 
 	public validateLogicComp(logic: LogicComparator): {error: number; msg: string} {
-		// must be non-empty array, no {} // must have at least 1 key // TODO: possibly redundant, check the parsing cod
+		// TODO: possible error source here.
 		if (logic.operator === "NOT") {
 			if (logic.children.length !== 1) {
 				return {error: 1, msg: "NOT error"};
 			}
 		} else if (logic.operator === "AND" || logic.operator === "OR") {
-			if (logic.children.length === 0) {
+			if (logic.children.length < 1) {
 				return {error: 1, msg: "Logic must have at least 1 child"};
 			}
 		}

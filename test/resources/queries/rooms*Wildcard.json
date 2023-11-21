@@ -1,0 +1,90 @@
+{
+	"title": "rooms*wildcard",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"rooms_name": "*A"
+					}
+				},
+				{
+					"GT": {
+						"rooms_seats": 100
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_name",
+				"maxSeats",
+				"avgLon",
+				"countfname",
+				"sumSeats",
+				"minLat"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"maxSeats",
+					"avgLon",
+					"countfname",
+					"sumSeats",
+					"minLat"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"rooms_name"
+			],
+			"APPLY": [
+				{
+					"maxSeats": {
+						"MAX": "rooms_seats"
+					}
+				},
+				{
+					"avgLon": {
+						"AVG": "rooms_lon"
+					}
+				},
+				{
+					"countfname": {
+						"COUNT": "rooms_name"
+					}
+				},
+				{
+					"sumSeats": {
+						"SUM": "rooms_lat"
+					}
+				},
+				{
+					"minLat": {
+						"MIN": "rooms_lat"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"rooms_name": "OSBO_A",
+			"maxSeats": 442,
+			"avgLon": -123.24,
+			"countfname": 1,
+			"sumSeats": 49.26,
+			"minLat": 49.26047
+		},
+		{
+			"rooms_name": "SRC_220A",
+			"maxSeats": 299,
+			"avgLon": -123.25,
+			"countfname": 1,
+			"sumSeats": 49.27,
+			"minLat": 49.2683
+		}
+	]
+}

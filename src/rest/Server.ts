@@ -1,6 +1,7 @@
 import express, {Application, Request, Response} from "express";
 import * as http from "http";
 import cors from "cors";
+import {pseudoRandomBytes} from "crypto";
 
 export default class Server {
 	private readonly port: number;
@@ -84,8 +85,30 @@ export default class Server {
 		// http://localhost:4321/echo/hello
 		this.express.get("/echo/:msg", Server.echo);
 
+
+		this.express.put("/dataset/:id/:kind", this.putDataset);
+		this.express.delete("/dataset/:id", this.deleteDataset);
+		this.express.post("/query", this.postQuery);
+		this.express.get("/datasets", this.getDataset);
+
 		// TODO: your other endpoints should go here
 
+	}
+
+	public putDataset() {
+		// stub
+	}
+
+	public deleteDataset() {
+		// stub
+	}
+
+	public postQuery() {
+		// stub
+	}
+
+	public getDataset() {
+		// stub
 	}
 
 	// The next two methods handle the echo service.

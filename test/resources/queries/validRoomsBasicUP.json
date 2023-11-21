@@ -1,0 +1,75 @@
+{
+	"title": "validRoomsBasicUP",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"rooms_furniture": "*Tables*"
+					}
+				},
+				{
+					"GT": {
+						"rooms_seats": 250
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"rooms_shortname",
+				"rooms_fullname",
+				"rooms_seats"
+			],
+			"ORDER": {
+				"dir": "UP",
+				"keys": [
+					"rooms_seats"
+				]
+			}
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"rooms_shortname": "ANGU",
+			"rooms_fullname": "Henry Angus",
+			"rooms_seats": 260
+		},
+		{
+			"rooms_shortname": "SRC",
+			"rooms_fullname": "Student Recreation Centre",
+			"rooms_seats": 299
+		},
+		{
+			"rooms_shortname": "SRC",
+			"rooms_fullname": "Student Recreation Centre",
+			"rooms_seats": 299
+		},
+		{
+			"rooms_shortname": "SRC",
+			"rooms_fullname": "Student Recreation Centre",
+			"rooms_seats": 299
+		},
+		{
+			"rooms_shortname": "LSC",
+			"rooms_fullname": "Life Sciences Centre",
+			"rooms_seats": 350
+		},
+		{
+			"rooms_shortname": "LSC",
+			"rooms_fullname": "Life Sciences Centre",
+			"rooms_seats": 350
+		},
+		{
+			"rooms_shortname": "HEBB",
+			"rooms_fullname": "Hebb",
+			"rooms_seats": 375
+		},
+		{
+			"rooms_shortname": "OSBO",
+			"rooms_fullname": "Robert F. Osborne Centre",
+			"rooms_seats": 442
+		}
+	]
+}

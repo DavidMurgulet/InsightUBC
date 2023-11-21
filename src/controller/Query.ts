@@ -1,16 +1,6 @@
 import Log from "@ubccpsc310/folder-test/build/Log";
 import {Transformations} from "./Transformations";
 
-export class Query {
-	public where: QueryNode;
-	public options: QueryNode;
-
-	constructor(where: QueryNode, opts: QueryNode) {
-		this.where = where;
-		this.options = opts;
-	}
-}
-
 export class QueryRefactored {
 	public where: Where;
 	public options: Options;

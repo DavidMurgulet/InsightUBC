@@ -1,0 +1,264 @@
+{
+	"title": "validminMaxAvgs",
+	"input": {
+		"WHERE": {
+			"AND": [
+				{
+					"IS": {
+						"sections_dept": "*c*"
+					}
+				},
+				{
+					"GT": {
+						"sections_avg": 90
+					}
+				}
+			]
+		},
+		"OPTIONS": {
+			"COLUMNS": [
+				"sections_dept",
+				"maxAVG",
+				"avgFail",
+				"minAvg"
+			],
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": [
+					"maxAVG",
+					"avgFail",
+					"minAvg"
+				]
+			}
+		},
+		"TRANSFORMATIONS": {
+			"GROUP": [
+				"sections_dept"
+			],
+			"APPLY": [
+				{
+					"maxAVG": {
+						"MAX": "sections_avg"
+					}
+				},
+				{
+					"avgFail": {
+						"AVG": "sections_fail"
+					}
+				},
+				{
+					"minAvg": {
+						"MIN": "sections_avg"
+					}
+				}
+			]
+		}
+	},
+	"errorExpected": false,
+	"expected": [
+		{
+			"sections_dept": "cnps",
+			"maxAVG": 99.19,
+			"avgFail": 0.02,
+			"minAvg": 90.02
+		},
+		{
+			"sections_dept": "eece",
+			"maxAVG": 98.75,
+			"avgFail": 0,
+			"minAvg": 90.07
+		},
+		{
+			"sections_dept": "crwr",
+			"maxAVG": 98,
+			"avgFail": 0,
+			"minAvg": 90.8
+		},
+		{
+			"sections_dept": "educ",
+			"maxAVG": 97.5,
+			"avgFail": 0,
+			"minAvg": 90.07
+		},
+		{
+			"sections_dept": "psyc",
+			"maxAVG": 97,
+			"avgFail": 0,
+			"minAvg": 90.06
+		},
+		{
+			"sections_dept": "musc",
+			"maxAVG": 96.5,
+			"avgFail": 0,
+			"minAvg": 90.08
+		},
+		{
+			"sections_dept": "etec",
+			"maxAVG": 96.47,
+			"avgFail": 0.03,
+			"minAvg": 90.03
+		},
+		{
+			"sections_dept": "civl",
+			"maxAVG": 96.27,
+			"avgFail": 0,
+			"minAvg": 90.06
+		},
+		{
+			"sections_dept": "apsc",
+			"maxAVG": 96,
+			"avgFail": 0,
+			"minAvg": 90.2
+		},
+		{
+			"sections_dept": "pcth",
+			"maxAVG": 96,
+			"avgFail": 0,
+			"minAvg": 90.07
+		},
+		{
+			"sections_dept": "edcp",
+			"maxAVG": 95.58,
+			"avgFail": 0,
+			"minAvg": 90.06
+		},
+		{
+			"sections_dept": "chbe",
+			"maxAVG": 95.54,
+			"avgFail": 0,
+			"minAvg": 90.21
+		},
+		{
+			"sections_dept": "rhsc",
+			"maxAVG": 95,
+			"avgFail": 0,
+			"minAvg": 90.5
+		},
+		{
+			"sections_dept": "cpsc",
+			"maxAVG": 95,
+			"avgFail": 0,
+			"minAvg": 90.11
+		},
+		{
+			"sections_dept": "econ",
+			"maxAVG": 95,
+			"avgFail": 0,
+			"minAvg": 90.07
+		},
+		{
+			"sections_dept": "comm",
+			"maxAVG": 94.75,
+			"avgFail": 0,
+			"minAvg": 92.45
+		},
+		{
+			"sections_dept": "cell",
+			"maxAVG": 94.4,
+			"avgFail": 0,
+			"minAvg": 90.25
+		},
+		{
+			"sections_dept": "ceen",
+			"maxAVG": 94.27,
+			"avgFail": 0,
+			"minAvg": 90.4
+		},
+		{
+			"sections_dept": "micb",
+			"maxAVG": 94.17,
+			"avgFail": 0,
+			"minAvg": 90.33
+		},
+		{
+			"sections_dept": "elec",
+			"maxAVG": 93.93,
+			"avgFail": 0,
+			"minAvg": 91.83
+		},
+		{
+			"sections_dept": "eced",
+			"maxAVG": 93.72,
+			"avgFail": 0.08,
+			"minAvg": 90.43
+		},
+		{
+			"sections_dept": "ccst",
+			"maxAVG": 93.67,
+			"avgFail": 0,
+			"minAvg": 93.67
+		},
+		{
+			"sections_dept": "mech",
+			"maxAVG": 93.5,
+			"avgFail": 0,
+			"minAvg": 90.17
+		},
+		{
+			"sections_dept": "eosc",
+			"maxAVG": 93.47,
+			"avgFail": 0,
+			"minAvg": 90.08
+		},
+		{
+			"sections_dept": "onco",
+			"maxAVG": 93.07,
+			"avgFail": 0,
+			"minAvg": 90.58
+		},
+		{
+			"sections_dept": "larc",
+			"maxAVG": 92.8,
+			"avgFail": 0,
+			"minAvg": 92.07
+		},
+		{
+			"sections_dept": "chem",
+			"maxAVG": 92.57,
+			"avgFail": 0,
+			"minAvg": 90.43
+		},
+		{
+			"sections_dept": "atsc",
+			"maxAVG": 92,
+			"avgFail": 0,
+			"minAvg": 92
+		},
+		{
+			"sections_dept": "chil",
+			"maxAVG": 92,
+			"avgFail": 0,
+			"minAvg": 90.5
+		},
+		{
+			"sections_dept": "nrsc",
+			"maxAVG": 90.67,
+			"avgFail": 0,
+			"minAvg": 90.67
+		},
+		{
+			"sections_dept": "bioc",
+			"maxAVG": 90.57,
+			"avgFail": 0,
+			"minAvg": 90.1
+		},
+		{
+			"sections_dept": "cohr",
+			"maxAVG": 90.46,
+			"avgFail": 0,
+			"minAvg": 90.46
+		},
+		{
+			"sections_dept": "isci",
+			"maxAVG": 90.44,
+			"avgFail": 0,
+			"minAvg": 90.44
+		},
+		{
+			"sections_dept": "cons",
+			"maxAVG": 90.39,
+			"avgFail": 1.67,
+			"minAvg": 90.1
+		}
+	]
+}
