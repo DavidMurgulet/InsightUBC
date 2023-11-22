@@ -39,17 +39,46 @@ describe("Rooms Kind", function () {
 		facade = new InsightFacade();
 	});
 
+	it("should still be able to remove dataset after crash", async function () {
+		await facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
+		// new instance made
+		facade = new InsightFacade();
+
+		const result1 = await facade.removeDataset("campus");
+		const result = await facade.listDatasets();
+
+		expect(result1).to.equal("campus");
+		expect(result).to.deep.equal([]);
+	});
+
+	it("should not be able to remove dataset after removal + crash", async function () {
+		await facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
+		await facade.removeDataset("campus");
+		// new instance made
+
+		facade = new InsightFacade();
+
+		const result = facade.removeDataset("campus");
+		return expect(result).to.eventually.be.rejectedWith(NotFoundError);
+	});
+
+	it("should be able to add dataset after removal + crash", async function () {
+		this.timeout(5000);
+		await facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
+		await facade.removeDataset("campus");
+		// new instance made
+
+		facade = new InsightFacade();
+
+		const result = await facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
+		expect(result).to.deep.equal(["campus"]);
+	});
+
 	it("should successfully add room dataset (first)", function () {
 		this.timeout(100000);
 		let result = facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
 
 		return expect(result).to.eventually.have.members(["campus"]);
-	});
-
-	it("should successfully remove room dataset", async function () {
-		await facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
-		const result = facade.removeDataset("campus");
-		return expect(result).to.eventually.be.rejectedWith(NotFoundError);
 	});
 
 	it("should reject with an empty dataset id", function () {
@@ -98,11 +127,6 @@ describe("Rooms Kind", function () {
 		// if (datasets){
 		// 	console.log(datasets[0].data);
 		// }
-	});
-
-	it("should successfully add room dataset (first)", function () {
-		this.timeout(10000);
-		let result = facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
 	});
 });
 // describe("validationTests", function () {
