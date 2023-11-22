@@ -152,9 +152,19 @@ export async function htmlParseRoom(
 				return processTableRow(tableRow, code, name, address, lat, lon);
 			});
 
-			//	Resolve all promises and filter out null values, then assert the type
+			// Resolve all promises and filter out null values, then assert the type
 			return (await Promise.all(roomPromises)).filter((room): room is Room => room !== null);
 		}
+		// if ("childNodes" in tBody) {
+		// 	const roomRows = Array.from(tBody.childNodes).filter((node) => node.nodeName === "tr") as Element[];
+		//
+		// 	const roomPromises = roomRows.map(function (tableRow) {
+		// 		return processTableRow(tableRow, code, name, address, lat, lon);
+		// 	});
+		//
+		// 	//	Resolve all promises and filter out null values, then assert the type
+		// 	return (await Promise.all(roomPromises)).filter((room): room is Room => room !== null);
+		// }
 
 		return [];
 		//	throw new Error("could not process row");
@@ -163,60 +173,6 @@ export async function htmlParseRoom(
 		return Promise.reject(error);
 	}
 }
-
-// async function htmlParseRoom(
-// 	href: string,
-// 	code: string,
-// 	name: string,
-// 	address: string,
-// 	lat: number,
-// 	lon: number,
-// 	zip: JSZip
-// ): Promise<Room[]> {
-// 		//const regexPattern = /^\.\/campus\/discover\/buildings-and-classrooms\/[A-Z]+\.html?/;
-// 		const path = href.substring(2);
-// 		const roomFile = zip.file(path);
-// 		if (roomFile) {
-// 			console.log(href + " found!");
-// 			const htmlContent = await roomFile.async("string");
-//
-// 			// Parse the HTML content to a DOM-like structure
-// 			const document = parse(htmlContent);
-//
-// 			// Collect all table nodes from the document
-// 			const tableElements: Element[] = findTablesInDocument(document);
-//
-// 			// Find the room table from the collected table nodes
-// 			const roomsTable = findRoomTable(tableElements);
-//
-// 			if (!roomsTable) {
-// 				console.warn(`${href} room table not found in path. Skipping.`);
-// 				return [];
-// 			}
-//
-// 			// Extract data from the room table
-// 			const tBody = roomsTable.childNodes.find((node) => node.nodeName === "tbody") as Element | undefined;
-// 			if (!tBody) {
-// 				throw new Error("No tbody found in the room table");
-// 			}
-//
-// 			// Convert NodeList to Array to use map
-// 			const roomRows = Array.from(tBody.childNodes).filter((node) => node.nodeName === "tr") as Element[];
-//
-// 			// Create an array of promises for each room row to process
-// 			const roomPromises = roomRows.map((tableRow) => processTableRow(tableRow, code, name, address, lat, lon));
-//
-// 			// Use Promise.all to process all the rows in parallel
-// 			const rooms = await Promise.all(roomPromises);
-//
-// 			// Filter out any null values if processTableRow can return null
-// 			return rooms.filter((room) => room !== null) as Room[];
-// 		}
-//
-// 		console.warn(`${href} room file not found in zip. Skipping.`);
-// 		return [];
-// }
-
 async function processTableRow(
 	row: Element,
 	buildingCode: string,
@@ -287,7 +243,7 @@ export async function htmlParseBuilding(htmlContent: string, zip: JSZip): Promis
 	const roomsArrays = await Promise.all(promises);
 
 	// Flatten the array of room arrays to a single array of rooms
-	const rooms = roomsArrays.flat();
+	const rooms = roomsArrays.flat().filter((room): room is Room => room !== null);
 
 	return rooms.length > 0 ? rooms : [];
 }

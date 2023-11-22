@@ -13,23 +13,26 @@ export async function processBuildingTableRow(row: Element, zip: JSZip): Promise
 	const address = getTextFromBuildingCell(cells, "views-field-field-building-address");
 	const href = getHrefFromCell(cells, "views-field-nothing");
 
-	if (!code || !name || !address || !href) {
-		return [];
+	// Check if all necessary data is present
+	if (name && code && address && href) {
+		// Construct Room object (adjust according to your Room constructor)
+		try {
+			const [lat, lon] = await getLatLong(address);
+			console.log(`Latitude: ${lat}, Longitude: ${lon}`);
+			const rooms = await htmlParseRoom(href, code, name, address, lat, lon, zip);
+			return rooms;
+		} catch (error) {
+			if (error instanceof Error) {
+				console.error(`Error: ${error.message}`);
+			} else {
+				console.error(`Unknown error occurred: ${error}`);
+			}
+		}
 	}
 
-	try {
-		const [lat, lon] = await getLatLong(address);
-		console.log(`Latitude: ${lat}, Longitude: ${lon}`);
-		const rooms = await htmlParseRoom(href, code, name, address, lat, lon, zip);
-		return rooms;
-	} catch (error) {
-		if (error instanceof Error) {
-			console.error(`Error: ${error.message}`);
-		} else {
-			console.error(`Unknown error occurred: ${error}`);
-		}
-		return [] as Room[];
-	}
+	// If any data is missing, return empty array and log it
+	console.warn('Incomplete room data for row:', row);
+	return [];
 }
 
 // Helper functions to extract text and href from a cell based on a class value
