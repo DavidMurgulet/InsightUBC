@@ -9,7 +9,7 @@ describe("Facade D3", function () {
 
 	let facade: InsightFacade;
 	let server: Server;
-	const SERVER_URL = "http://localhost:4321"
+	const SERVER_URL = "http://localhost:4321";
 
 	before(function () {
 		facade = new InsightFacade();
@@ -38,17 +38,17 @@ describe("Facade D3", function () {
 	it ("POST test", function () {
 		try {
 			let query = {
-				"WHERE": {
-					"GT": {
-						"sections_avg": 99
+				WHERE: {
+					GT: {
+						sections_avg: 99
 					}
 				},
-				"OPTIONS": {
-					"COLUMNS": [
+				OPTIONS: {
+					COLUMNS: [
 						"sections_dept",
 						"sections_avg"
 					],
-					"ORDER": "sections_avg"
+					ORDER: "sections_avg"
 				}
 			};
 			return request("http://localhost:4321")
@@ -62,7 +62,7 @@ describe("Facade D3", function () {
 				.catch(function (e) {
 					console.log(e);
 					expect.fail();
-			});
+				});
 		} catch (e) {
 			console.log("Error");
 		}

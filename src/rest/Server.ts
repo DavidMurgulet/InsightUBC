@@ -104,7 +104,7 @@ export default class Server {
 
 	public postQuery(res: Response, req: Request) {
 		let query = req.body;
-		let facade = new InsightFacade()
+		let facade = new InsightFacade();
 		facade.performQuery(query).then().catch();
 
 	}
