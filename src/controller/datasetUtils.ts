@@ -52,7 +52,7 @@ async function extractValidRoomsFromZip(zip: JSZip): Promise<Room[]> {
 	}
 	try {
 		const htmlContent = await indexFile.async("string");
-		const arraysOfRooms = await Promise.all(await htmlParseBuilding(htmlContent, zip));
+		const arraysOfRooms = await htmlParseBuilding(htmlContent, zip);
 		return arraysOfRooms.flat();
 	} catch (e) {
 		return Promise.reject(e + " error in extractValidRoomsFromZip");

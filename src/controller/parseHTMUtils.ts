@@ -1,38 +1,34 @@
 // Helper function to process each table row
-import {Element, Node} from "parse5/dist/tree-adapters/default";
+import {Element, Node, Document} from "parse5/dist/tree-adapters/default";
 import JSZip from "jszip";
 import {Room} from "./Dataset";
 import {getLatLong} from "./geoLocation";
 import {htmlParseRoom} from "./parseHTM";
 
-export async function processBuildingTableRow(row: Element, zip: JSZip): Promise<Room[]> {
-	const cells = row.childNodes.filter((node) => node.nodeName === "td") as Element[];
-
-	const code = getTextFromBuildingCell(cells, "views-field-field-building-code");
-	const name = getTextFromBuildingCell(cells, "views-field-title", true);
-	const address = getTextFromBuildingCell(cells, "views-field-field-building-address");
-	const href = getHrefFromCell(cells, "views-field-nothing");
-
-	// Check if all necessary data is present
-	if (name && code && address && href) {
-		// Construct Room object (adjust according to your Room constructor)
-		try {
-			const [lat, lon] = await getLatLong(address);
-			console.log(`Latitude: ${lat}, Longitude: ${lon}`);
-			const rooms = await htmlParseRoom(href, code, name, address, lat, lon, zip);
-			return rooms;
-		} catch (error) {
-			if (error instanceof Error) {
-				console.error(`Error: ${error.message}`);
-			} else {
-				console.error(`Unknown error occurred: ${error}`);
-			}
+export function processBuildingTableRow(
+	row: Element,
+	document: Document,
+	href: string,
+	code: string,
+	name: string,
+	address: string,
+	lat: number,
+	lon: number
+): Room[] {
+	// Construct Room object (adjust according to your Room constructor)
+	try {
+		console.log(`Latitude: ${lat}, Longitude: ${lon}`);
+		const rooms = htmlParseRoom(href, code, name, address, lat, lon, document);
+		return rooms;
+	} catch (error) {
+		if (error instanceof Error) {
+			console.error(`Error: ${error.message}`);
+			return [];
+		} else {
+			console.error(`Unknown error occurred: ${error}`);
+			return [];
 		}
 	}
-
-	// If any data is missing, return empty array and log it
-	console.warn('Incomplete room data for row:', row);
-	return [];
 }
 
 // Helper functions to extract text and href from a cell based on a class value
@@ -110,4 +106,28 @@ export function getHrefFromCell(cells: Element[], className: string): string | n
 	const link = cell.childNodes.find((node) => node.nodeName === "a") as Element;
 	const hrefAttr = link.attrs.find((attr) => attr.name === "href");
 	return hrefAttr ? hrefAttr.value : null;
+}
+
+export function getHrefFromRoomCell(rows: Element[], className: string): string | null {
+	for (const row of rows) {
+		// Filter to get only 'td' elements from each 'tr' row
+		const tdCells = row.childNodes.filter((node) => node.nodeName === "td") as Element[];
+
+		// Find the 'td' cell that has the specified class
+		const cell = tdCells.find((c) =>
+			c.attrs.some((attr) => attr.name === "class" && attr.value.includes(className))
+		);
+
+		if (cell) {
+			// Find the 'a' element within the cell
+			const link = cell.childNodes.find((node) => node.nodeName === "a") as Element;
+			if (link) {
+				// Get the 'href' attribute of the 'a' element
+				const hrefAttr = link.attrs.find((attr) => attr.name === "href");
+				return hrefAttr ? hrefAttr.value : null;
+			}
+		}
+	}
+
+	return null;
 }
