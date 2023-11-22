@@ -130,7 +130,7 @@ export function htmlParseRoom(
 		const tableElements = findTablesInDocument(document);
 		const roomsTable = findRoomTable(tableElements);
 		if (!roomsTable) {
-			console.warn(`${href} room table not found in path. Skipping.`);
+			//    console.warn(`${href} room table not found in path. Skipping.`);
 			return [];
 		}
 
@@ -153,7 +153,7 @@ export function htmlParseRoom(
 		//	could not process row
 		return [];
 	} catch (error) {
-		console.error(`Error processing ${href}:`, error);
+		//    console.error(`Error processing ${href}:`, error);
 		return [];
 	}
 }
@@ -229,10 +229,10 @@ export async function htmlParseBuilding(htmlContent: string, zip: JSZip): Promis
 				const path = href.substring(2);
 				const roomFile = zip.file(path);
 				if (!roomFile) {
-					console.warn(`${href} room file not found in zip. Skipping.`);
+					//    console.warn(`${href} room file not found in zip. Skipping.`);
 					return [];
 				}
-				console.log(href + " found!");
+				//    console.log(href + " found!");
 				const htmlRoomContent = await roomFile.async("string");
 				const documentRooms = parse(htmlRoomContent);
 				return processBuildingTableRow(row, documentRooms, href, code, name, address, lat, lon);
@@ -247,46 +247,3 @@ export async function htmlParseBuilding(htmlContent: string, zip: JSZip): Promis
 	rooms = (await Promise.all(roomPromises)).flat();
 	return rooms;
 }
-// 	for (const row of buildingRows) {
-// 		const cells = row.childNodes.filter((node) => node.nodeName === "td") as Element[];
-// 		const code = getTextFromBuildingCell(cells, "views-field-field-building-code");
-// 		const name = getTextFromBuildingCell(cells, "views-field-title", true);
-// 		const address = getTextFromBuildingCell(cells, "views-field-field-building-address");
-// 		const href = getHrefFromCell(cells, "views-field-nothing");
-//
-// 		if (href && code && name && address) {
-// 			const [lat, lon] = await getLatLong(address);
-//
-// 			const path = href.substring(2);
-// 			const roomFile = zip.file(path);
-// 			if (!roomFile) {
-// 				console.warn(`${href} room file not found in zip. Skipping.`);
-// 				continue;
-// 			}
-// 			console.log(href + " found!");
-// 			try {
-// 				const htmlRoomContent = await roomFile.async("string");
-// 				const document = parse(htmlRoomContent);
-// 				rooms.push(...processBuildingTableRow(row, document, href, code, name, address, lat, lon));
-// 			} catch (e) {}
-// 		}
-// 	}
-// 	return rooms;
-// }
-//
-//
-//
-//
-//
-//
-//
-// // Map each row to a promise using processBuildingTableRow function
-// const promises = buildingRows.map(async (row) => await processBuildingTableRow(row, zip));
-//
-// // Use Promise.all to wait for all promises to resolve
-// const roomsArrays = await Promise.all(promises);
-//
-// // Flatten the array of room arrays to a single array of rooms
-// const rooms = roomsArrays.flat().filter((room): room is Room => room !== null);
-//
-// return rooms.length > 0 ? rooms : [];

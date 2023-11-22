@@ -51,7 +51,7 @@ export default class InsightFacade implements IInsightFacade {
 	}
 
 	constructor() {
-		console.log("InsightFacadeImpl::init()");
+		// console.log("InsightFacadeImpl::init()");
 		this.listOfDatasets = null;
 	}
 
@@ -77,7 +77,7 @@ export default class InsightFacade implements IInsightFacade {
 			}
 
 			//	check if id is valid
-			if (!id || id.includes("_") || id.trim() === "") {
+			if (!id || typeof id !== "string" || id.includes("_") || id.includes(" ") || id.trim() === "") {
 				throw new InsightError("Invalid ID.");
 			}
 
@@ -164,7 +164,7 @@ export default class InsightFacade implements IInsightFacade {
 		let dirPath = persistDir + "/" + id + ".json";
 
 		// checks for invalid id,
-		if (!id || id.includes("_") || !id.trim().length) {
+		if (!id || typeof id !== "string" || id.includes("_") || id.includes(" ") || id.trim() === "") {
 			return Promise.reject(new InsightError());
 		}
 

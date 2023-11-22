@@ -17,15 +17,15 @@ export function processBuildingTableRow(
 ): Room[] {
 	// Construct Room object (adjust according to your Room constructor)
 	try {
-		console.log(`Latitude: ${lat}, Longitude: ${lon}`);
+		//    console.log(`Latitude: ${lat}, Longitude: ${lon}`);
 		const rooms = htmlParseRoom(href, code, name, address, lat, lon, document);
 		return rooms;
 	} catch (error) {
 		if (error instanceof Error) {
-			console.error(`Error: ${error.message}`);
+			//    console.error(`Error: ${error.message}`);
 			return [];
 		} else {
-			console.error(`Unknown error occurred: ${error}`);
+			//    console.error(`Unknown error occurred: ${error}`);
 			return [];
 		}
 	}

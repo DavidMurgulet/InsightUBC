@@ -17,7 +17,7 @@ export async function validateCourseDataset(
 
 		return Promise.resolve({success: !!dataset, dataset});
 	} catch (error) {
-		console.error("Error in validateCourseDataset:", error);
+		//    console.error("Error in validateCourseDataset:", error);
 		return Promise.resolve({success: false, dataset: null});
 	}
 }
@@ -36,8 +36,8 @@ export async function validateRoomDataset(
 
 		return Promise.resolve({success: !!dataset, dataset});
 	} catch (error) {
-		// console.log(error);
-		console.error("Error in validateRoomDataset:", error);
+		// //    console.log(error);
+		//    console.error("Error in validateRoomDataset:", error);
 		return Promise.resolve({success: false, dataset: null});
 	}
 }
