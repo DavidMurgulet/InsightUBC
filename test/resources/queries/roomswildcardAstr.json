@@ -1,11 +1,11 @@
 {
-	"title": "rooms*wildcard",
+	"title": "roomswildcard*",
 	"input": {
 		"WHERE": {
 			"AND": [
 				{
 					"IS": {
-						"rooms_name": "*A"
+						"rooms_name": "A*"
 					}
 				},
 				{
@@ -71,20 +71,20 @@
 	"errorExpected": false,
 	"expected": [
 		{
-			"rooms_name": "OSBO_A",
-			"maxSeats": 442,
-			"avgLon": -123.24,
-			"countfname": 1,
-			"sumSeats": 49.26,
-			"minLat": 49.26047
-		},
-		{
-			"rooms_name": "SRC_220A",
-			"maxSeats": 299,
+			"rooms_name": "ANGU_098",
+			"maxSeats": 260,
 			"avgLon": -123.25,
 			"countfname": 1,
-			"sumSeats": 49.27,
-			"minLat": 49.2683
+			"sumSeats": 49.26,
+			"minLat": 49.26486
+		},
+		{
+			"rooms_name": "AERL_120",
+			"maxSeats": 144,
+			"avgLon": -123.25,
+			"countfname": 1,
+			"sumSeats": 49.26,
+			"minLat": 49.26372
 		}
 	]
 }
