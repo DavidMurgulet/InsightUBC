@@ -1,11 +1,11 @@
 import * as parse5 from "parse5";
-import {parse, TreeAdapterTypeMap} from "parse5";
+import {parse} from "parse5";
 import {Room} from "./Dataset";
 import {getLatLong} from "./geoLocation";
+import {processBuildingTableRow, getTextFromCell, getTextFromBuildingCell, getHrefFromCell} from "./parseHTMUtils";
 import JSZip from "jszip";
 import {Node, Element, Document} from "parse5/dist/tree-adapters/default";
-import stringify = Mocha.utils.stringify;
-import path from "path";
+import {response} from "express";
 
 // Citation: Function(s) Structure Consulted with ChatGTP
 const ROOMCLASSES: string[] = [
@@ -111,7 +111,7 @@ function findRoomTable(tables: Element[]): Element | null {
 	return findTableFor(ROOMCLASSES, tables);
 }
 
-async function htmlParseRoom(
+export async function htmlParseRoom(
 	href: string,
 	code: string,
 	name: string,
@@ -120,52 +120,102 @@ async function htmlParseRoom(
 	lon: number,
 	zip: JSZip
 ): Promise<Room[]> {
-	if (Object.prototype.hasOwnProperty.call(zip, href)) {
-		// File exists
-		const roomFile = zip.file(href);
-		if (roomFile) {
-			const htmlContent = await roomFile.async("string");
-
-			// Parse the HTML content to a DOM-like structure
-			const document = parse(htmlContent);
-
-			// Collect all table nodes from the document
-			const tableElements: Element[] = findTablesInDocument(document);
-
-			// Find the room table from the collected table nodes
-			const roomsTable = findRoomTable(tableElements);
-
-			if (!roomsTable) {
-				throw new Error("No room table found");
-			}
-
-			// Extract data from the room table
-			const tBody = roomsTable.childNodes.find((node) => node.nodeName === "tbody") as Element | undefined;
-			if (!tBody) {
-				throw new Error("No tbody found in the room table");
-			}
-
-			// Convert NodeList to Array to use map
-			const roomRows = Array.from(tBody.childNodes).filter((node) => node.nodeName === "tr") as Element[];
-
-			// Create an array of promises for each room row to process
-			const roomPromises = roomRows.map((tableRow) => processTableRow(tableRow, code, name, address, lat, lon));
-
-			// Use Promise.all to process all the rows in parallel
-			const rooms = await Promise.all(roomPromises);
-
-			// Filter out any null values if processTableRow can return null
-			return rooms.filter((room) => room !== null) as Room[];
-		}
+	const path = href.substring(2);
+	const roomFile = zip.file(path);
+	if (!roomFile) {
 		console.warn(`${href} room file not found in zip. Skipping.`);
 		return [];
-	} else {
-		// File does not exist, handle the skipping
-		console.log(`File not found: ${href}`);
-		console.warn(`${href} room file not found in zip. Skipping.`);
-		return []; // Return an empty array to indicate no rooms were found for this file
+	}
+	console.log(href + " found!");
+
+	try {
+		const htmlContent = await roomFile.async("string");
+		const document = parse(htmlContent);
+
+		const tableElements = findTablesInDocument(document);
+		const roomsTable = findRoomTable(tableElements);
+		if (!roomsTable) {
+			console.warn(`${href} room table not found in path. Skipping.`);
+			return [];
+		}
+
+		const tBody = roomsTable.childNodes.find((node) => node.nodeName === "tbody");
+		if (!tBody) {
+			return [];
+			//	throw new Error("No tbody found in the room table");
+		}
+
+		if ("childNodes" in tBody) {
+			const roomRows = Array.from(tBody.childNodes).filter((node) => node.nodeName === "tr") as Element[];
+
+			const roomPromises = roomRows.map(function (tableRow) {
+				return processTableRow(tableRow, code, name, address, lat, lon);
+			});
+
+			//	Resolve all promises and filter out null values, then assert the type
+			return (await Promise.all(roomPromises)).filter((room): room is Room => room !== null);
+		}
+
+		return [];
+		//	throw new Error("could not process row");
+	} catch (error) {
+		console.error(`Error processing ${href}:`, error);
+		return Promise.reject(error);
 	}
 }
+
+// async function htmlParseRoom(
+// 	href: string,
+// 	code: string,
+// 	name: string,
+// 	address: string,
+// 	lat: number,
+// 	lon: number,
+// 	zip: JSZip
+// ): Promise<Room[]> {
+// 		//const regexPattern = /^\.\/campus\/discover\/buildings-and-classrooms\/[A-Z]+\.html?/;
+// 		const path = href.substring(2);
+// 		const roomFile = zip.file(path);
+// 		if (roomFile) {
+// 			console.log(href + " found!");
+// 			const htmlContent = await roomFile.async("string");
+//
+// 			// Parse the HTML content to a DOM-like structure
+// 			const document = parse(htmlContent);
+//
+// 			// Collect all table nodes from the document
+// 			const tableElements: Element[] = findTablesInDocument(document);
+//
+// 			// Find the room table from the collected table nodes
+// 			const roomsTable = findRoomTable(tableElements);
+//
+// 			if (!roomsTable) {
+// 				console.warn(`${href} room table not found in path. Skipping.`);
+// 				return [];
+// 			}
+//
+// 			// Extract data from the room table
+// 			const tBody = roomsTable.childNodes.find((node) => node.nodeName === "tbody") as Element | undefined;
+// 			if (!tBody) {
+// 				throw new Error("No tbody found in the room table");
+// 			}
+//
+// 			// Convert NodeList to Array to use map
+// 			const roomRows = Array.from(tBody.childNodes).filter((node) => node.nodeName === "tr") as Element[];
+//
+// 			// Create an array of promises for each room row to process
+// 			const roomPromises = roomRows.map((tableRow) => processTableRow(tableRow, code, name, address, lat, lon));
+//
+// 			// Use Promise.all to process all the rows in parallel
+// 			const rooms = await Promise.all(roomPromises);
+//
+// 			// Filter out any null values if processTableRow can return null
+// 			return rooms.filter((room) => room !== null) as Room[];
+// 		}
+//
+// 		console.warn(`${href} room file not found in zip. Skipping.`);
+// 		return [];
+// }
 
 async function processTableRow(
 	row: Element,
@@ -177,9 +227,9 @@ async function processTableRow(
 ): Promise<Room | null> {
 	// Extract the room number, capacity, furniture, type, and href from the row
 	const roomNumber = getTextFromCell([row], "views-field-field-room-number", true);
-	const capacity = parseInt(getTextFromCell([row], "views-field-field-room-capacity") || "0", 10);
-	const furniture = getTextFromCell([row], "views-field-field-room-furniture");
-	const roomType = getTextFromCell([row], "views-field-field-room-type");
+	const capacity = parseInt(getTextFromCell([row], "views-field-field-room-capacity", false) || "0", 10);
+	const furniture = getTextFromCell([row], "views-field-field-room-furniture", false);
+	const roomType = getTextFromCell([row], "views-field-field-room-type", false);
 	const roomHref = getHrefFromCell([row], "views-field-nothing");
 
 	// If all data is present, create and return a new Room object
@@ -211,86 +261,33 @@ export async function htmlParseBuilding(htmlContent: string, zip: JSZip): Promis
 	const tableElements: Element[] = findTablesInDocument(document);
 
 	if (tableElements.length === 0) {
-		return Promise.reject("No table elements found in the building HTML content");
+		return [];
 	}
 
 	// Find the building table from the collected table nodes
 	const buildingTable = findBuildingTable(tableElements);
 
 	if (!buildingTable) {
-		return Promise.reject("No valid building table found");
+		return [];
 	}
 
 	// Extract data from the building table
 	const tbodyNode = buildingTable.childNodes.find((node) => node.nodeName === "tbody") as Element;
 
 	if (!tbodyNode) {
-		return Promise.reject("No tbody found in the building table");
+		return [];
 	}
 
 	const buildingRows: Element[] = tbodyNode.childNodes.filter((node) => node.nodeName === "tr") as Element[];
 
 	// Map each row to a promise using processBuildingTableRow function
-	const promises = buildingRows.map((row) => processBuildingTableRow(row, zip));
+	const promises = buildingRows.map(async (row) => await processBuildingTableRow(row, zip));
 
 	// Use Promise.all to wait for all promises to resolve
 	const roomsArrays = await Promise.all(promises);
 
 	// Flatten the array of room arrays to a single array of rooms
-	const rooms: Room[] = roomsArrays.flat();
+	const rooms = roomsArrays.flat();
 
-	return rooms.length > 0 ? rooms : Promise.reject("No valid rooms found");
-}
-
-// Helper function to process each table row
-async function processBuildingTableRow(row: Element, zip: JSZip): Promise<Room[]> {
-	const cells = row.childNodes.filter((node) => node.nodeName === "td") as Element[];
-
-	const code = getTextFromCell(cells, "views-field-field-building-code");
-	const name = getTextFromCell(cells, "views-field-title", true);
-	const address = getTextFromCell(cells, "views-field-field-building-address");
-	const href = getHrefFromCell(cells, "views-field-nothing");
-
-	if (!code || !name || !address || !href) {
-		return Promise.reject("Building row not found in processBuildingTableRow");
-	}
-
-	try {
-		const [lat, lon] = await getLatLong(address);
-		const rooms = await htmlParseRoom(href, code, name, address, lat, lon, zip);
-		return rooms;
-	} catch (error) {
-		console.error(error);
-		return Promise.reject("Error in processBuildingTableRow: " + error);
-	}
-}
-
-// Helper functions to extract text and href from a cell based on a class value
-function getTextFromCell(cells: Element[], className: string, isLink: boolean = false): string | null {
-	const cell = cells.find((c) => c.attrs.some((attr) => attr.name === "class" && attr.value.includes(className)));
-	if (!cell) {
-		return null;
-	}
-
-	if (isLink) {
-		const link = cell.childNodes.find((node) => node.nodeName === "a") as Element;
-		// If it's a link, the text node will be the first child of the <a> element
-		const textNode = link?.childNodes.find((node) => node.nodeName === "#text");
-		return textNode ? (textNode as any).value.trim() : null;
-	} else {
-		// If it's not a link, the text content will be in the first text node child
-		const textNode = cell.childNodes.find((node) => node.nodeName === "#text");
-		return textNode ? (textNode as any).value.trim() : null;
-	}
-}
-
-function getHrefFromCell(cells: Element[], className: string): string | null {
-	const cell = cells.find((c) => c.attrs.some((attr) => attr.name === "class" && attr.value.includes(className)));
-	if (!cell) {
-		return null;
-	}
-
-	const link = cell.childNodes.find((node) => node.nodeName === "a") as Element;
-	const hrefAttr = link.attrs.find((attr) => attr.name === "href");
-	return hrefAttr ? hrefAttr.value : null;
+	return rooms.length > 0 ? rooms : [];
 }

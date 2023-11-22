@@ -106,11 +106,6 @@ describe("Rooms Kind", function () {
 		// 	console.log(datasets[0].data);
 		// }
 	});
-
-	it("should successfully add room dataset (first)", function () {
-		this.timeout(10000);
-		let result = facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
-	});
 });
 // describe("validationTests", function () {
 // 	let optsEmptyCol = {
