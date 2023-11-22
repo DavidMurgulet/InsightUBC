@@ -2,6 +2,7 @@ import express, {Application, Request, Response} from "express";
 import * as http from "http";
 import cors from "cors";
 import {pseudoRandomBytes} from "crypto";
+import InsightFacade from "../controller/InsightFacade";
 
 export default class Server {
 	private readonly port: number;
@@ -84,27 +85,28 @@ export default class Server {
 		// This is an example endpoint this you can invoke by accessing this URL in your browser:
 		// http://localhost:4321/echo/hello
 		this.express.get("/echo/:msg", Server.echo);
-
-
 		this.express.put("/dataset/:id/:kind", this.putDataset);
 		this.express.delete("/dataset/:id", this.deleteDataset);
 		this.express.post("/query", this.postQuery);
 		this.express.get("/datasets", this.getDataset);
-
-		// TODO: your other endpoints should go here
-
 	}
 
-	public putDataset() {
+	public putDataset(req: Request, res: Response) {
 		// stub
+		let q = req.params;
+		let a = req.query;
+		let b = req.body;
 	}
 
 	public deleteDataset() {
 		// stub
 	}
 
-	public postQuery() {
-		// stub
+	public postQuery(res: Response, req: Request) {
+		let query = req.body;
+		let facade = new InsightFacade()
+		facade.performQuery(query).then().catch();
+
 	}
 
 	public getDataset() {
