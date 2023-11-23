@@ -14,7 +14,6 @@ describe("Facade C3", function () {
 	const SERVER_URL = "http://localhost:4321";
 
 	before(function () {
-
 		server = new Server(4321);
 
 		// TODO: start server here once and handle errors properly
@@ -39,40 +38,33 @@ describe("Facade C3", function () {
 	});
 
 	it("POST test", function () {
-
 		// request(SERVER_URL)
 		// 	.put("/dataset/campus3/rooms")
 		// 	.send(CAMPUS_ZIP_FILE_DATA)
 		// 	.set("Content-Type", "application/x-zip-compressed");
 
 		let query = {
-			"WHERE": {
-				"AND": [
+			WHERE: {
+				AND: [
 					{
-						"IS": {
-							"rooms_furniture": "*Tables*"
-						}
+						IS: {
+							rooms_furniture: "*Tables*",
+						},
 					},
 					{
-						"GT": {
-							"rooms_seats": 250
-						}
-					}
-				]
-			},
-			"OPTIONS": {
-				"COLUMNS": [
-					"rooms_shortname",
-					"rooms_fullname",
-					"rooms_seats"
+						GT: {
+							rooms_seats: 250,
+						},
+					},
 				],
-				"ORDER": {
-					"dir": "UP",
-					"keys": [
-						"rooms_seats"
-					]
-				}
-			}
+			},
+			OPTIONS: {
+				COLUMNS: ["rooms_shortname", "rooms_fullname", "rooms_seats"],
+				ORDER: {
+					dir: "UP",
+					keys: ["rooms_seats"],
+				},
+			},
 		};
 		return request(SERVER_URL)
 			.post("/query")
