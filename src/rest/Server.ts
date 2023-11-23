@@ -96,6 +96,25 @@ export default class Server {
 		this.express.get("/datasets", this.getDataset);
 	}
 
+	public postQuery = async (req: Request, res: Response) => {
+		try {
+			// add check for persistent data.
+			console.log("received POST request");
+			const query = req.body;
+			let facade = new InsightFacade();
+			const result = await facade.performQuery(query);
+			res.status(200).json({result: result});
+		} catch (e) {
+			console.error("Error in POST", e);
+			// Determine the correct status code based on the error type
+			if (e instanceof InsightError) {
+				res.status(400).json({error: e.message});
+			} else {
+				res.status(500).json({error: "Internal Server Error"});
+			}
+		}
+	};
+
 	public putDataset = async (req: Request, res: Response) => {
 		try {
 			console.log("Received PUT request"); // Log statement
@@ -164,15 +183,13 @@ export default class Server {
 		// Example: Extract dataset ID, call InsightFacade.removeDataset, and send response
 	}
 
-	public postQuery(res: Response, req: Request) {
-		let query = req.body;
-		let facade = new InsightFacade();
-		facade.performQuery(query).then().catch();
-	}
 
-	public getDataset() {
-		// stub
-	}
+	public getDataset = async (req: Request, res: Response) => {
+		console.log("getRequest");
+		let facade = new InsightFacade();
+		const result = await facade.getDatasets();
+		res.status(200).json({result: result});
+	};
 
 	// The next two methods handle the echo service.
 	// These are almost certainly not the best place to put these, but are here for your reference.

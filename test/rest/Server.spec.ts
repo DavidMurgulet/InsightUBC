@@ -38,50 +38,54 @@ describe("Facade C3", function () {
 	});
 
 	it("POST test", function () {
-		this.timeout(10000);
-		try {
-			let query = {
-				WHERE: {
-					GT: {
-						sections_avg: 99,
+		let query = {
+			WHERE: {
+				AND: [
+					{
+						GT: {
+							sections_avg: 90
+						}
 					},
-				},
-				OPTIONS: {
-					COLUMNS: ["sections_dept", "sections_avg"],
-					ORDER: "sections_avg",
-				},
-			};
-			return request("http://localhost:4321")
-				.post("/query")
-				.send(query)
-				.then(function (res: Response) {
-					// assertions here
-					console.log("response" + res);
-					expect(res.body).to.equal(query);
-				})
-				.catch(function (e) {
-					console.log(e);
-					expect.fail();
-				});
-		} catch (e) {
-			console.log("Error");
-		}
+					{
+						IS: {
+							sections_dept: "biol"
+						}
+					}
+				]
+			},
+			OPTIONS: {
+				COLUMNS: [
+					"sections_dept",
+					"sections_avg"
+				]
+			}
+		};
+		return request(SERVER_URL)
+			.post("/query")
+			.send(query)
+			.then(function (res: Response) {
+				expect(res.status).to.be.equal(200);
+			})
+			.catch(function (e) {
+				console.log("Error during POST request: " + e.message);
+				expect.fail("POST request failed");
+			});
 	});
 
 	it("PUT /dataset/:id/:kind - Success Test", function () {
-			return request(SERVER_URL)
-				.put("/dataset/campus2/rooms")
-				.send(campus2)
-				.set("Content-Type", "application/x-zip-compressed")
-				.then(function (res: Response) {
+		return request(SERVER_URL)
+			.put("/dataset/campus2/rooms")
+			.send(campus2)
+			.set("Content-Type", "application/x-zip-compressed")
+			.then(function (res: Response) {
 					// Check if the status is 200
-					expect(res.status).to.be.equal(200);
+				expect(res.status).to.be.equal(200);
 					// Additional assertions can be added here if needed
-				})
-				.catch(function (err) {
-					console.log("Error during PUT request: " + err.message);
-					expect.fail("PUT request failed");
-				});
+			})
+			.catch(function (err) {
+				console.log("Error during PUT request: " + err.message);
+				expect.fail("PUT request failed");
+			});
 	});
 
 	// The other endpoints work similarly. You should be able to find all instructions at the supertest documentation
