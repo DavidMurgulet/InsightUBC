@@ -3,25 +3,19 @@ import InsightFacade from "../../src/controller/InsightFacade";
 
 import {expect} from "chai";
 import request, {Response} from "supertest";
-import {response} from "express";
 import {clearDisk, getContentFromArchives} from "../TestUtil";
 import {InsightDatasetKind} from "../../src/controller/IInsightFacade";
+import fs from "fs";
 
+let CAMPUS_ZIP_FILE_DATA = fs.readFileSync("test/resources/archives/campus.zip");
 
 describe("Facade C3", function () {
-	let facade: InsightFacade;
 	let server: Server;
-	let campus2: string;
-	let campus3: string;
 	const SERVER_URL = "http://localhost:4321";
 
 	before(function () {
-		campus2 = getContentFromArchives("campus.zip");
-		campus3 = getContentFromArchives("campus.zip");
 
 		server = new Server(4321);
-		let tempFacade = new InsightFacade();
-		tempFacade.addDataset("campus3", campus3, InsightDatasetKind.Rooms);
 
 		// TODO: start server here once and handle errors properly
 		try {
@@ -37,9 +31,7 @@ describe("Facade C3", function () {
 	});
 
 	beforeEach(function () {
-		clearDisk();
 		// might want to add some process logging here to keep track of what is going on
-		clearDisk();
 	});
 
 	afterEach(function () {
@@ -47,26 +39,39 @@ describe("Facade C3", function () {
 	});
 
 	it("POST test", function () {
+
+		// request(SERVER_URL)
+		// 	.put("/dataset/campus3/rooms")
+		// 	.send(CAMPUS_ZIP_FILE_DATA)
+		// 	.set("Content-Type", "application/x-zip-compressed");
+
 		let query = {
-			WHERE: {
-				AND: [
+			"WHERE": {
+				"AND": [
 					{
-						GT: {
-							sections_avg: 90
+						"IS": {
+							"rooms_furniture": "*Tables*"
 						}
 					},
 					{
-						IS: {
-							sections_dept: "biol"
+						"GT": {
+							"rooms_seats": 250
 						}
 					}
 				]
 			},
-			OPTIONS: {
-				COLUMNS: [
-					"sections_dept",
-					"sections_avg"
-				]
+			"OPTIONS": {
+				"COLUMNS": [
+					"rooms_shortname",
+					"rooms_fullname",
+					"rooms_seats"
+				],
+				"ORDER": {
+					"dir": "UP",
+					"keys": [
+						"rooms_seats"
+					]
+				}
 			}
 		};
 		return request(SERVER_URL)
@@ -83,8 +88,8 @@ describe("Facade C3", function () {
 
 	it("PUT /dataset/:id/:kind - Success Test", function () {
 		return request(SERVER_URL)
-			.put("/dataset/campus2/rooms")
-			.send(campus3)
+			.put("/dataset/campus/rooms")
+			.send(CAMPUS_ZIP_FILE_DATA)
 			.set("Content-Type", "application/x-zip-compressed")
 			.then(function (res: Response) {
 				// Check if the status is 200
@@ -99,7 +104,7 @@ describe("Facade C3", function () {
 
 	it("DELETE /dataset/:id- Success Test", function () {
 		return request(SERVER_URL)
-			.put("/dataset/campus3")
+			.delete("/dataset/campus")
 			.then(function (res: Response) {
 				// Check if the status is 200
 				expect(res.status).to.be.equal(200);

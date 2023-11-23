@@ -158,7 +158,7 @@ export default class Server {
 			const result = await facade.removeDataset(id);
 			res.status(200).json({result: result});
 		} catch (err) {
-			console.error("Error in putDataset", err);
+			console.error("Error in deleteDataset", err);
 			// Determine the correct status code based on the error type
 			if (err instanceof InsightError) {
 				res.status(400).json({error: err.message});
