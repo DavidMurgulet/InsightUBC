@@ -3,13 +3,12 @@ import * as http from "http";
 import cors from "cors";
 import {pseudoRandomBytes} from "crypto";
 import InsightFacade from "../controller/InsightFacade";
-import {InsightDatasetKind, InsightError} from "../controller/IInsightFacade";
+import {InsightDatasetKind, InsightError, NotFoundError} from "../controller/IInsightFacade";
 
 export default class Server {
 	private readonly port: number;
 	private express: Application;
 	private server: http.Server | undefined;
-	private facade: InsightFacade;
 	constructor(port: number) {
 		console.info(`Server::<init>( ${port} )`);
 		this.port = port;
@@ -17,8 +16,6 @@ export default class Server {
 
 		this.registerMiddleware();
 		this.registerRoutes();
-		this.facade = new InsightFacade();
-		console.log("facade Init(): " + this.facade);
 
 		// NOTE: you can serve static frontend files in from your express server
 		// by uncommenting the line below. This makes files in ./frontend/public
@@ -116,6 +113,8 @@ export default class Server {
 	};
 
 	public putDataset = async (req: Request, res: Response) => {
+		let facade = new InsightFacade();
+
 		try {
 			console.log("Received PUT request"); // Log statement
 			const id: string = req.params.id;
@@ -134,7 +133,7 @@ export default class Server {
 			// Assuming the dataset is sent as a buffer in the request body and needs to be converted to base64
 			const content: string = Buffer.from(req.body).toString("base64");
 
-			const result = await this.facade.addDataset(id, content, kind);
+			const result = await facade.addDataset(id, content, kind);
 			res.status(200).json({result: result});
 		} catch (err) {
 			console.error("Error in putDataset", err);
@@ -146,42 +145,30 @@ export default class Server {
 			}
 		}
 	};
-	// public async putDataset(req: Request, res: Response) {
-	// 	try {
-	// 		console.log("Received PUT request");  // Log statement
-	// 		const id: string = req.params.id;
-	// 		const kindString: string = req.params.kind.toLowerCase();
-	//
-	// 		let kind: InsightDatasetKind;
-	// 		if (kindString === "rooms") {
-	// 			kind = InsightDatasetKind.Rooms;
-	// 		} else if (kindString === "sections") {
-	// 			kind = InsightDatasetKind.Sections;
-	// 		} else {
-	// 			throw new Error("Invalid kind");
-	// 		}
-	// 		console.log(`Dataset ID: ${id}, kindString: ${kindString}, kind: ${kind}`);  // Log statement
-	//
-	// 		// Assuming the dataset is sent as a buffer in the request body and needs to be converted to base64
-	// 		const content: string = Buffer.from(req.body).toString('base64');
-	//
-	// 		const result = await this.facade.addDataset(id, content, kind);
-	// 		res.status(200).json({ result: result });
-	// 	} catch (err) {
-	// 		console.error("Error in putDataset", err);
-	// 		// Determine the correct status code based on the error type
-	// 		if (err instanceof InsightError) {
-	// 			res.status(400).json({ error: err.message });
-	// 		} else {
-	// 			res.status(500).json({ error: "Internal Server Error" });
-	// 		}
-	// 	}
-	// }
 
-	public deleteDataset() {
-		// TODO: Implement logic to handle DELETE request
-		// Example: Extract dataset ID, call InsightFacade.removeDataset, and send response
-	}
+	public deleteDataset = async (req: Request, res: Response) => {
+		let facade = new InsightFacade();
+
+		try {
+			console.log("Received DELETE request"); // Log statement
+			const id: string = req.params.id;
+
+			console.log(`Dataset ID: ${id}`);
+
+			const result = await facade.removeDataset(id);
+			res.status(200).json({result: result});
+		} catch (err) {
+			console.error("Error in putDataset", err);
+			// Determine the correct status code based on the error type
+			if (err instanceof InsightError) {
+				res.status(400).json({error: err.message});
+			} else if (err instanceof NotFoundError) {
+				res.status(404).json({error: err.message});
+			} else {
+				res.status(500).json({error: "Internal Server Error"});
+			}
+		}
+	};
 
 
 	public getDataset = async (req: Request, res: Response) => {
