@@ -7,6 +7,7 @@ import {response} from "express";
 import {clearDisk, getContentFromArchives} from "../TestUtil";
 import {InsightDatasetKind} from "../../src/controller/IInsightFacade";
 
+
 describe("Facade C3", function () {
 	let facade: InsightFacade;
 	let server: Server;
@@ -38,6 +39,7 @@ describe("Facade C3", function () {
 	beforeEach(function () {
 		clearDisk();
 		// might want to add some process logging here to keep track of what is going on
+		clearDisk();
 	});
 
 	afterEach(function () {
@@ -45,34 +47,38 @@ describe("Facade C3", function () {
 	});
 
 	it("POST test", function () {
-		this.timeout(10000);
-		try {
-			let query = {
-				WHERE: {
-					GT: {
-						sections_avg: 99,
+		let query = {
+			WHERE: {
+				AND: [
+					{
+						GT: {
+							sections_avg: 90
+						}
 					},
-				},
-				OPTIONS: {
-					COLUMNS: ["sections_dept", "sections_avg"],
-					ORDER: "sections_avg",
-				},
-			};
-			return request("http://localhost:4321")
-				.post("/query")
-				.send(query)
-				.then(function (res: Response) {
-					// assertions here
-					console.log("response" + res);
-					expect(res.body).to.equal(query);
-				})
-				.catch(function (e) {
-					console.log(e);
-					expect.fail();
-				});
-		} catch (e) {
-			console.log("Error");
-		}
+					{
+						IS: {
+							sections_dept: "biol"
+						}
+					}
+				]
+			},
+			OPTIONS: {
+				COLUMNS: [
+					"sections_dept",
+					"sections_avg"
+				]
+			}
+		};
+		return request(SERVER_URL)
+			.post("/query")
+			.send(query)
+			.then(function (res: Response) {
+				expect(res.status).to.be.equal(200);
+			})
+			.catch(function (e) {
+				console.log("Error during POST request: " + e.message);
+				expect.fail("POST request failed");
+			});
 	});
 
 	it("PUT /dataset/:id/:kind - Success Test", function () {
