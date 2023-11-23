@@ -109,7 +109,7 @@ export default class Server {
 			let facade = new InsightFacade();
 			facade.performQuery(query).then().catch();
 		} catch (e) {
-
+			// nothing
 		}
 	}
 
