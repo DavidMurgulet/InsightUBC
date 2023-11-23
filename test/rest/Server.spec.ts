@@ -4,7 +4,7 @@ import InsightFacade from "../../src/controller/InsightFacade";
 import {expect} from "chai";
 import request, {Response} from "supertest";
 import {response} from "express";
-import {getContentFromArchives} from "../TestUtil";
+import {clearDisk, getContentFromArchives} from "../TestUtil";
 
 describe("Facade C3", function () {
 	let facade: InsightFacade;
@@ -31,6 +31,7 @@ describe("Facade C3", function () {
 
 	beforeEach(function () {
 		// might want to add some process logging here to keep track of what is going on
+		clearDisk();
 	});
 
 	afterEach(function () {
