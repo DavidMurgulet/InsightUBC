@@ -5,7 +5,7 @@ import {expect} from "chai";
 import request, {Response} from "supertest";
 import {response} from "express";
 
-describe("Facade D3", function () {
+describe("Facade C3", function () {
 
 	let facade: InsightFacade;
 	let server: Server;
@@ -36,6 +36,7 @@ describe("Facade D3", function () {
 	});
 
 	it ("POST test", function () {
+		this.timeout(10000);
 		try {
 			let query = {
 				WHERE: {
@@ -68,6 +69,12 @@ describe("Facade D3", function () {
 		}
 	});
 
+	it("PUT /dataset/:id/:kind - Success Test", function () {
+		// TODO: Implement logic to test PUT /dataset/:id/:kind endpoint for adding a dataset
+
+
+		// The other endpoints work similarly. You should be able to find all instructions at the supertest documentation
+	});
 	// Sample on how to format PUT requests
 	// it("PUT test for courses dataset", function () {
 	// 	try {
