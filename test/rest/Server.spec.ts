@@ -6,7 +6,6 @@ import request, {Response} from "supertest";
 import {response} from "express";
 
 describe("Facade C3", function () {
-
 	let facade: InsightFacade;
 	let server: Server;
 	const SERVER_URL = "http://localhost:4321";
@@ -35,22 +34,19 @@ describe("Facade C3", function () {
 		// might want to add some process logging here to keep track of what is going on
 	});
 
-	it ("POST test", function () {
+	it("POST test", function () {
 		this.timeout(10000);
 		try {
 			let query = {
 				WHERE: {
 					GT: {
-						sections_avg: 99
-					}
+						sections_avg: 99,
+					},
 				},
 				OPTIONS: {
-					COLUMNS: [
-						"sections_dept",
-						"sections_avg"
-					],
-					ORDER: "sections_avg"
-				}
+					COLUMNS: ["sections_dept", "sections_avg"],
+					ORDER: "sections_avg",
+				},
 			};
 			return request("http://localhost:4321")
 				.post("/query")
@@ -71,8 +67,6 @@ describe("Facade C3", function () {
 
 	it("PUT /dataset/:id/:kind - Success Test", function () {
 		// TODO: Implement logic to test PUT /dataset/:id/:kind endpoint for adding a dataset
-
-
 		// The other endpoints work similarly. You should be able to find all instructions at the supertest documentation
 	});
 	// Sample on how to format PUT requests
