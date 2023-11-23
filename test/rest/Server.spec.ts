@@ -4,13 +4,16 @@ import InsightFacade from "../../src/controller/InsightFacade";
 import {expect} from "chai";
 import request, {Response} from "supertest";
 import {response} from "express";
+import {getContentFromArchives} from "../TestUtil";
 
 describe("Facade C3", function () {
 	let facade: InsightFacade;
 	let server: Server;
+	let campus2: string;
 	const SERVER_URL = "http://localhost:4321";
 
 	before(function () {
+		campus2 = getContentFromArchives("campus.zip");
 		facade = new InsightFacade();
 		server = new Server(4321);
 		// TODO: start server here once and handle errors properly
@@ -66,28 +69,20 @@ describe("Facade C3", function () {
 	});
 
 	it("PUT /dataset/:id/:kind - Success Test", function () {
-		// TODO: Implement logic to test PUT /dataset/:id/:kind endpoint for adding a dataset
-		// The other endpoints work similarly. You should be able to find all instructions at the supertest documentation
+			return request(SERVER_URL)
+				.put("/dataset/campus2/rooms")
+				.send(campus2)
+				.set("Content-Type", "application/x-zip-compressed")
+				.then(function (res: Response) {
+					// Check if the status is 200
+					expect(res.status).to.be.equal(200);
+					// Additional assertions can be added here if needed
+				})
+				.catch(function (err) {
+					console.log("Error during PUT request: " + err.message);
+					expect.fail("PUT request failed");
+				});
 	});
-	// Sample on how to format PUT requests
-	// it("PUT test for courses dataset", function () {
-	// 	try {
-	// 		return request(SERVER_URL)
-	// 			.put("/dataset/courses/course")
-	// 			.send(ZIP_FILE_DATA)
-	// 			.set("Content-Type", "application/x-zip-compressed")
-	// 			.then(function (res: Response) {
-	// 				// some logging here please!
-	// 				expect(res.status).to.be.equal(200);
-	// 			})
-	// 			.catch(function (err) {
-	// 				// some logging here please!
-	// 				expect.fail();
-	// 			});
-	// 	} catch (err) {
-	// 		// and some more logging here!
-	// 	}
-	// });
 
 	// The other endpoints work similarly. You should be able to find all instructions at the supertest documentation
 });
