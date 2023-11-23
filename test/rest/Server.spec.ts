@@ -69,19 +69,19 @@ describe("Facade C3", function () {
 	});
 
 	it("PUT /dataset/:id/:kind - Success Test", function () {
-			return request(SERVER_URL)
-				.put("/dataset/campus2/rooms")
-				.send(campus2)
-				.set("Content-Type", "application/x-zip-compressed")
-				.then(function (res: Response) {
-					// Check if the status is 200
-					expect(res.status).to.be.equal(200);
-					// Additional assertions can be added here if needed
-				})
-				.catch(function (err) {
-					console.log("Error during PUT request: " + err.message);
-					expect.fail("PUT request failed");
-				});
+		return request(SERVER_URL)
+			.put("/dataset/campus2/rooms")
+			.send(campus2)
+			.set("Content-Type", "application/x-zip-compressed")
+			.then(function (res: Response) {
+				// Check if the status is 200
+				expect(res.status).to.be.equal(200);
+				// Additional assertions can be added here if needed
+			})
+			.catch(function (err) {
+				console.log("Error during PUT request: " + err.message);
+				expect.fail("PUT request failed");
+			});
 	});
 
 	// The other endpoints work similarly. You should be able to find all instructions at the supertest documentation
