@@ -103,10 +103,14 @@ export default class Server {
 	}
 
 	public postQuery(res: Response, req: Request) {
-		let query = req.body;
-		let facade = new InsightFacade();
-		facade.performQuery(query).then().catch();
+		try {
+			let query = req.body;
+			let q = req.params;
+			let facade = new InsightFacade();
+			facade.performQuery(query).then().catch();
+		} catch (e) {
 
+		}
 	}
 
 	public getDataset() {
