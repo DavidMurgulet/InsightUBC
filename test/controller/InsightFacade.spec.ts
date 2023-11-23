@@ -1982,7 +1982,7 @@ describe("listDatasets Tests", async function () {
 	let facade: InsightFacade;
 	let sections: string;
 	let campus: string;
-	let qBasic: {};
+	let qBasic: object;
 
 	let initialDatasetCount: number;
 
@@ -1990,18 +1990,15 @@ describe("listDatasets Tests", async function () {
 		sections = getContentFromArchives("pair.zip");
 		campus = getContentFromArchives("campus.zip");
 		qBasic = {
-			"WHERE": {
-				"GT": {
-					"sections_avg": 97
-				}
+			WHERE: {
+				GT: {
+					sections_avg: 97,
+				},
 			},
-			"OPTIONS": {
-				"COLUMNS": [
-					"sections_dept",
-					"sections_avg"
-				],
-				"ORDER": "sections_avg"
-			}
+			OPTIONS: {
+				COLUMNS: ["sections_dept", "sections_avg"],
+				ORDER: "sections_avg",
+			},
 		};
 	});
 
@@ -2014,7 +2011,6 @@ describe("listDatasets Tests", async function () {
 		const result = facade.addDataset("campus", campus, InsightDatasetKind.Rooms);
 		return expect(result).to.eventually.have.members(["campus"]);
 	});
-
 
 	it("should reject with an empty dataset id", function () {
 		const result = facade.addDataset("", campus, InsightDatasetKind.Rooms);
@@ -2031,8 +2027,8 @@ describe("listDatasets Tests", async function () {
 		return expect(result).to.eventually.be.rejectedWith(InsightError);
 	});
 
-		it("should not query after crash", async function () {
-			this.timeout(10000);
+	it("should not query after crash", async function () {
+		this.timeout(10000);
 		let list = await facade.listDatasets();
 		console.log("before: " + JSON.stringify(list, null, 2));
 
@@ -4770,61 +4766,61 @@ describe("performQueryORDER", function () {
 // // 	});
 // //
 
-		// INVALID SECTION TESTS
-		// it("should reject with an invalid dataset (no valid rooms)", function () {
-		// 	const result = facade.addDataset("campus", sectionsInvalid, InsightDatasetKind.Rooms);
-		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
-		//
-		// it("should reject with an invalid section (missing avg)", function () {
-		// 	const result = facade.addDataset("test", noavg, InsightDatasetKind.Sections);
-		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
-		//
-		// it("should reject with an invalid section (missing pass)", function () {
-		// 	const result = facade.addDataset("test", nopass, InsightDatasetKind.Sections);
-		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
-		//
-		// it("should reject with an invalid section (missing fail)", function () {
-		// 	const result = facade.addDataset("test", nofail, InsightDatasetKind.Sections);
-		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
-		//
-		// it("should reject with an invalid section (missing audit)", function () {
-		// 	const result = facade.addDataset("test", noaudit, InsightDatasetKind.Sections);
-		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
-		//
-		// it("should reject with an invalid section (missing year)", function () {
-		// 	const result = facade.addDataset("test", noyear, InsightDatasetKind.Sections);
-		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
-		//
-		// it("should reject with an invalid section (missing dept)", function () {
-		// 	const result = facade.addDataset("test", nodept, InsightDatasetKind.Sections);
-		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
-		//
-		// it("should reject with an invalid section (missing id)", function () {
-		// 	const result = facade.addDataset("test", noid, InsightDatasetKind.Sections);
-		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
-		//
-		// it("should reject with an invalid section (missing instructor)", function () {
-		// 	const result = facade.addDataset("test", noinst, InsightDatasetKind.Sections);
-		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
-		//
-		// it("should reject with an invalid section (missing title)", function () {
-		// 	const result = facade.addDataset("ubc", notitle, InsightDatasetKind.Sections);
-		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
-		//
-		// it("should reject with an invalid section (missing uuid)", function () {
-		// 	const result = facade.addDataset("test", nouuid, InsightDatasetKind.Sections);
-		// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
-		// });
+// INVALID SECTION TESTS
+// it("should reject with an invalid dataset (no valid rooms)", function () {
+// 	const result = facade.addDataset("campus", sectionsInvalid, InsightDatasetKind.Rooms);
+// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+// });
+//
+// it("should reject with an invalid section (missing avg)", function () {
+// 	const result = facade.addDataset("test", noavg, InsightDatasetKind.Sections);
+// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+// });
+//
+// it("should reject with an invalid section (missing pass)", function () {
+// 	const result = facade.addDataset("test", nopass, InsightDatasetKind.Sections);
+// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+// });
+//
+// it("should reject with an invalid section (missing fail)", function () {
+// 	const result = facade.addDataset("test", nofail, InsightDatasetKind.Sections);
+// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+// });
+//
+// it("should reject with an invalid section (missing audit)", function () {
+// 	const result = facade.addDataset("test", noaudit, InsightDatasetKind.Sections);
+// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+// });
+//
+// it("should reject with an invalid section (missing year)", function () {
+// 	const result = facade.addDataset("test", noyear, InsightDatasetKind.Sections);
+// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+// });
+//
+// it("should reject with an invalid section (missing dept)", function () {
+// 	const result = facade.addDataset("test", nodept, InsightDatasetKind.Sections);
+// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+// });
+//
+// it("should reject with an invalid section (missing id)", function () {
+// 	const result = facade.addDataset("test", noid, InsightDatasetKind.Sections);
+// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+// });
+//
+// it("should reject with an invalid section (missing instructor)", function () {
+// 	const result = facade.addDataset("test", noinst, InsightDatasetKind.Sections);
+// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+// });
+//
+// it("should reject with an invalid section (missing title)", function () {
+// 	const result = facade.addDataset("ubc", notitle, InsightDatasetKind.Sections);
+// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+// });
+//
+// it("should reject with an invalid section (missing uuid)", function () {
+// 	const result = facade.addDataset("test", nouuid, InsightDatasetKind.Sections);
+// 	return expect(result).to.eventually.be.rejectedWith(InsightError);
+// });
 
 // describe("performQuery Tests", function () {
 // 	let facade: InsightFacade;
