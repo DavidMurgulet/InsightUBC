@@ -24,7 +24,10 @@ const submitQuery = (year, average, operator) => {
 				"sections_avg",
 				"sections_year"
 			],
-			"ORDER": "sections_avg"
+			"ORDER": {
+				"dir": "DOWN",
+				"keys": ["sections_avg"]
+			}
 		}
 	};
 
