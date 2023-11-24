@@ -18,6 +18,7 @@
 
 <div class="container" style="text-align: center;">
 	<form id="query-form" onsubmit="return false;" style="align-items: center;">
+<!--		CHATGPT-->
 		<script>
 			// Add an event listener to the form
 			document.getElementById('query-form').addEventListener('submit', function (event) {
@@ -38,8 +39,16 @@
 				<label for="year-input">Enter a year</label>
 					<input type="number" id="year-input" min="0" max="2023"
 						   class="form-control form-control-lg w-25 mx-auto"
-						   placeholder="Year">
+						   placeholder="Year"
+					oninput="onlyNumber(this)">
 			</div>
+<!--			CHATGPT-->
+			<script>
+				function onlyNumber(inputElement) {
+					// Remove non-numeric characters using a regular expression
+					inputElement.value = inputElement.value.replace(/[^0-9]/g, '');
+				}
+			</script>
 			<div>
 				<label for="operator-input">Choose an option</label>
 				<select class="form-select form-select-lg w-25 mx-auto" id="operator-input">
@@ -53,7 +62,8 @@
 				<label for="avg-input">Enter an average grade</label>
 				<input type="number" id="avg-input" min="0" max="100"
 					   class="form-control form-control-lg w-25 mx-auto"
-					   placeholder="Average">
+					   placeholder="Average"
+				oninput="onlyNumber(this)">
 			</div>
 
 			<div class="mt-3">
