@@ -3841,7 +3841,7 @@ describe("performQueryORDER", function () {
 	folderTest<unknown, Promise<InsightResult[]>, PQErrorKind>(
 		"Dynamic InsightFacade PerformQuery tests Ordered",
 		(input) => facade.performQuery(input),
-		"./test/resources/sQuery",
+		"./test/resources/queries",
 		{
 			assertOnResult: (actual, expected) => {
 				assert.deepEqual(actual, expected);

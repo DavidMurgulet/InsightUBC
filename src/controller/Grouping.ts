@@ -15,20 +15,6 @@ export class Grouping {
 		this.data.push(val);
 	}
 
-	public calculateAvg(applyKey: string, field: string) {
-		const len = this.data.length;
-		let total = new Decimal(0);
-		for (const d of this.data) {
-			total = total.add(d[field]);
-		}
-
-		let avg = total.toNumber() / len;
-		let res = Number(avg.toFixed(2));
-		const obj: {[key: string]: number} = {};
-		obj[applyKey] = res;
-		this.applyKeys.push(obj);
-	}
-
 	public calculateMin(applyKey: string, field: string) {
 		if (this.data.length === 0) {
 			// no sections/rooms
@@ -59,6 +45,20 @@ export class Grouping {
 
 		const obj: {[key: string]: number} = {};
 		obj[applyKey] = max;
+		this.applyKeys.push(obj);
+	}
+
+	public calculateAvg(applyKey: string, field: string) {
+		const len = this.data.length;
+		let total = new Decimal(0);
+		for (const d of this.data) {
+			total = total.add(d[field]);
+		}
+
+		let avg = total.toNumber() / len;
+		let res = Number(avg.toFixed(2));
+		const obj: {[key: string]: number} = {};
+		obj[applyKey] = res;
 		this.applyKeys.push(obj);
 	}
 
