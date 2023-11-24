@@ -115,7 +115,6 @@ export default class Server {
 	};
 
 	public putDataset = async (req: Request, res: Response) => {
-
 		try {
 			console.log("Received PUT request"); // Log statement
 			const id: string = req.params.id;
@@ -172,7 +171,7 @@ export default class Server {
 
 	public getDataset = async (req: Request, res: Response) => {
 		console.log("getRequest");
-		const result = await this.facade.getDatasets();
+		const result = await this.facade.listDatasets();
 		res.status(200).json({result: result});
 	};
 

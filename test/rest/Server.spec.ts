@@ -9,6 +9,7 @@ import fs from "fs";
 
 
 let CAMPUS_ZIP_FILE_DATA = fs.readFileSync("test/resources/archives/campus.zip");
+let SECTIONS_ZIP = fs.readFileSync("test/resources/archives/pair.zip");
 describe("Facade C3", function () {
 	let server: Server;
 	let campus: string;
@@ -42,48 +43,42 @@ describe("Facade C3", function () {
 	});
 
 
-	// it("PUT /dataset/:id/:kind - Success Test", function () {
-	// 	return request(SERVER_URL)
-	// 		.put("/dataset/campus3/rooms")
-	// 		.send(campus3)
-	// 		.set("Content-Type", "application/x-zip-compressed")
-	// 		.then(function (res: Response) {
-	// 			expect(res.status).to.be.equal(200);
-	// 		})
-	// 		.catch(function (err) {
-	// 			console.log("Error during PUT request: " + err.message);
-	// 			expect.fail("PUT request failed");
-	// 		});
-	// });
+	it("PUT SUCCESS - CAMPUS/ROOMS ADDED", function () {
+		return request(SERVER_URL)
+			.put("/dataset/campus/rooms")
+			.send(CAMPUS_ZIP_FILE_DATA)
+			.set("Content-Type", "application/x-zip-compressed")
+			.then(function (res: Response) {
+				expect(res.status).to.be.equal(200);
+			})
+			.catch(function (err) {
+				console.log("Error during PUT request: " + err.message);
+				expect.fail("PUT request failed");
+			});
+	});
 
 	it("POST test", function () {
-		// request(SERVER_URL)
-		// 	.put("/dataset/campus3/rooms")
-		// 	.send(CAMPUS_ZIP_FILE_DATA)
-		// 	.set("Content-Type", "application/x-zip-compressed");
-
-
 		let query = {
 			WHERE: {
 				AND: [
 					{
 						IS: {
-							rooms_furniture: "*Tables*",
+							campus_furniture: "*Tables*",
 						},
 					},
 					{
 						GT: {
-							rooms_seats: 250,
+							campus_seats: 250,
 
 						},
 					},
 				],
 			},
 			OPTIONS: {
-				COLUMNS: ["rooms_shortname", "rooms_fullname", "rooms_seats"],
+				COLUMNS: ["campus_shortname", "campus_fullname", "campus_seats"],
 				ORDER: {
 					dir: "UP",
-					keys: ["rooms_seats"],
+					keys: ["campus_seats"],
 				},
 
 			},
@@ -101,19 +96,72 @@ describe("Facade C3", function () {
 	});
 
 
-	it("PUT /dataset/:id/:kind - Success Test", function () {
+	it("PUT FAIL - DUPLICATE ADDED", function () {
 		return request(SERVER_URL)
 			.put("/dataset/campus/rooms")
 			.send(CAMPUS_ZIP_FILE_DATA)
 			.set("Content-Type", "application/x-zip-compressed")
 			.then(function (res: Response) {
-				// Check if the status is 200
-				expect(res.status).to.be.equal(200);
-				// Additional assertions can be added here if needed
+				expect(res.status).to.be.equal(400);
 			})
 			.catch(function (err) {
 				console.log("Error during PUT request: " + err.message);
 				expect.fail("PUT request failed");
+			});
+	});
+
+	// it("PUT SUCCESS - SECTIONS/SECTIONS ADDED", function () {
+	// 	return request(SERVER_URL)
+	// 		.put("/dataset/sections/sections")
+	// 		.send(SECTIONS_ZIP)
+	// 		.set("Content-Type", "application/x-zip-compressed")
+	// 		.then(function (res: Response) {
+	// 			expect(res.status).to.be.equal(200);
+	// 		})
+	// 		.catch(function (err) {
+	// 			console.log("Error during PUT request: " + err.message);
+	// 			expect.fail("PUT request failed");
+	// 		});
+	// });
+
+	it("PUT FAIL - no type", function () {
+		return request(SERVER_URL)
+			.put("/dataset/sections")
+			.send(SECTIONS_ZIP)
+			.set("Content-Type", "application/x-zip-compressed")
+			.then(function (res: Response) {
+				expect(res.status).to.be.equal(400);
+			})
+			.catch(function (err) {
+				console.log("Error during PUT request: " + err.message);
+				expect.fail("PUT request failed");
+			});
+	});
+
+	it("PUT FAIL - Empty string type", function () {
+		return request(SERVER_URL)
+			.put("/dataset/sections/")
+			.send(SECTIONS_ZIP)
+			.set("Content-Type", "application/x-zip-compressed")
+			.then(function (res: Response) {
+				expect(res.status).to.be.equal(400);
+			})
+			.catch(function (err) {
+				console.log("Error during PUT request: " + err.message);
+				expect.fail("PUT request failed");
+			});
+	});
+
+	it("GET SUCCESS - 2 DATASETS", function () {
+		return request(SERVER_URL)
+			.get("/datasets")
+			.then(function (res: Response) {
+				// Check if the status is 200
+				console.log(res.body);
+				expect(res.status).to.be.equal(200);
+			})
+			.catch(function (err) {
+				expect.fail("shouldn't fail");
 			});
 	});
 
@@ -132,11 +180,27 @@ describe("Facade C3", function () {
 			});
 	});
 
-	it("GET", function () {
+	it("DELETE FAIL - DATASET NOT FOUND", function () {
+		return request(SERVER_URL)
+			.delete("/dataset/campus")
+			.then(function (res: Response) {
+				// Check if the status is 200
+				expect(res.status).to.be.equal(400);
+				// Additional assertions can be added here if needed
+			})
+			.catch(function (err) {
+				console.log("Error during DELETE request: " + err.message);
+				expect.fail("DELETE request failed");
+			});
+	});
+
+
+	it("GET SUCCESS - 1 DATASETS", function () {
 		return request(SERVER_URL)
 			.get("/datasets")
 			.then(function (res: Response) {
 				// Check if the status is 200
+				console.log(res.body);
 				expect(res.status).to.be.equal(200);
 			})
 			.catch(function (err) {
