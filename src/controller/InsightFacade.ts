@@ -169,19 +169,28 @@ export default class InsightFacade implements IInsightFacade {
 		}
 
 		try {
+			// Check if the file exists
 			await fs.promises.stat(dirPath);
+
+			// Remove the file
 			await fs.promises.unlink(dirPath);
 
 			const datasets = await this.getDatasets();
 			if (!datasets) {
 				return Promise.reject(new InsightError());
 			}
+
+			const datasetExists = datasets.some((dataset) => dataset.id === id);
+			if (!datasetExists) {
+				return Promise.reject(new NotFoundError()); // Reject if dataset does not exist
+			}
+
 			this.listOfDatasets = datasets.filter((dataset) => dataset.id !== id);
 
 			return id;
 		} catch (e) {
 			if ((e as any).code === "ENOENT") {
-				return Promise.reject(new NotFoundError());
+				return Promise.reject(new InsightError());
 			}
 			return Promise.reject(e);
 		}

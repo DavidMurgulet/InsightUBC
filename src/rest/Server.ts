@@ -9,6 +9,7 @@ export default class Server {
 	private readonly port: number;
 	private express: Application;
 	private server: http.Server | undefined;
+	public facade: InsightFacade;
 	constructor(port: number) {
 		console.info(`Server::<init>( ${port} )`);
 		this.port = port;
@@ -16,6 +17,8 @@ export default class Server {
 
 		this.registerMiddleware();
 		this.registerRoutes();
+
+		this.facade = new InsightFacade();
 
 		// NOTE: you can serve static frontend files in from your express server
 		// by uncommenting the line below. This makes files in ./frontend/public
@@ -98,8 +101,7 @@ export default class Server {
 			// add check for persistent data.
 			console.log("received POST request");
 			const query = req.body;
-			let facade = new InsightFacade();
-			const result = await facade.performQuery(query);
+			const result = await this.facade.performQuery(query);
 			res.status(200).json({result: result});
 		} catch (e) {
 			console.error("Error in POST", e);
@@ -113,7 +115,6 @@ export default class Server {
 	};
 
 	public putDataset = async (req: Request, res: Response) => {
-		let facade = new InsightFacade();
 
 		try {
 			console.log("Received PUT request"); // Log statement
@@ -133,7 +134,7 @@ export default class Server {
 			// Assuming the dataset is sent as a buffer in the request body and needs to be converted to base64
 			const content: string = Buffer.from(req.body).toString("base64");
 
-			const result = await facade.addDataset(id, content, kind);
+			const result = await this.facade.addDataset(id, content, kind);
 			res.status(200).json({result: result});
 		} catch (err) {
 			console.error("Error in putDataset", err);
@@ -147,7 +148,6 @@ export default class Server {
 	};
 
 	public deleteDataset = async (req: Request, res: Response) => {
-		let facade = new InsightFacade();
 
 		try {
 			console.log("Received DELETE request"); // Log statement
@@ -155,10 +155,10 @@ export default class Server {
 
 			console.log(`Dataset ID: ${id}`);
 
-			const result = await facade.removeDataset(id);
+			const result = await this.facade.removeDataset(id);
 			res.status(200).json({result: result});
 		} catch (err) {
-			console.error("Error in putDataset", err);
+			console.error("Error in deleteDataset", err);
 			// Determine the correct status code based on the error type
 			if (err instanceof InsightError) {
 				res.status(400).json({error: err.message});
@@ -172,8 +172,7 @@ export default class Server {
 
 	public getDataset = async (req: Request, res: Response) => {
 		console.log("getRequest");
-		let facade = new InsightFacade();
-		const result = await facade.getDatasets();
+		const result = await this.facade.getDatasets();
 		res.status(200).json({result: result});
 	};
 
