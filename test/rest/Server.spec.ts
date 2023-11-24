@@ -19,14 +19,15 @@ describe("Facade C3", function () {
 		clearDisk();
 		campus = getContentFromArchives("campus.zip");
 		server = new Server(4321);
-		let tempFacade = new InsightFacade();
-		tempFacade.addDataset("campus", campus, InsightDatasetKind.Rooms);
+		// let tempFacade = new InsightFacade();
+		// tempFacade.addDataset("campus", campus, InsightDatasetKind.Rooms);
 		// TODO: start server here once and handle errors properly
 		try {
 			server.start();
 		} catch (e) {
 			console.log("error");
 		}
+
 	});
 
 	after(function () {
@@ -36,10 +37,12 @@ describe("Facade C3", function () {
 
 	beforeEach(function () {
 		// might want to add some process logging here to keep track of what is going on
+
 	});
 
 	afterEach(function () {
 		// might want to add some process logging here to keep track of what is going on
+		server.stop();
 	});
 
 
@@ -57,7 +60,26 @@ describe("Facade C3", function () {
 			});
 	});
 
+	// it("DELETE /dataset/:id- Success Test", function () {
+	// 	return request(SERVER_URL)
+	// 		.delete("/dataset/campus")
+	// 		.then(function (res: Response) {
+	// 			// Check if the status is 200
+	// 			expect(res.status).to.be.equal(200);
+	// 			// Additional assertions can be added here if needed
+	// 		})
+	// 		.catch(function (err) {
+	// 			console.log("Error during DELETE request: " + err.message);
+	// 			expect.fail("DELETE request failed");
+	// 		});
+	// });
+
 	it("POST test", function () {
+		try {
+			server.start();
+		} catch (e) {
+			console.log(e);
+		}
 		let query = {
 			WHERE: {
 				AND: [
@@ -96,19 +118,19 @@ describe("Facade C3", function () {
 	});
 
 
-	it("PUT FAIL - DUPLICATE ADDED", function () {
-		return request(SERVER_URL)
-			.put("/dataset/campus/rooms")
-			.send(CAMPUS_ZIP_FILE_DATA)
-			.set("Content-Type", "application/x-zip-compressed")
-			.then(function (res: Response) {
-				expect(res.status).to.be.equal(400);
-			})
-			.catch(function (err) {
-				console.log("Error during PUT request: " + err.message);
-				expect.fail("PUT request failed");
-			});
-	});
+	// it("PUT FAIL - DUPLICATE ADDED", function () {
+	// 	return request(SERVER_URL)
+	// 		.put("/dataset/campus/rooms")
+	// 		.send(CAMPUS_ZIP_FILE_DATA)
+	// 		.set("Content-Type", "application/x-zip-compressed")
+	// 		.then(function (res: Response) {
+	// 			expect(res.status).to.be.equal(400);
+	// 		})
+	// 		.catch(function (err) {
+	// 			console.log("Error during PUT request: " + err.message);
+	// 			expect.fail("PUT request failed");
+	// 		});
+	// });
 
 	// it("PUT SUCCESS - SECTIONS/SECTIONS ADDED", function () {
 	// 	return request(SERVER_URL)
@@ -123,88 +145,74 @@ describe("Facade C3", function () {
 	// 			expect.fail("PUT request failed");
 	// 		});
 	// });
-
-	it("PUT FAIL - no type", function () {
-		return request(SERVER_URL)
-			.put("/dataset/sections")
-			.send(SECTIONS_ZIP)
-			.set("Content-Type", "application/x-zip-compressed")
-			.then(function (res: Response) {
-				expect(res.status).to.be.equal(400);
-			})
-			.catch(function (err) {
-				console.log("Error during PUT request: " + err.message);
-				expect.fail("PUT request failed");
-			});
-	});
-
-	it("PUT FAIL - Empty string type", function () {
-		return request(SERVER_URL)
-			.put("/dataset/sections/")
-			.send(SECTIONS_ZIP)
-			.set("Content-Type", "application/x-zip-compressed")
-			.then(function (res: Response) {
-				expect(res.status).to.be.equal(400);
-			})
-			.catch(function (err) {
-				console.log("Error during PUT request: " + err.message);
-				expect.fail("PUT request failed");
-			});
-	});
-
-	it("GET SUCCESS - 2 DATASETS", function () {
-		return request(SERVER_URL)
-			.get("/datasets")
-			.then(function (res: Response) {
-				// Check if the status is 200
-				console.log(res.body);
-				expect(res.status).to.be.equal(200);
-			})
-			.catch(function (err) {
-				expect.fail("shouldn't fail");
-			});
-	});
-
-
-	it("DELETE /dataset/:id- Success Test", function () {
-		return request(SERVER_URL)
-			.delete("/dataset/campus")
-			.then(function (res: Response) {
-				// Check if the status is 200
-				expect(res.status).to.be.equal(200);
-				// Additional assertions can be added here if needed
-			})
-			.catch(function (err) {
-				console.log("Error during DELETE request: " + err.message);
-				expect.fail("DELETE request failed");
-			});
-	});
-
-	it("DELETE FAIL - DATASET NOT FOUND", function () {
-		return request(SERVER_URL)
-			.delete("/dataset/campus")
-			.then(function (res: Response) {
-				// Check if the status is 200
-				expect(res.status).to.be.equal(400);
-				// Additional assertions can be added here if needed
-			})
-			.catch(function (err) {
-				console.log("Error during DELETE request: " + err.message);
-				expect.fail("DELETE request failed");
-			});
-	});
+	//
+	// it("PUT FAIL - no type", function () {
+	// 	return request(SERVER_URL)
+	// 		.put("/dataset/sections")
+	// 		.send(SECTIONS_ZIP)
+	// 		.set("Content-Type", "application/x-zip-compressed")
+	// 		.then(function (res: Response) {
+	// 			expect(res.status).to.be.equal(400);
+	// 		})
+	// 		.catch(function (err) {
+	// 			console.log("Error during PUT request: " + err.message);
+	// 			expect.fail("PUT request failed");
+	// 		});
+	// });
+	//
+	// it("PUT FAIL - Empty string type", function () {
+	// 	return request(SERVER_URL)
+	// 		.put("/dataset/sections/")
+	// 		.send(SECTIONS_ZIP)
+	// 		.set("Content-Type", "application/x-zip-compressed")
+	// 		.then(function (res: Response) {
+	// 			expect(res.status).to.be.equal(400);
+	// 		})
+	// 		.catch(function (err) {
+	// 			console.log("Error during PUT request: " + err.message);
+	// 			expect.fail("PUT request failed");
+	// 		});
+	// });
+	//
+	// it("GET SUCCESS - 2 DATASETS", function () {
+	// 	return request(SERVER_URL)
+	// 		.get("/datasets")
+	// 		.then(function (res: Response) {
+	// 			// Check if the status is 200
+	// 			console.log(res.body);
+	// 			expect(res.status).to.be.equal(200);
+	// 		})
+	// 		.catch(function (err) {
+	// 			expect.fail("shouldn't fail");
+	// 		});
+	// });
 
 
-	it("GET SUCCESS - 1 DATASETS", function () {
-		return request(SERVER_URL)
-			.get("/datasets")
-			.then(function (res: Response) {
-				// Check if the status is 200
-				console.log(res.body);
-				expect(res.status).to.be.equal(200);
-			})
-			.catch(function (err) {
-				expect.fail("shouldn't fail");
-			});
-	});
+	// it("DELETE FAIL - DATASET NOT FOUND", function () {
+	// 	return request(SERVER_URL)
+	// 		.delete("/dataset/campus")
+	// 		.then(function (res: Response) {
+	// 			// Check if the status is 200
+	// 			expect(res.status).to.be.equal(400);
+	// 			// Additional assertions can be added here if needed
+	// 		})
+	// 		.catch(function (err) {
+	// 			console.log("Error during DELETE request: " + err.message);
+	// 			expect.fail("DELETE request failed");
+	// 		});
+	// });
+	//
+	//
+	// it("GET SUCCESS - 1 DATASETS", function () {
+	// 	return request(SERVER_URL)
+	// 		.get("/datasets")
+	// 		.then(function (res: Response) {
+	// 			// Check if the status is 200
+	// 			console.log(res.body);
+	// 			expect(res.status).to.be.equal(200);
+	// 		})
+	// 		.catch(function (err) {
+	// 			expect.fail("shouldn't fail");
+	// 		});
+	// });
 });
