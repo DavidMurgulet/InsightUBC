@@ -160,39 +160,42 @@ export default class InsightFacade implements IInsightFacade {
 
 	public async removeDataset(id: string): Promise<string> {
 		await this.ensureInitialized();
-		// path for data folders
+		// Path for data folders
 		let dirPath = persistDir + "/" + id + ".json";
-
-		// checks for invalid id,
+		// Checks for invalid id
 		if (!id || typeof id !== "string" || id.includes("_") || id.includes(" ") || id.trim() === "") {
-			return Promise.reject(new InsightError());
+			throw new InsightError("Invalid ID format");
 		}
-
 		try {
 			// Check if the file exists
 			await fs.promises.stat(dirPath);
-
+		} catch (e: any) {
+			if ((e as any).code === "ENOENT") {
+				throw new NotFoundError(`Dataset with ID '${id}' does not exist on disk`);
+			} else {
+				throw new InsightError(`Error accessing dataset file: ${e.message}`);
+			}
+		}
+		try {
 			// Remove the file
 			await fs.promises.unlink(dirPath);
-
+		} catch (e: any) {
+			throw new InsightError(`Error deleting dataset file: ${e.message}`);
+		}
+		try {
 			const datasets = await this.getDatasets();
 			if (!datasets) {
-				return Promise.reject(new InsightError());
+				throw new InsightError("Loaded datasets are null");
 			}
 
 			const datasetExists = datasets.some((dataset) => dataset.id === id);
 			if (!datasetExists) {
-				return Promise.reject(new NotFoundError()); // Reject if dataset does not exist
+				throw new NotFoundError(`Dataset with ID '${id}' not found in loaded datasets`);
 			}
-
 			this.listOfDatasets = datasets.filter((dataset) => dataset.id !== id);
-
 			return id;
-		} catch (e) {
-			if ((e as any).code === "ENOENT") {
-				return Promise.reject(new InsightError());
-			}
-			return Promise.reject(e);
+		} catch (e: any) {
+			throw new InsightError(`Error processing dataset removal: ${e.message}`);
 		}
 	}
 
@@ -218,7 +221,7 @@ export default class InsightFacade implements IInsightFacade {
 					} else if (k === "TRANSFORMATIONS") {
 						transformations = parseTransformations(subQuery, k);
 					} else {
-						return Promise.reject(new InsightError());
+						return Promise.reject(new InsightError("InsightError"));
 					}
 				}
 			}
@@ -278,7 +281,7 @@ export default class InsightFacade implements IInsightFacade {
 		return new Promise((resolve, reject) => {
 			try {
 				if (!this.listOfDatasets) {
-					return Promise.reject(new InsightError());
+					return Promise.reject(new InsightError("InsightError listOfDatasets null"));
 				}
 				const datasetsInfo = this.listOfDatasets.map((dataset) => {
 					return {

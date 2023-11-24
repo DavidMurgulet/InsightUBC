@@ -215,4 +215,44 @@ describe("Facade C3", function () {
 	// 			expect.fail("shouldn't fail");
 	// 		});
 	// });
+	it("DELETE /dataset/:id- Success Test", function () {
+		return request(SERVER_URL)
+			.delete("/dataset/campus")
+			.then(function (res: Response) {
+				// Check if the status is 200
+				expect(res.status).to.be.equal(200);
+			})
+			.catch(function (err) {
+				console.log("Error during DELETE request: " + err.message);
+				expect.fail("DELETE request failed");
+			});
+	});
+
+	it("DELETE FAIL - DATASET NOT FOUND", function () {
+		return request(SERVER_URL)
+			.delete("/dataset/campus")
+			.then(function (res: Response) {
+				// Check if the status is 200
+				expect(res.status).to.be.equal(400);
+				// Additional assertions can be added here if needed
+			})
+			.catch(function (err) {
+				console.log("Error during DELETE request: " + err.message);
+				expect.fail("DELETE request failed");
+			});
+	});
+
+
+	it("GET SUCCESS - 1 DATASETS", function () {
+		return request(SERVER_URL)
+			.get("/datasets")
+			.then(function (res: Response) {
+				// Check if the status is 200
+				console.log(res.body);
+				expect(res.status).to.be.equal(200);
+			})
+			.catch(function (err) {
+				expect.fail("shouldn't fail");
+			});
+	});
 });
