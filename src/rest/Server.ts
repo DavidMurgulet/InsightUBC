@@ -115,7 +115,6 @@ export default class Server {
 	};
 
 	public putDataset = async (req: Request, res: Response) => {
-
 		try {
 			console.log("Received PUT request"); // Log statement
 			const id: string = req.params.id;
