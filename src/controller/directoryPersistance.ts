@@ -32,7 +32,7 @@ export async function loadDatasetsFromDirectory(directory: string): Promise<Data
 				console.error(`Error processing file ${file}: ${error}`);
 			}
 		}
-		return Promise.resolve(datasets);
+		return Promise.resolve(Array.from(new Set(datasets)));
 	} catch (error) {
 		console.error(`Error reading directory ${directory}: ${error}`);
 		return Promise.reject(error);

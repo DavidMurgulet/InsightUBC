@@ -172,7 +172,7 @@ export default class Server {
 
 	public getDataset = async (req: Request, res: Response) => {
 		console.log("getRequest");
-		const result = await this.facade.getDatasets();
+		const result = await this.facade.listDatasets();
 		res.status(200).json({result: result});
 	};
 
