@@ -170,7 +170,6 @@ export default class Server {
 		}
 	};
 
-
 	public getDataset = async (req: Request, res: Response) => {
 		console.log("getRequest");
 		let facade = new InsightFacade();
