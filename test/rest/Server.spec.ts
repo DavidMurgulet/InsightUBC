@@ -86,7 +86,6 @@ describe("Facade C3", function () {
 			.then(function (res: Response) {
 				// Check if the status is 200
 				expect(res.status).to.be.equal(200);
-				// Additional assertions can be added here if needed
 			})
 			.catch(function (err) {
 				console.log("Error during PUT request: " + err.message);
@@ -100,7 +99,6 @@ describe("Facade C3", function () {
 			.then(function (res: Response) {
 				// Check if the status is 200
 				expect(res.status).to.be.equal(200);
-				// Additional assertions can be added here if needed
 			})
 			.catch(function (err) {
 				console.log("Error during DELETE request: " + err.message);
