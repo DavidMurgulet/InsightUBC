@@ -3,7 +3,7 @@ import * as http from "http";
 import cors from "cors";
 import {pseudoRandomBytes} from "crypto";
 import InsightFacade from "../controller/InsightFacade";
-import {InsightDatasetKind, InsightError, NotFoundError} from "../controller/IInsightFacade";
+import {InsightDatasetKind, InsightError, NotFoundError, ResultTooLargeError} from "../controller/IInsightFacade";
 
 export default class Server {
 	private readonly port: number;
@@ -106,7 +106,7 @@ export default class Server {
 		} catch (e) {
 			console.error("Error in POST", e);
 			// Determine the correct status code based on the error type
-			if (e instanceof InsightError) {
+			if (e instanceof InsightError || e instanceof ResultTooLargeError) {
 				res.status(400).json({error: e.message});
 			} else {
 				res.status(500).json({error: "Internal Server Error"});
@@ -147,7 +147,6 @@ export default class Server {
 	};
 
 	public deleteDataset = async (req: Request, res: Response) => {
-
 		try {
 			console.log("Received DELETE request"); // Log statement
 			const id: string = req.params.id;
