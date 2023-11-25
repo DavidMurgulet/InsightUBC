@@ -7,7 +7,6 @@ import {clearDisk, getContentFromArchives} from "../TestUtil";
 import {InsightDatasetKind} from "../../src/controller/IInsightFacade";
 import fs from "fs";
 
-
 let CAMPUS_ZIP_FILE_DATA = fs.readFileSync("test/resources/archives/campus.zip");
 let SECTIONS_ZIP = fs.readFileSync("test/resources/archives/pair.zip");
 describe("Facade C3", function () {
@@ -27,7 +26,6 @@ describe("Facade C3", function () {
 		} catch (e) {
 			console.log("error");
 		}
-
 	});
 
 	after(function () {
@@ -37,14 +35,12 @@ describe("Facade C3", function () {
 
 	beforeEach(function () {
 		// might want to add some process logging here to keep track of what is going on
-
 	});
 
 	afterEach(function () {
 		// might want to add some process logging here to keep track of what is going on
 		server.stop();
 	});
-
 
 	it("PUT SUCCESS - CAMPUS/ROOMS ADDED", function () {
 		return request(SERVER_URL)
@@ -91,7 +87,6 @@ describe("Facade C3", function () {
 					{
 						GT: {
 							campus_seats: 250,
-
 						},
 					},
 				],
@@ -102,7 +97,6 @@ describe("Facade C3", function () {
 					dir: "UP",
 					keys: ["campus_seats"],
 				},
-
 			},
 		};
 		return request(SERVER_URL)
@@ -116,7 +110,6 @@ describe("Facade C3", function () {
 				expect.fail("POST request failed");
 			});
 	});
-
 
 	// it("PUT FAIL - DUPLICATE ADDED", function () {
 	// 	return request(SERVER_URL)
@@ -187,7 +180,6 @@ describe("Facade C3", function () {
 	// 		});
 	// });
 
-
 	// it("DELETE FAIL - DATASET NOT FOUND", function () {
 	// 	return request(SERVER_URL)
 	// 		.delete("/dataset/campus")
@@ -241,7 +233,6 @@ describe("Facade C3", function () {
 				expect.fail("DELETE request failed");
 			});
 	});
-
 
 	it("GET SUCCESS - 1 DATASETS", function () {
 		return request(SERVER_URL)

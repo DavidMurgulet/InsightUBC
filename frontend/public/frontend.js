@@ -3,6 +3,7 @@ document.getElementById('query-form').addEventListener('submit', function (event
 	// Prevent the default form submission behavior
 	event.preventDefault();
 
+
 	// Get the form values
 	const year = Number(document.getElementById('year-dropdown').value);
 	const department = String(document.getElementById('dept-input').value).toLowerCase();
@@ -11,9 +12,21 @@ document.getElementById('query-form').addEventListener('submit', function (event
 	const operator = String(document.getElementById('operator-input').value);
 	const operatorValue = Number(document.getElementById('operator-value-input').value);
 
+	// Validate operatorValue for 'average' attribute
+	if (attribute === 'avg' && (operatorValue < 0 || operatorValue > 100)) {
+		displayErrorMessage('Average value must be between 0 and 100.');
+		return; // Exit the function to prevent the query from being submitted
+	}
+
 	// Call the submitQuery function with the form values
 	submitQuery(year, department, courseNumber, attribute, operator, operatorValue);
 });
+
+function displayErrorMessage(message) {
+	const errorMessageElement = document.getElementById('error-message');
+	errorMessageElement.textContent = message;
+	errorMessageElement.style.display = 'block'; // Show the error message
+}
 
 //	Citation: RegX From ChatGTP
 function onlyNumber(inputElement) {
@@ -118,12 +131,25 @@ function makeQuery(year, department, courseNumber, attribute, operator, operator
 					}
 				}
 			];
+	} else if (operatorValue) {
+			query.WHERE["AND"] = [
+				{
+					[operator]: {
+						[`sections_${attribute}`]: operatorValue
+					}
+				},
+				{
+					"EQ": {
+						"sections_year": year
+					}
+				}
+			];
 	} else {
-		query.WHERE = {
-			"EQ": {
-				"sections_year": year
-			}
-		};
+			query.WHERE = {
+				"EQ": {
+					"sections_year": year
+				}
+			};
 	}
 
 	query.OPTIONS["COLUMNS"] = [
