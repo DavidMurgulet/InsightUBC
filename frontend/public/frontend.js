@@ -22,7 +22,12 @@ document.getElementById('query-form').addEventListener('submit', function (event
 	submitQuery(year, department, courseNumber, attribute, operator, operatorValue);
 });
 
+function clearTable() {
+	const table = document.getElementById('result-table');
+	table.innerHTML = ''; // Clear existing table content
+}
 function displayErrorMessage(message) {
+	clearTable();
 	const errorMessageElement = document.getElementById('error-message');
 	errorMessageElement.textContent = message;
 	errorMessageElement.style.display = 'block'; // Show the error message
@@ -212,11 +217,9 @@ function submitQuery(year, department, courseNumber, attribute, operator, operat
 
 // CHAT GPT
 function displayResults(results) {
-	// Assuming there is a table element with id "result-table" in your HTML
-	const table = document.getElementById('result-table');
 
-	// Clear existing table content
-	table.innerHTML = '';
+	clearTable();
+	const table = document.getElementById('result-table');
 
 	// Check if results is not null and not undefined
 	if (results && results.length > 0) {
