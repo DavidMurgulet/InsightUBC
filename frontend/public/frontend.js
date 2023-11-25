@@ -24,13 +24,15 @@ function onlyNumber(inputElement) {
 //	Citation: RegX From ChatGTP
 function onlyDept(inputElement) {
 	// Accept only 4-letter alphabetic input
-	inputElement.value = inputElement.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+	inputElement.value = inputElement.value.toUpperCase().replace(/[^A-Z*]/g, '').slice(0, 4);
 }
 
+//	Citation: RegX From ChatGTP
 function onlyCourseNumber(inputElement) {
-	// Accept only 3-char numeric input
-	inputElement.value = inputElement.value.toUpperCase().replace(/[^0-9]/g, '').slice(0, 3);
+	// Accept only 3-char numeric input or * for wildcard search
+	inputElement.value = inputElement.value.toUpperCase().replace(/[^0-9*]/g, '').slice(0, 3);
 }
+
 
 
 function makeQuery(year, department, courseNumber, attribute, operator, operatorValue) {
@@ -80,6 +82,42 @@ function makeQuery(year, department, courseNumber, attribute, operator, operator
 				}
 			}
 		];
+	} else if (operatorValue && department) {
+		query.WHERE["AND"] = [
+			{
+				[operator]: {
+					[`sections_${attribute}`]: operatorValue
+				}
+			},
+			{
+				"EQ": {
+					"sections_year": year
+				}
+			},
+			{
+				"IS": {
+					"sections_dept": department
+				}
+			}
+		];
+	} else if (operatorValue && courseNumber) {
+			query.WHERE["AND"] = [
+				{
+					[operator]: {
+						[`sections_${attribute}`]: operatorValue
+					}
+				},
+				{
+					"EQ": {
+						"sections_year": year
+					}
+				},
+				{
+					"IS": {
+						"sections_id": courseNumber
+					}
+				}
+			];
 	} else {
 		query.WHERE = {
 			"EQ": {
