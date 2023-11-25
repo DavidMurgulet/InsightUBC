@@ -99,7 +99,7 @@ export default class Server {
 	public postQuery = async (req: Request, res: Response) => {
 		try {
 			// add check for persistent data.
-			console.log("received POST request");
+			console.log("received POST request :" + JSON.stringify(req.body));
 			const query = req.body;
 			const result = await this.facade.performQuery(query);
 			res.status(200).json({result: result});
