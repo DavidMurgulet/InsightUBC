@@ -24,13 +24,15 @@ function onlyNumber(inputElement) {
 //	Citation: RegX From ChatGTP
 function onlyDept(inputElement) {
 	// Accept only 4-letter alphabetic input
-	inputElement.value = inputElement.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 4);
+	inputElement.value = inputElement.value.toUpperCase().replace(/[^A-Z*]/g, '').slice(0, 6);
 }
 
+//	Citation: RegX From ChatGTP
 function onlyCourseNumber(inputElement) {
-	// Accept only 3-char numeric input
-	inputElement.value = inputElement.value.toUpperCase().replace(/[^0-9]/g, '').slice(0, 3);
+	// Accept only 3-char numeric input or * for wildcard search
+	inputElement.value = inputElement.value.toUpperCase().replace(/[^0-9*]/g, '').slice(0, 5);
 }
+
 
 
 function makeQuery(year, department, courseNumber, attribute, operator, operatorValue) {
@@ -80,6 +82,42 @@ function makeQuery(year, department, courseNumber, attribute, operator, operator
 				}
 			}
 		];
+	} else if (operatorValue && department) {
+		query.WHERE["AND"] = [
+			{
+				[operator]: {
+					[`sections_${attribute}`]: operatorValue
+				}
+			},
+			{
+				"EQ": {
+					"sections_year": year
+				}
+			},
+			{
+				"IS": {
+					"sections_dept": department
+				}
+			}
+		];
+	} else if (operatorValue && courseNumber) {
+			query.WHERE["AND"] = [
+				{
+					[operator]: {
+						[`sections_${attribute}`]: operatorValue
+					}
+				},
+				{
+					"EQ": {
+						"sections_year": year
+					}
+				},
+				{
+					"IS": {
+						"sections_id": courseNumber
+					}
+				}
+			];
 	} else {
 		query.WHERE = {
 			"EQ": {
@@ -167,15 +205,38 @@ function displayResults(results) {
 		// Create header row with Bootstrap classes
 		const headerRow = theadElement.insertRow();
 
-		// Get the keys from the first result item to create column headers
-		const keys = Object.keys(results[0]);
-
-		keys.forEach(key => {
+		// Use a switch-case to map keys to human-readable column headers
+		for (const key in results[0]) {
 			const th = document.createElement('th');
 			th.classList.add('text-center'); // Optional: center align header text
-			th.textContent = key;
+			switch(key) {
+				case "sections_dept":
+					th.textContent = "Department";
+					break;
+				case "sections_id":
+					th.textContent = "Course Number";
+					break;
+				case "sections_avg":
+					th.textContent = "Average";
+					break;
+				case "sections_year":
+					th.textContent = "Year";
+					break;
+				case "sections_audit":
+					th.textContent = "Audit";
+					break;
+				case "sections_fail":
+					th.textContent = "Fail";
+					break;
+				case "sections_pass":
+					th.textContent = "Pass";
+					break;
+				// Add more cases as needed
+				default:
+					th.textContent = key; // Fallback to the key itself if no specific case is matched
+			}
 			headerRow.appendChild(th);
-		});
+		}
 
 		// Append the header to the table
 		tableElement.appendChild(theadElement);
@@ -186,11 +247,11 @@ function displayResults(results) {
 		// Create data rows with Bootstrap classes
 		results.forEach(item => {
 			const row = tbodyElement.insertRow();
-			keys.forEach(key => {
+			for (const key in results[0]) {
 				const cell = row.insertCell();
 				cell.classList.add('text-center'); // Optional: center align cell text
 				cell.textContent = item[key];
-			});
+			}
 		});
 
 		// Append the body to the table
@@ -205,3 +266,4 @@ function displayResults(results) {
 		table.appendChild(noResultsMessage);
 	}
 }
+
